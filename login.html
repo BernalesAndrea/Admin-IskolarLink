@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: url('iskolarbg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .container1 {
+            height: 500px;
+            width: 750px;
+            background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
+            border-radius: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 20px 50px 20px 70px;
+
+        }
+
+        .container11 {
+            height: 450px;
+            width: 400px;
+            background-color: #FFFF;
+            border-radius: 20px;
+            margin-right: 10px;
+            padding-left: 30px;
+            padding-right: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .container111 {
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center everything horizontally */
+            text-align: left;
+            /* Align text left inside children */
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+        }
+
+        .logos {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+
+        }
+
+        .container111 img {
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+
+        .container111 h1 {
+            font-family: 'Times New Roman', Times, serif;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 16px;
+        }
+
+        .textBox {
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .textBox label {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: black;
+            background-color: white;
+            padding: 0 5px;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .textBox input {
+            width: 100%;
+            height: 40px;
+            font-size: 16px;
+            color: black;
+            border: 2px solid black;
+            outline: none;
+            border-radius: 20px;
+            padding-left: 15px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .textBox input:focus~label,
+        .textBox input:valid~label {
+            top: 0;
+            font-size: 12px;
+            background-color: #FFFF;
+        }
+
+        .forgot-password {
+            font-family: 'Times New Roman', Times, serif;
+            margin: -10px 0 20px 0;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            /* Makes underline only as wide as the text */
+            text-align: right;
+        }
+
+        .forgot-password::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            width: 100%;
+            background-color: black;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .forgot-password:hover::after {
+            transform: scaleX(1);
+        }
+
+        .submitButton {
+            width: 108%;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border: none;
+            border-radius: 20px;
+            background-color: #923B3B;
+            color: white;
+            font-size: 16px;
+            font-family: 'Times New Roman', Times, serif;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: block;
+            text-decoration: none; /* removes underline from <a> */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+
+        .continue-text {
+            text-align: center;
+            font-size: 16px;
+            color: rgb(65, 65, 65);
+            font-family: 'Times New Roman', Times, serif;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="container1">
+            <div class="container11">
+                <div class="container111">
+                    <div>
+                        <img src="iskolarlink.png" width="125" height="60" style="margin-bottom: 10px;">
+                        <h1>Login</h1>
+
+                        <div class="textBox">
+                            <input type="text" required>
+                            <label>Email</label>
+                        </div>
+
+                        <div class="textBox">
+                            <input type="password" required>
+                            <label>Password</label>
+                        </div>
+
+                        <p class="forgot-password">Forgot Password?</p>
+
+                        <a href="homepage.html" class="submitButton">Sign In</a>
+
+                        <p class="continue-text">or Continue With</p>
+
+                    </div>
+                </div>
+            </div>
+            <div class="logo">
+                <div><img src="iskolarlink.png" width="375" height="200"></div>
+                <div class="logos">
+                    <div><img src="citylogo.png" width="150" height="150"></div>
+                    <div><img src="iskologo.png" width="165" height="165"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
