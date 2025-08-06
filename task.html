@@ -40,7 +40,7 @@
       padding: 20px;
     }
 
-    .displayEventContainer {
+    .assignedTasks {
       width: 300px;
       height: 450px;
       background-color: #fff;
@@ -53,7 +53,7 @@
       gap: 10px;
     }
 
-    .eventContainer {
+    .createTask {
       width: 500px;
       height: 450px;
       background-color: #fff;
@@ -66,7 +66,7 @@
       gap: 10px;
     }
 
-    .eventContainer h2 {
+    .assignedTasks h2 {
       margin-bottom: 10px;
       justify-content: first baseline;
     }
@@ -88,39 +88,14 @@
       padding: 8px 12px;
     }
 
-    .datetimeRow {
-      display: flex;
-      gap: 20px;
-    }
-
-    .datetimeRow .inputGroup {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-
-    .datetimeRow .inputGroup input {
-      background-color: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
-      font-weight: bold;
-      border: none;
-      height: 38px;
-      /* same height across all inputs */
-      width: 100%;
-      /* full width in its flex container */
-      box-sizing: border-box;
-    }
-
-
-    .eventDescription textarea {
+    .taskDescription textarea {
       background-color: rgb(201, 201, 201);
       margin-top: 5px;
       border-radius: 20px;
       padding: 8px 12px;
       resize: none;
       width: 100%;
-      height: 80px;
+      height: 100px;
     }
 
     .createButton {
@@ -139,6 +114,30 @@
       cursor: pointer;
       font-weight: bold;
     }
+
+    .dateRow {
+      display: flex;
+      gap: 20px;
+    }
+
+    .dateRow .inputGroup {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .dateRow .inputGroup input {
+      background-color: rgb(201, 201, 201);
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-weight: bold;
+      border: none;
+      height: 38px;
+      /* same height across all inputs */
+      width: 100%;
+      /* full width in its flex container */
+      box-sizing: border-box;
+    }
   </style>
 </head>
 
@@ -146,45 +145,36 @@
   <main>
     <div class="mainContainer">
       <!-- Display Event (left) -->
-      <div class="displayEventContainer">
-        <h2>Upcoming Events</h2>
+      <div class="assignedTasks">
+        <h2>Assigned Tasks</h2>
       </div>
 
       <!-- Create Event (right) -->
-      <div class="eventContainer">
-        <h2>Create Event</h2>
+      <div class="createTask">
+        <h2>Create Task</h2>
         <div class="inputBox">
-          <label>Event Name</label>
+          <label>Task Title</label>
           <input type="text" required>
 
-          <div class="datetimeRow"> <!--NEED TO CHANGE INTO DATE AND TIME BUTTON-->
+          <div class="dateRow"> <!--NEED TO CHANGE INTO DATE BUTTON-->
             <div class="inputGroup">
-              <label>Date</label>
+              <label>Start Date</label>
               <input type="date" required>
             </div>
             <div class="inputGroup">
-              <label>Time</label>
-              <input type="time" required>
-            </div>
-            <div class="inputGroup">
-              <label>Duration</label>
-              <input type="text" placeholder="e.g. 1h 30m" pattern="^(\d+h)?\s*(\d+m)?$" title="Format: 1h 30m"
-                required>
+              <label>Due Date</label>
+              <input type="date" required>
             </div>
           </div>
 
-
-          <label>Location</label>
-          <input type="text" required>
-
-          <div class="eventDescription">
-            <label>Event Description</label>
+          <div class="taskDescription">
+            <label>Task Description</label>
             <textarea required></textarea>
           </div>
 
           <div class="createButton">
             <button type="reset">Reset</button>
-            <button type="submit">Create Event</button>
+            <button type="submit">Create Task</button>
           </div>
         </div>
       </div>

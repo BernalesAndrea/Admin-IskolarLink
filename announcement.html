@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcement Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            outline: none;
+            border: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('iskolarbg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .mainContainer {
+            width: 840px;
+            height: 550px;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .announceBox {
+            width: 750px;
+            height: 450px;
+            background-color: #fff;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .title {
+            color: black;
+            margin-bottom: 10px;
+        }
+
+        .inputRow {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .inputGroup {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inputGroup label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .inputGroup input {
+            background-color: rgb(201, 201, 201);
+            border-radius: 20px;
+            padding: 8px 12px;
+        }
+
+        .announceDescription textarea {
+            background-color: rgb(201, 201, 201);
+            margin-top: 5px;
+            border-radius: 20px;
+            padding: 8px 12px;
+            resize: none;
+            width: 100%;
+            height: 100px;
+        }
+
+        .announceDescription label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+
+        .uploadBox {
+            width: 100%;
+            height: 120px;
+            background-color: #f0f0f0;
+            border: 2px dashed #888;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-align: center;
+            font-weight: bold;
+            color: black;
+        }
+
+        .uploadBox:hover {
+            background-color: #e0e0e0;
+        }
+
+        .createButton {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .createButton button {
+            height: 35px;
+            padding: 0 16px;
+            border-radius: 10px;
+            background-color: rgba(146, 59, 59);
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mainContainer">
+        <div class="announceBox">
+            <h2 class="title">Create New Announcement</h2>
+            <div class="inputRow">
+                <div class="inputGroup">
+                    <label>Announcement Title</label>
+                    <input type="text" required>
+                </div>
+                <div class="inputGroup"> <!--NEED TO CHANGE INTO URL BOX-->
+                    <label>Facebook Link</label>
+                    <input type="text" required>
+                </div>
+            </div>
+            <div class="announceDescription">
+                <label>Announcement Description</label>
+                <textarea required></textarea>
+            </div>
+
+            <div class="uploadBox">
+                <label>Upload Media</label>
+            </div>
+
+            <div class="createButton">
+                <button type="reset">Reset</button>
+                <button type="submit">Create Announcement</button>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>
