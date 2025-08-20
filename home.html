@@ -30,6 +30,7 @@
 
     header {
         width: 100%;
+        height: auto;
         background-color: transparent;
         padding: 10px 20px;
         z-index: 1001;
@@ -38,6 +39,60 @@
         left: 0;
         text-align: center;
     }
+
+.header-content {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+     max-width: 1000px;
+     margin: 0 auto;
+}
+
+.profile-box {
+    display: flex;
+    width: auto;
+    align-items: center;
+    background-color: white;
+    border: 2px solid rgba(146, 59, 59);
+    padding: 5px 10px;
+    border-radius: 25px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.head {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.head img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nameRole {
+    display: flex;
+    flex-direction: column;
+    margin-left: 8px;
+    text-align: left;
+}
+
+.nameRole .name {
+    font-weight: bold;
+    font-size: 14px;
+    color: black;
+    margin: 0;
+}
+
+.nameRole .role {
+    font-size: 12px;
+    color: gray;
+    margin: 0;
+}
+
 
     .main-wrapper {
         padding: 100px 20px 20px;
@@ -119,9 +174,23 @@
         font-size: 16px;
         background-color: white
     }
+
 </style>
 
 <body>
+<header>
+    <div class="header-content">
+        <div class="profile-box">
+            <div class="head">
+                <img src="profile.jpg" alt="Profile" />
+            </div>
+            <div class="nameRole">
+                <p class="name">Andrea</p>
+                <p class="role">Moderator</p>
+            </div>
+        </div>
+    </div>
+</header>
 
     <main>
         <div class="main-wrapper">

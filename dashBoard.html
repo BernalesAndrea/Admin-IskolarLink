@@ -166,7 +166,7 @@
                 </li>
                 <li><a href="#" onclick="loadIframe('home.html')">
                         <i class="fas fa-home"></i>
-                        <span class="nav-item">Home</span>
+                        <span class="nav-item">Dashboard</span>
                     </a></li>
 
                 <li class="dropdown">
@@ -177,10 +177,10 @@
                     </a>
                     <ul class="dropdown-menu" id="scholarDropdown">
                         <li><a href="#">
-                                <i class="fas fa-folder"></i>
+                                <i class="fas fa-file-upload"></i>
                                 <span class="nav-item">Submitted Documents</span>
                             </a></li>
-                        <li><a href="#">
+                        <li><a href="#" onclick="loadIframe('uploadDocument.html')">
                                 <i class="fas fa-upload"></i>
                                 <span class="nav-item">Upload Documents</span>
                             </a></li>
@@ -204,33 +204,17 @@
                                 <span class="nav-item">Semetral Grade</span>
                             </a></li>
                         <li><a href="#">
-                                <i class="fas fa-file-upload"></i>
-                                <span class="nav-item">Submitted Documents</span>
-                            </a></li>
-                        <li><a href="#">
                                 <i class="fas fa-receipt"></i>
                                 <span class="nav-item">Financial Expenses</span>
                             </a></li>
                     </ul>
                 </li>
 
-                <li class="dropdown">
-                    <a href="javascript:void(0)" onclick="toggleDropdown('scholarCredentialDropdown')">
+                <li><a href="#">
                         <i class="fas fa-user"></i>
-                        <span class="nav-item">Edit Scholars Credentials</span>
-                        <i class="fas fa-caret-down dropdown-arrow"></i>
-                    </a>
-                    <ul class="dropdown-menu" id="scholarCredentialDropdown">
-                        <li><a href="#">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="nav-item">Change Status</span>
-                            </a></li>
-                        <li><a href="#">
-                                <i class="fas fa-id-card"></i>
-                                <span class="nav-item">Update Credentials</span>
-                            </a></li>
-                    </ul>
-                </li>
+                        <span class="nav-item">Scholars Credentials</span>
+                    </a></li>
+
 
                 <li class="dropdown">
                     <a href="javascript:void(0)" onclick="toggleDropdown('updatesDropdown')">
@@ -241,7 +225,7 @@
                     <ul class="dropdown-menu" id="updatesDropdown">
                         <li><a href="#" onclick="loadIframe('task.html')">
                                 <i class="fas fa-tasks"></i>
-                                <span class="nav-item">Post Tasks for Scholars</span>
+                                <span class="nav-item">Post Tasks</span>
                             </a></li>
                         <li><a href="#" onclick="loadIframe('announcement.html')">
                                 <i class="fas fa-newspaper"></i>
@@ -266,7 +250,7 @@
         </div>
     </nav>
 
-    <iframe id="page-frame" src="announcement.html" frameborder="0" style="width:100%; height:100vh;"></iframe>
+    <iframe id="page-frame" src="uploadDocument.html" frameborder="0" style="width:100%; height:100vh;"></iframe>
 
 </body>
 <script>

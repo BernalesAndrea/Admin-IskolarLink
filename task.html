@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Page</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
     * {
       margin: 0;
@@ -152,34 +153,129 @@
       <!-- Create Event (right) -->
       <div class="createTask">
         <h2>Create Task</h2>
-        <div class="inputBox">
+        <form id="taskForm" class="inputBox">
           <label>Task Title</label>
-          <input type="text" required>
+          <input type="text" name="taskTitle" required>
 
           <div class="dateRow"> <!--NEED TO CHANGE INTO DATE BUTTON-->
             <div class="inputGroup">
               <label>Start Date</label>
-              <input type="date" required>
+              <input type="text" id="pikadayStartDate" name="startDate" placeholder="Select a date" required>
             </div>
             <div class="inputGroup">
               <label>Due Date</label>
-              <input type="date" required>
+              <input type="text" id="pikadayDueDate" name="dueDate" placeholder="Select a date" required>
             </div>
           </div>
 
           <div class="taskDescription">
             <label>Task Description</label>
-            <textarea required></textarea>
+            <textarea name="taskDesc" required></textarea>
           </div>
 
           <div class="createButton">
             <button type="reset">Reset</button>
             <button type="submit">Create Task</button>
           </div>
-        </div>
+        </form> <!---->
       </div>
     </div>
   </main>
-</body>
 
+<script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+<script>
+  new Pikaday({
+    field: document.getElementById('pikadayStartDate'),
+    format: 'YYYY-MM-DD', 
+    minDate: new Date(),
+    toString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+});
+
+new Pikaday({
+    field: document.getElementById('pikadayDueDate'),
+    format: 'YYYY-MM-DD', 
+    minDate: new Date(),
+    toString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+});
+
+ // Fetch and display tasks
+ async function loadTasks() {
+    try {
+      const res = await fetch('/tasks');
+      const tasks = await res.json();
+
+      //Sort tasks by startDate
+      tasks.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+      const assignedTasksDiv = document.querySelector('.assignedTasks');
+      assignedTasksDiv.innerHTML = '<h2>Assigned Tasks</h2>'; // reset with heading
+
+      if (tasks.length === 0) {
+        assignedTasksDiv.innerHTML += '<p>No tasks assigned yet.</p>';
+        return;
+      }
+
+      tasks.forEach(task => {
+        const taskEl = document.createElement('div');
+        taskEl.style.padding = '10px';
+        taskEl.style.border = '1px solid #ccc';
+        taskEl.style.borderRadius = '10px';
+        taskEl.style.background = '#f9f9f9';
+        taskEl.innerHTML = `
+          <strong>${task.title}</strong><br>
+          <small>${task.startDate} → ${task.dueDate}</small><br>
+          <em>${task.description}</em>
+        `;
+        assignedTasksDiv.appendChild(taskEl);
+      });
+    } catch (err) {
+      console.error('Failed to load tasks', err);
+    }
+  }
+
+// Handle task form submission
+
+document.getElementById('taskForm').addEventListener('submit', async function(e) {
+  e.preventDefault(); // stop default form submission
+
+  const formData = {
+    title: this.taskTitle.value,
+    description: this.taskDesc.value,
+    startDate: this.startDate.value,  // mapping to your schema field
+    dueDate: this.dueDate.value    // you can rename this in schema if needed
+  };
+
+  try {
+    const res = await fetch('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert('✅ Task created successfully!');
+      this.reset();
+      loadTasks();
+    } else {
+      alert('❌ Error: ' + data.message);
+    }
+  } catch (err) {
+    alert('❌ Failed to send request: ' + err.message);
+  }
+});
+
+window.onload = loadTasks;
+</script>
+</body>
 </html>

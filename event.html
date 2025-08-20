@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Page</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.css">
   <style>
     * {
       margin: 0;
@@ -139,6 +141,94 @@
       cursor: pointer;
       font-weight: bold;
     }
+
+    .eventCard {
+      display: flex;
+      align-items: center;
+      background: #f1f1f1;
+      border-radius: 10px;
+      padding: 10px;
+      gap: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .eventDate {
+      text-align: center;
+      padding: 10px;
+      background: rgba(146, 59, 59);
+      color: white;
+      border-radius: 8px;
+      width: 60px;
+    }
+
+    .eventDate h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .eventDate h1 {
+      font-size: 28px;
+      margin: 0;
+    }
+
+
+    .viewMoreBtn {
+      background: none;
+      border: none;
+      color: rgba(146, 59, 59);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* pop up container Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      margin: 100px auto;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+.pika-single.custom-light {
+  background: white;
+  border: 2px solid rgba(146, 59, 59);
+  border-radius: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  color: black;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.pika-single.custom-light .pika-day:hover {
+  background: rgba(146, 59, 59);
+  color: white;
+  border-radius: 4px;
+}
+
+.pika-single.custom-light .is-today {
+  color: rgba(146, 59, 59, 0.9);
+  font-weight: bold;
+}
+
   </style>
 </head>
 
@@ -153,43 +243,196 @@
       <!-- Create Event (right) -->
       <div class="eventContainer">
         <h2>Create Event</h2>
-        <div class="inputBox">
+        <form id="eventForm" class="inputBox">
           <label>Event Name</label>
-          <input type="text" required>
+          <input type="text" name="title" required>
 
           <div class="datetimeRow"> <!--NEED TO CHANGE INTO DATE AND TIME BUTTON-->
             <div class="inputGroup">
               <label>Date</label>
-              <input type="date" required>
+              <input type="text" id="pikadayDate" name="date" placeholder="Select a date" required>
             </div>
             <div class="inputGroup">
-              <label>Time</label>
-              <input type="time" required>
+              <label for="timepicker">Time</label>
+              <input type="text" id="timepicker" name="time" placeholder="Select time" required>
             </div>
             <div class="inputGroup">
               <label>Duration</label>
-              <input type="text" placeholder="e.g. 1h 30m" pattern="^(\d+h)?\s*(\d+m)?$" title="Format: 1h 30m"
-                required>
+              <input type="text" name="duration" placeholder="e.g. 1h 30m" pattern="^(\d+h)?\s*(\d+m)?$" title="Format: 1h 30m" required>
             </div>
           </div>
 
 
           <label>Location</label>
-          <input type="text" required>
+          <input type="text" name="location" required>
 
           <div class="eventDescription">
             <label>Event Description</label>
-            <textarea required></textarea>
+            <textarea name="description" required></textarea>
           </div>
 
           <div class="createButton">
             <button type="reset">Reset</button>
             <button type="submit">Create Event</button>
           </div>
-        </div>
+        </form> <!---->
       </div>
     </div>
   </main>
+
+  <!-- pop up container -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.js"></script>
+
+  <script>
+    new Pikaday({
+    field: document.getElementById('pikadayDate'),
+    format: 'YYYY-MM-DD', 
+    minDate: new Date(),
+    toString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+});
+
+  new AirDatepicker('#timepicker', {
+    timepicker: true,
+    onlyTimepicker: true,
+    minutesStep: 1,
+    hours12: true,
+    dateFormat: 'hh:mm AA'
+});
+
+// Form submission handler
+document.querySelector('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const dateValue = formData.get('date'); // YYYY-MM-DD
+    const timeValue = formData.get('time'); // hh:mm AM/PM
+    
+    // Convert to 24-hour time for Date parsing
+    let [time, modifier] = timeValue.split(' ');
+    let [hours, minutes] = time.split(':');
+    hours = parseInt(hours, 10);
+    
+    if (modifier === 'PM' && hours < 12) hours += 12;
+    if (modifier === 'AM' && hours === 12) hours = 0;
+    
+    // Build ISO datetime string
+    const dateTimeISO = `${dateValue}T${String(hours).padStart(2, '0')}:${minutes}:00`;
+    
+    const dateObj = new Date(dateTimeISO);
+    console.log(dateObj); // ✅ Always valid
+
+    // Example display
+    alert(dateObj.toLocaleString());
+});
+
+    const API_URL = 'http://localhost:3000';
+
+    // First form submit — same port as server
+    document.getElementById('eventForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const eventData = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        dateTime: `${formData.get('date')}T${formData.get('time')}`,
+        duration: formData.get('duration'),
+        location: formData.get('location')
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(eventData)
+        });
+
+        if (res.ok) {
+          alert('Event created successfully!');
+          this.reset();
+          loadEvents(); // refresh list
+        } else {
+          alert('Error creating event');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error');
+      }
+    });
+
+
+    // Load events
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${API_URL}/events`);
+        const events = await res.json();
+        const container = document.querySelector('.displayEventContainer');
+        container.innerHTML = '<h2>Upcoming Events</h2>';
+
+        events.forEach(ev => {
+          const dateObj = new Date(ev.dateTime);
+          const month = dateObj.toLocaleString('default', { month: 'short' });
+          const day = dateObj.getDate();
+
+          const div = document.createElement('div');
+          div.classList.add('eventCard');
+          div.innerHTML = `
+            <div class="eventDate">
+              <h2>${month}</h2>
+              <h1>${day}</h1>
+            </div>
+            <div class="eventDetails">
+              <h3>${ev.title}</h3>
+              <button class="viewMoreBtn">View more...</button>
+            </div>
+          `;
+
+          // View more pop up container contents
+          div.querySelector('.viewMoreBtn').addEventListener('click', function () {
+            document.getElementById('modalTitle').textContent = ev.title;
+            document.getElementById('modalDate').textContent = dateObj.toLocaleString();
+            document.getElementById('modalLocation').textContent = ev.location;
+            document.getElementById('modalDuration').textContent = ev.duration;
+            document.getElementById('modalDescription').textContent = ev.description;
+            document.getElementById('eventModal').style.display = 'block';
+          });
+
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Close pop up container
+    document.querySelector('.close').addEventListener('click', function () {
+      document.getElementById('eventModal').style.display = 'none';
+    });
+    window.addEventListener('click', function (e) {
+      if (e.target.id === 'eventModal') {
+        document.getElementById('eventModal').style.display = 'none';
+      }
+    });
+    // Load events when page starts
+    window.onload = loadEvents;
+
+  </script>
+
 </body>
 
 </html>
