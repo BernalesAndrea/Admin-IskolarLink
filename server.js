@@ -35,7 +35,7 @@ const Task = mongoose.model('Task', taskSchema);
 // 2️⃣ Routes
 // Serve dashboard by default
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashBoard.html'));
+  res.sendFile(path.join(__dirname, 'navigation.html'));
 });
 
 app.get('/task', (req, res) => {
