@@ -18,8 +18,11 @@
   },
   "homepage": "https://github.com/BernalesAndrea/Admin-IskolarLink#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.18.0",
-    "mongoose": "^8.17.1"
+    "mongoose": "^8.18.0"
   }
 }

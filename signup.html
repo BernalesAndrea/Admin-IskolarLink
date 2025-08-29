@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* form starts at top */
+      min-height: 100vh;
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed; /* keeps background fixed */
+      padding: 40px 0;
+      overflow-y: auto; /* allow page scroll */
+    }
+
+    .container1 {
+      width: 100%;
+      max-width: 550px;
+      background-image: linear-gradient(to right,
+          rgba(146, 59, 59, 0.6),
+          rgba(255, 255, 255, 0.6));
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      margin: auto;
+      box-sizing: border-box;
+    }
+
+    .container11 {
+      width: 100%;
+      max-width: 450px;
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .container111 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .container111 img {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .container111 h1 {
+      margin: 10px 0;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .textBox {
+      width: 100%;
+      margin-bottom: 15px;
+      position: relative;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .textBox label {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: black;
+      background-color: white;
+      padding: 0 5px;
+      pointer-events: none;
+      transition: 0.3s;
+    }
+
+    .textBox input,
+    .submitButton {
+      width: 100%;
+      height: 45px;
+      font-size: 16px;
+      border-radius: 20px;
+      box-sizing: border-box;
+    }
+
+    .textBox input {
+      border: 2px solid black;
+      outline: none;
+      padding: 0 12px;
+      color: black;
+    }
+
+    .textBox input:focus~label,
+    .textBox input:valid~label {
+      top: 0;
+      font-size: 12px;
+      background-color: #fff;
+    }
+
+    .submitButton {
+      border: none;
+      background-color: #923B3B;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      line-height: 45px;
+      display: block;
+      text-align: center;
+    }
+
+    .logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap; /* prevent logos from overflowing */
+    }
+
+    .logo img {
+      height: 55px;
+      width: auto;
+    }
+
+    .signup-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .signup-container p {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .signup-container .continue-text {
+      color: #923B3B;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
+
+    .signup-container .continue-text::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      background-color: #923B3B;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .signup-container .continue-text:hover::after {
+      transform: scaleX(1);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container1">
+    <div class="container11">
+      <div class="container111">
+        <div class="logo">
+          <img src="/assets/iskologo.png" alt="Isko Logo">
+          <img src="/assets/iskolarlink.png" alt="Iskolar Link Logo">
+          <img src="/assets/citylogo.png" alt="City Logo">
+        </div>
+
+        <h1>Sign Up</h1>
+
+        <div class="textBox">
+          <input type="text" id="fullname" required>
+          <label>Full Name</label>
+        </div>
+
+        <div class="textBox">
+          <input type="text" id="barangay" required>
+          <label>Barangay</label>
+        </div>
+
+        <div class="textBox">
+          <input type="text" id="batchYear" required>
+          <label>Batch Year (Year Qualified)</label>
+        </div>
+
+        <div class="textBox">
+          <input type="email" id="email" required>
+          <label>Email</label>
+        </div>
+
+        <div class="textBox">
+          <input type="password" id="password" required>
+          <label>Password</label>
+        </div>
+
+        <div class="textBox">
+          <input type="password" id="confirmPassword" required>
+          <label>Confirm Password</label>
+        </div>
+
+        <a href="#" id="signupBtn" class="submitButton">Register</a>
+
+        <div class="signup-container">
+          <p>Already have an account?</p>
+          <a href="login.html" class="continue-text">Login here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+document.getElementById("signupBtn").addEventListener("click", async function (event) {
+  event.preventDefault();
+
+  const fullname = document.getElementById("fullname").value.trim();
+  const barangay = document.getElementById("barangay").value.trim();
+  const batchYear = document.getElementById("batchYear").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  const res = await fetch("/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fullname, barangay, batchYear, email, password })
+  });
+
+  const data = await res.json();
+  alert(data.msg);
+
+  if (res.ok) window.location.href = "/login.html";
+});
+</script>
+
+</html>

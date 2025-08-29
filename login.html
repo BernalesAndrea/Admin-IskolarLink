@@ -2,218 +2,270 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-image: url('iskolarbg.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
 
-        .container1 {
-            height: 500px;
-            width: 750px;
-            background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
-            border-radius: 20px;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 20px 50px 20px 70px;
+    .container1 {
+      height: 530px;
+      width: 100%;
+      max-width: 500px;
+      background-image: linear-gradient(to right,
+          rgba(146, 59, 59, 0.6),
+          rgba(255, 255, 255, 0.6));
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      margin: auto;
+    }
 
-        }
+    .container11 {
+      width: 100%;
+      max-width: 400px;
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
 
-        .container11 {
-            height: 450px;
-            width: 400px;
-            background-color: #FFFF;
-            border-radius: 20px;
-            margin-right: 10px;
-            padding-left: 30px;
-            padding-right: 30px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        }
+    .container111 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
 
-        .container111 {
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Center everything horizontally */
-            text-align: left;
-            /* Align text left inside children */
-        }
+    .container111 img {
+      display: block;
+      margin: 0 auto;
+    }
 
-        .logo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+    .container111 h1 {
+      margin: 10px 0;
+    }
 
-        }
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
 
-        .logos {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 20px;
+    .textBox {
+      width: 100%;
+      margin-bottom: 15px;
+      position: relative;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-        }
+    .textBox label {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      font-size: 16px;
+      color: black;
+      background-color: white;
+      padding: 0 5px;
+      pointer-events: none;
+      transition: 0.3s;
+    }
 
-        .container111 img {
-            display: block;
-            margin: 0 auto 10px auto;
-        }
+    .textBox input,
+    .submitButton {
+      width: 100%;
+      height: 45px;
+      font-size: 16px;
+      border-radius: 20px;
+      box-sizing: border-box;
+    }
 
-        .container111 h1 {
-            font-family: 'Times New Roman', Times, serif;
-            margin-bottom: 20px;
-        }
+    .textBox input {
+      border: 2px solid black;
+      outline: none;
+      padding: 0 12px;
+      color: black;
+    }
 
-        p {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 16px;
-        }
+    .textBox input:focus~label,
+    .textBox input:valid~label {
+      top: 0;
+      font-size: 12px;
+      background-color: #fff;
+    }
 
-        .textBox {
-            width: 100%;
-            margin-bottom: 20px;
-            position: relative;
-            border-radius: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    .forgot-password {
+      margin: -5px 0 15px 0;
+      cursor: pointer;
+      text-align: center;
+      position: relative;
+      display: inline-block;
+    }
 
-        .textBox label {
-            position: absolute;
-            top: 50%;
-            left: 15px;
-            transform: translateY(-50%);
-            font-size: 16px;
-            color: black;
-            background-color: white;
-            padding: 0 5px;
-            pointer-events: none;
-            transition: 0.3s;
-        }
+    .forgot-password::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      background-color: black;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease-in-out;
+    }
 
-        .textBox input {
-            width: 100%;
-            height: 40px;
-            font-size: 16px;
-            color: black;
-            border: 2px solid black;
-            outline: none;
-            border-radius: 20px;
-            padding-left: 15px;
-            font-family: 'Times New Roman', Times, serif;
-        }
+    .forgot-password:hover::after {
+      transform: scaleX(1);
+    }
 
-        .textBox input:focus~label,
-        .textBox input:valid~label {
-            top: 0;
-            font-size: 12px;
-            background-color: #FFFF;
-        }
+    .submitButton {
+      border: none;
+      background-color: #923B3B;
+      color: white;
+      cursor: pointer;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      line-height: 45px;
+      display: block;
+      text-align: center;
+    }
 
-        .forgot-password {
-            font-family: 'Times New Roman', Times, serif;
-            margin: -10px 0 20px 0;
-            cursor: pointer;
-            position: relative;
-            display: inline-block;
-            /* Makes underline only as wide as the text */
-            text-align: right;
-        }
+    .logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
 
-        .forgot-password::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 2px;
-            width: 100%;
-            background-color: black;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease-in-out;
-        }
+    .logo img {
+      height: 55px;
+      width: auto;
+    }
 
-        .forgot-password:hover::after {
-            transform: scaleX(1);
-        }
+    .signup-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+    }
 
-        .submitButton {
-            width: 108%;
-            height: 40px;
-            line-height: 40px;
-            text-align: center;
-            border: none;
-            border-radius: 20px;
-            background-color: #923B3B;
-            color: white;
-            font-size: 16px;
-            font-family: 'Times New Roman', Times, serif;
-            cursor: pointer;
-            margin-bottom: 20px;
-            display: block;
-            text-decoration: none; /* removes underline from <a> */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
+    .signup-container p {
+      margin: 0;
+      font-size: 16px;
+    }
 
+    .signup-container .continue-text {
+      color: #923B3B;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      display: inline-block;
+    }
 
-        .continue-text {
-            text-align: center;
-            font-size: 16px;
-            color: rgb(65, 65, 65);
-            font-family: 'Times New Roman', Times, serif;
-            margin-top: 10px;
-        }
-    </style>
+    .signup-container .continue-text::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      background-color: #923B3B;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .signup-container .continue-text:hover::after {
+      transform: scaleX(1);
+    }
+  </style>
 </head>
 
 <body>
-    <div>
-        <div class="container1">
-            <div class="container11">
-                <div class="container111">
-                    <div>
-                        <img src="iskolarlink.png" width="125" height="60" style="margin-bottom: 10px;">
-                        <h1>Login</h1>
-
-                        <div class="textBox">
-                            <input type="text" required>
-                            <label>Email</label>
-                        </div>
-
-                        <div class="textBox">
-                            <input type="password" required>
-                            <label>Password</label>
-                        </div>
-
-                        <p class="forgot-password">Forgot Password?</p>
-
-                        <a href="homepage.html" class="submitButton">Sign In</a>
-
-                        <p class="continue-text">or Continue With</p>
-
-                    </div>
-                </div>
-            </div>
-            <div class="logo">
-                <div><img src="iskolarlink.png" width="375" height="200"></div>
-                <div class="logos">
-                    <div><img src="citylogo.png" width="150" height="150"></div>
-                    <div><img src="iskologo.png" width="165" height="165"></div>
-                </div>
-            </div>
+  <div class="container1">
+    <div class="container11">
+      <div class="container111">
+        <div class="logo">
+          <img src="/assets/iskolarlink.png" alt="Iskolar Link Logo">
+          <img src="/assets/iskologo.png" alt="Isko Logo">
+          <img src="/assets/citylogo.png" alt="City Logo">
         </div>
+
+        <h1>Login</h1>
+
+        <div class="textBox">
+          <input type="text" id="email" required>
+          <label>Email</label>
+        </div>
+
+        <div class="textBox">
+          <input type="password" id="password" required>
+          <label>Password</label>
+        </div>
+
+        <p class="forgot-password">Forgot Password?</p>
+
+        <a href="#" id="loginBtn" class="submitButton">Sign In</a>
+
+        <div class="signup-container">
+          <p>Don't have an account?</p>
+          <a href="signup.html" class="continue-text">Sign Up here</a>
+        </div>
+      </div>
     </div>
+  </div>
+
+<script>
+document.getElementById("loginBtn").addEventListener("click", async function (event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Please enter both email and password");
+    return;
+  }
+
+  try {
+    const res = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.redirect) {
+      // 🔑 Backend decides if user goes to /admin or /scholar
+      window.location.href = data.redirect;
+    } else {
+      alert(data.msg || "Login failed");
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong. Please try again.");
+  }
+});
+</script>
 </body>
 
 </html>

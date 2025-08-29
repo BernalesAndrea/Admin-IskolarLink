@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - IskolarLink</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      padding: 20px;
+      margin-top: 40px;
+      flex: 1;
+    }
+
+    /* Flex row for dashboard + events */
+    .row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      justify-content: center;
+      flex-wrap: wrap; /*responsive: stack on small screens */
+    }
+    
+    /*for statistics*/
+    .dashboard {
+      height: 500px;
+      width: 60%;
+      background-color: white;
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    div p {
+        text-align: center;
+    }
+
+    /*Upcoming event display*/
+    .home-section {
+      flex: 1;
+      min-width: 300px; /* ensures it doesn’t shrink too much */
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .home-section h2 {
+      margin-bottom: 15px;
+      color: black;
+    }
+
+    .eventCard {
+      display: flex;
+      align-items: center;
+      background: #f1f1f1;
+      border-radius: 10px;
+      padding: 10px;
+      gap: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .eventDate {
+      text-align: center;
+      padding: 10px;
+      background: rgba(146, 59, 59);
+      color: white;
+      border-radius: 8px;
+      width: 60px;
+    }
+
+    .eventDate h2 {
+      font-size: 16px;
+      margin: 0;
+      color: white;
+    }
+
+    .eventDate h1 {
+      font-size: 24px;
+      margin: 0;
+      color: white;
+    }
+
+    .eventDetails h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .viewMoreBtn {
+      background: none;
+      border: none;
+      color: rgba(146, 59, 59);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* pop up container of events; Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      margin: 100px auto;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div class="row">
+
+      <!--Statistics-->
+      <div class="dashboard">
+        <p>dashboard</p>
+      </div>
+
+      <!-- Upcoming Events Section -->
+      <div class="home-section">
+        <h2>Upcoming Events</h2>
+        <div id="upcomingEvents"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- pop up container -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:3000";
+
+    async function loadEvents() {
+      try {
+        const res = await fetch(`${API_URL}/events`);
+        const events = await res.json();
+        const container = document.getElementById("upcomingEvents");
+        container.innerHTML = "";
+
+        if (events.length === 0) {
+          container.innerHTML = "<p>No upcoming events.</p>";
+          return;
+        }
+
+        events.forEach(ev => {
+          const dateObj = new Date(ev.dateTime);
+          const month = dateObj.toLocaleString("default", { month: "short" });
+          const day = dateObj.getDate();
+
+          const div = document.createElement("div");
+          div.classList.add("eventCard");
+          div.innerHTML = `
+            <div class="eventDate">
+              <h2>${month}</h2>
+              <h1>${day}</h1>
+            </div>
+            <div class="eventDetails">
+              <h3>${ev.title}</h3>
+              <button class="viewMoreBtn">View more...</button>
+            </div>
+          `;
+
+          // View more pop up
+          div.querySelector(".viewMoreBtn").addEventListener("click", function () {
+            document.getElementById("modalTitle").textContent = ev.title;
+            document.getElementById("modalDate").textContent = dateObj.toLocaleString();
+            document.getElementById("modalLocation").textContent = ev.location;
+            document.getElementById("modalDuration").textContent = ev.duration;
+            document.getElementById("modalDescription").textContent = ev.description;
+            document.getElementById("eventModal").style.display = "block";
+          });
+
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Close modal
+    document.querySelector(".close").addEventListener("click", function () {
+      document.getElementById("eventModal").style.display = "none";
+    });
+    window.addEventListener("click", function (e) {
+      if (e.target.id === "eventModal") {
+        document.getElementById("eventModal").style.display = "none";
+      }
+    });
+
+    // Load events on home load
+    window.onload = loadEvents;
+  </script>
+</body>
+
+</html>
