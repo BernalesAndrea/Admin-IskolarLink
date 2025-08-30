@@ -4,8 +4,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { type } = require('os');
 
 const app = express();
+
+const User = require("./models/User");
 
 // Middleware
 app.use(express.json());
@@ -45,17 +48,6 @@ const taskSchema = new mongoose.Schema({
 });
 const Task = mongoose.model('Task', taskSchema);
 
-// User Schema
-const userSchema = new mongoose.Schema({
-  fullname: String,
-  barangay: String,
-  batchYear: String,
-  email: { type: String, unique: true },
-  password: String,
-  role: { type: String, default: "scholar" } // can be "admin" or "scholar"
-});
-const User = mongoose.model('User', userSchema);
-
 // Announcement Schema
 const announcementSchema = new mongoose.Schema({
   title: String,
@@ -67,21 +59,33 @@ const announcementSchema = new mongoose.Schema({
 const Announcement = mongoose.model("Announcement", announcementSchema);
 
 /* ============= AUTH ROUTES ============= */
-// 🔑 Signup
 app.post('/auth/signup', async (req, res) => {
-  const { fullname, barangay, batchYear, email, password } = req.body;
-  // ... check existing and hash ...
-  const newUser = new User({
-    fullname, 
-    barangay, 
-    batchYear, 
-    email,
-    password: hashedPassword,
-    role: "scholar" // <- force scholar
-  });
-  await newUser.save();
-  res.json({ msg: "Registration successful!" });
+  try {
+    const { fullname, barangay, batchYear, email, password } = req.body;
+
+    // check existing
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ msg: "Email already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      fullname,
+      barangay,
+      batchYear,
+      email,
+      password: hashedPassword,
+      role: "scholar",
+      verified: false // 🔑 unverified initially
+    });
+
+    await newUser.save();
+    res.json({ msg: "Registration successful! Await admin verification." });
+  } catch (err) {
+    res.status(500).json({ msg: "Error creating user", error: err.message });
+  }
 });
+
 
 
 // 🔑 Login
@@ -95,21 +99,63 @@ app.post('/auth/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
-    // create JWT
+    // 🔑 block unverified scholars
+    if (user.role === "scholar" && !user.verified) {
+      return res.status(403).json({ msg: "Your account is awaiting admin verification." });
+    }
+
     const token = jwt.sign({ id: user._id, role: user.role }, "SECRET_KEY", { expiresIn: "1h" });
     res.cookie("token", token, { httpOnly: true });
 
-    // ✅ Decide redirect based on role
     let redirectUrl = "/scholar";
-    if (user.role === "admin") {
-      redirectUrl = "/admin";
-    }
+    if (user.role === "admin") redirectUrl = "/admin";
 
     res.json({ msg: "Login successful", redirect: redirectUrl });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+
+// Fetch all unverified scholars
+app.get("/api/unverified-scholars", async (req, res) => {
+  try {
+    const scholars = await User.find({ role: "scholar", verified: false });
+    res.json(scholars);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch scholars" });
+  }
+});
+
+// Verify scholar by ID
+app.put("/api/verify-scholar/:id", async (req, res) => {
+  try {
+    const scholar = await User.findByIdAndUpdate(
+      req.params.id,
+      { verified: true },
+      { new: true }
+    );
+    if (!scholar) return res.status(404).json({ msg: "Scholar not found" });
+
+    res.json({ msg: "Scholar verified successfully", scholar });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to verify scholar" });
+  }
+});
+
+// ✅ Fetch all verified scholars (sorted alphabetically by fullname)
+app.get("/api/verified-scholars", async (req, res) => {
+  try {
+    const scholars = await User.find({ role: "scholar", verified: true })
+      .sort({ fullname: 1 }); // A-Z
+    res.json(scholars);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch verified scholars" });
+  }
+});
+
+
+
 
 
 /* ============= MIDDLEWARE ============= */
@@ -143,6 +189,16 @@ app.get('/scholar', authMiddleware, (req, res) => {
 app.get('/task', authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, '/adminPage/task.html'));
 });
+
+app.get("/api/unverified-scholars", async (req, res) => {
+  try {
+    const scholars = await Scholar.find({ isVerified: false }); // adjust field name
+    res.json(scholars);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch scholars" });
+  }
+});
+
 
 /* ============= EVENTS + TASKS ============= */
 // --- API: Create Event

@@ -9,16 +9,20 @@
     body {
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* form starts at top */
+      align-items: flex-start;
+      /* form starts at top */
       min-height: 100vh;
       margin: 0;
       background-image: url('/assets/iskolarbg.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-attachment: fixed; /* keeps background fixed */
+      background-attachment: fixed;
+      /* keeps background fixed */
       padding: 40px 0;
-      overflow-y: auto; /* allow page scroll */
+      overflow-y: auto;
+      /* allow page scroll */
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     .container1 {
@@ -90,6 +94,7 @@
     }
 
     .textBox input,
+    .textBox select,
     .submitButton {
       width: 100%;
       height: 45px;
@@ -98,18 +103,34 @@
       box-sizing: border-box;
     }
 
-    .textBox input {
+    .textBox input,
+    .textBox select {
       border: 2px solid black;
       outline: none;
       padding: 0 12px;
       color: black;
+      background-color: #fff;
     }
 
+    /* Floating label for input & select */
     .textBox input:focus~label,
-    .textBox input:valid~label {
+    .textBox input:valid~label,
+    .textBox select:focus~label,
+    .textBox select:valid~label {
       top: 0;
       font-size: 12px;
       background-color: #fff;
+    }
+
+    /* Remove native dropdown arrow for select */
+    .textBox select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 20px;
     }
 
     .submitButton {
@@ -130,7 +151,8 @@
       justify-content: center;
       align-items: center;
       gap: 5px;
-      flex-wrap: wrap; /* prevent logos from overflowing */
+      flex-wrap: wrap;
+      /* prevent logos from overflowing */
     }
 
     .logo img {
@@ -198,9 +220,38 @@
         </div>
 
         <div class="textBox">
-          <input type="text" id="barangay" required>
-          <label>Barangay</label>
+          <select id="barangay" required>
+            <option value="" disabled selected>Select Barangay</option>
+            <option value="Assumption">Assumption</option>
+            <option value="Avanceña">Avanceña</option>
+            <option value="Cacub">Cacub</option>
+            <option value="Caloocan">Caloocan</option>
+            <option value="Carpenter Hill">Carpenter Hill</option>
+            <option value="Concepcion">Concepcion</option>
+            <option value="Esperanza">Esperanza</option>
+            <option value="GPS">GPS</option>
+            <option value="Mabini">Mabini</option>
+            <option value="Magsaysay">Magsaysay</option>
+            <option value="Mambucal">Mambucal</option>
+            <option value="Morales">Morales</option>
+            <option value="Namnama">Namnama</option>
+            <option value="New Pangasinan">New Pangasinan</option>
+            <option value="Paraiso">Paraiso</option>
+            <option value="Rotonda">Rotonda</option>
+            <option value="San Isidro">San Isidro</option>
+            <option value="San Jose">San Jose</option>
+            <option value="San Roque">San Roque</option>
+            <option value="Saravia">Saravia</option>
+            <option value="Sta Cruz">Sta Cruz</option>
+            <option value="Sto Niño">Sto Niño</option>
+            <option value="Topland">Topland</option>
+            <option value="Zone I">Zone I</option>
+            <option value="Zone II">Zone II</option>
+            <option value="Zone III">Zone III</option>
+            <option value="Zone IV">Zone IV</option>
+          </select>
         </div>
+
 
         <div class="textBox">
           <input type="text" id="batchYear" required>
@@ -233,32 +284,32 @@
   </div>
 </body>
 <script>
-document.getElementById("signupBtn").addEventListener("click", async function (event) {
-  event.preventDefault();
+  document.getElementById("signupBtn").addEventListener("click", async function (event) {
+    event.preventDefault();
 
-  const fullname = document.getElementById("fullname").value.trim();
-  const barangay = document.getElementById("barangay").value.trim();
-  const batchYear = document.getElementById("batchYear").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+    const fullname = document.getElementById("fullname").value.trim();
+    const barangay = document.getElementById("barangay").value.trim();
+    const batchYear = document.getElementById("batchYear").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
-  if (password !== confirmPassword) {
-    alert("Passwords do not match!");
-    return;
-  }
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-  const res = await fetch("/auth/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fullname, barangay, batchYear, email, password })
+    const res = await fetch("/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullname, barangay, batchYear, email, password })
+    });
+
+    const data = await res.json();
+    alert(data.msg);
+
+    if (res.ok) window.location.href = "/login.html";
   });
-
-  const data = await res.json();
-  alert(data.msg);
-
-  if (res.ok) window.location.href = "/login.html";
-});
 </script>
 
 </html>
