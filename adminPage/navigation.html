@@ -234,7 +234,7 @@
         </li>
         <li><a href="#" onclick="loadIframe('/adminPage/track_expenses.html')"><i class="fas fa-wallet"></i>Track Expenses</a></li>
         <li><a href="#" onclick="loadIframe()"><i class="fas fa-message"></i>Messages</a></li>
-        <li><a href="/login.html" onclick="event.preventDefault(); window.location.href='/login.html'"><i class="fas fa-sign-out-alt"></i>Logout</a></li> <!--To transfer below beside the profile-->
+        <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Logout</a></li> <!--To transfer below beside the profile-->
       </ul>
     </div>
   </label>
@@ -245,27 +245,38 @@
 
   <script>
     function loadIframe(page) {
-      document.getElementById("page-frame").src = page;
-    }
+    document.getElementById("page-frame").src = page;
+  }
 
-    // Handle submenu toggle on click
-    document.querySelectorAll(".has-submenu > a").forEach(menu => {
-      menu.addEventListener("click", function (e) {
-        e.preventDefault(); // prevent jumping
+  // Handle submenu toggle on click
+  document.querySelectorAll(".has-submenu > a").forEach(menu => {
+    menu.addEventListener("click", function (e) {
+      e.preventDefault(); // prevent jumping
+      let parent = this.parentElement;
 
-        let parent = this.parentElement;
-
-        // close other open submenus (optional: comment out if you want multiple open)
-        document.querySelectorAll(".has-submenu").forEach(item => {
-          if (item !== parent) {
-            item.classList.remove("open");
-          }
-        });
-
-        // toggle clicked submenu
-        parent.classList.toggle("open");
+      // close other open submenus
+      document.querySelectorAll(".has-submenu").forEach(item => {
+        if (item !== parent) {
+          item.classList.remove("open");
+        }
       });
+
+      // toggle clicked submenu
+      parent.classList.toggle("open");
     });
+  });
+
+  // ✅ Logout handler
+  document.getElementById("logoutBtn").addEventListener("click", (e) => {
+    e.preventDefault();
+    fetch("/auth/logout", { method: "POST" })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.msg); // optional, can remove
+        window.location.href = data.redirect; // go back to login
+      })
+      .catch(err => console.error("Logout failed", err));
+  });
   </script>
 </body>
 </html>

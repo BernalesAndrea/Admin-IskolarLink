@@ -116,6 +116,17 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
+// 🔑 Logout
+app.post("/auth/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // only use secure cookies in prod
+    sameSite: "strict"
+  });
+  res.json({ msg: "Logged out successfully", redirect: "/" });
+});
+
+
 
 // Fetch all unverified scholars
 app.get("/api/unverified-scholars", async (req, res) => {
@@ -161,15 +172,22 @@ app.get("/api/verified-scholars", async (req, res) => {
 /* ============= MIDDLEWARE ============= */
 function authMiddleware(req, res, next) {
   const token = req.cookies.token;
-  if (!token) return res.redirect('/');
+
+  // 🔒 Prevent browser caching
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  if (!token) return res.redirect("/");
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
     req.user = decoded;
     next();
   } catch {
-    return res.redirect('/');
+    return res.redirect("/");
   }
 }
+
 
 
 /* ============= PROTECTED ROUTES ============= */
