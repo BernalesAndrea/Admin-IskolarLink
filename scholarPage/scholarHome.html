@@ -1,27 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home</title>
+  <style>
     body {
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* form starts at top */
+      align-items: flex-start;
       min-height: 100vh;
       margin: 0;
       background-image: url('/assets/iskolarbg.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-attachment: fixed; /* keeps background fixed */
-      padding: 40px 0;
-      overflow-y: auto; /* allow page scroll */
+      background-attachment: fixed;
+      padding: 40px 20px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      overflow-y: auto;
+      color: #333;
     }
-    </style>
+
+    .homeContainer {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .announce {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      height: 600px;
+    }
+
+    .eventTask {
+      display: flex;
+      flex-direction: column;
+      gap: 38px;
+    }
+
+    .Task, .event {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      height: 260px;
+      overflow-y: auto;
+    }
+
+    .announce::before {
+      content: "📢 Announcements";
+      display: block;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .Task::before {
+      content: "📝 Tasks";
+      display: block;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .event::before {
+      content: "📅 Upcoming Events";
+      display: block;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    /* Event Card (imitated from event.html) */
+    .eventCard {
+      display: flex;
+      align-items: center;
+      background: #f1f1f1;
+      border-radius: 10px;
+      padding: 10px;
+      gap: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .eventDate {
+      text-align: center;
+      padding: 10px;
+      background: rgba(146, 59, 59);
+      color: white;
+      border-radius: 8px;
+      width: 60px;
+    }
+
+    .eventDate h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .eventDate h1 {
+      font-size: 28px;
+      margin: 0;
+    }
+
+    .eventDetails h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: black;
+    }
+
+    .viewMoreBtn {
+      background: none;
+      border: none;
+      color: rgba(146, 59, 59);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 0;
+      margin-top: 5px;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      margin: 100px auto;
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .homeContainer {
+        grid-template-columns: 1fr;
+      }
+      .eventTask {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      .Task, .event {
+        flex: 1;
+        min-width: 250px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Scholar Home</h1>
+  <div class="homeContainer">
+    <div class="announce">
+      <!-- Announcements -->
+    </div>
+    <div class="eventTask">
+      <div class="Task"><!-- Tasks --></div>
+      <div class="event" id="eventList"><!-- Events --></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="eventModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle"></h2>
+    <p><strong>Date:</strong> <span id="modalDate"></span></p>
+    <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+    <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+    <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+
+    <!-- Attendance buttons -->
+    <div style="margin-top: 15px; display:flex; gap:10px;">
+      <button id="attendBtn" style="background:green;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Will Attend</button>
+      <button id="notAttendBtn" style="background:red;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Not Attend</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  let currentEventId = null;
+
+  async function loadEvents() {
+    const res = await fetch("/api/events");
+    const events = await res.json();
+    const container = document.getElementById("eventList");
+    container.innerHTML = "";
+
+    events.forEach(ev => {
+      const dateObj = new Date(ev.dateTime);
+      const month = dateObj.toLocaleString('default', { month: 'short' });
+      const day = dateObj.getDate();
+
+      const div = document.createElement("div");
+      div.classList.add("eventCard");
+      div.innerHTML = `
+        <div class="eventDate">
+          <h2>${month}</h2>
+          <h1>${day}</h1>
+        </div>
+        <div class="eventDetails">
+          <h3>${ev.title}</h3>
+          <button class="viewMoreBtn">View more...</button>
+        </div>
+      `;
+
+      // Open modal
+      div.querySelector(".viewMoreBtn").addEventListener("click", () => {
+        currentEventId = ev._id;
+        document.getElementById("modalTitle").textContent = ev.title;
+        document.getElementById("modalDate").textContent = dateObj.toLocaleString();
+        document.getElementById("modalLocation").textContent = ev.location;
+        document.getElementById("modalDuration").textContent = ev.duration;
+        document.getElementById("modalDescription").textContent = ev.description;
+        document.getElementById("eventModal").style.display = "block";
+      });
+
+      container.appendChild(div);
+    });
+  }
+
+  // Attendance
+  document.getElementById("attendBtn").onclick = async () => {
+    await fetch(`/events/${currentEventId}/attendance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "attend" })
+    });
+    alert("Attendance saved!");
+  };
+
+  document.getElementById("notAttendBtn").onclick = async () => {
+    await fetch(`/events/${currentEventId}/attendance`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "not_attend" })
+    });
+    alert("Attendance saved!");
+  };
+
+  // ✅ Close modal when X is clicked
+  document.querySelector(".close").onclick = () => {
+    document.getElementById("eventModal").style.display = "none";
+  };
+
+  // ✅ Close modal when clicking outside
+  window.onclick = (e) => {
+    const modal = document.getElementById("eventModal");
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  };
+
+  window.onload = loadEvents;
+</script>
 </body>
 </html>

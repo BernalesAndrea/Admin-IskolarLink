@@ -283,166 +283,182 @@
   </div>
 
   <script>
-  const menu = document.getElementById("menu");
-  const modal = document.getElementById("modal");
-  const saveBtn = document.getElementById("saveBtn");
-  const cancelBtn = document.getElementById("cancelBtn");
-  const amountInput = document.getElementById("amountInput");
-  const modalTitle = document.getElementById("modalTitle");
-  const categorySelect = document.getElementById("category");
-  const expenseTable = document.getElementById("expenseTable");
-  const searchInput = document.getElementById("searchInput");
-  const batchFilter = document.getElementById("batchFilter");
+const menu = document.getElementById("menu");
+const modal = document.getElementById("modal");
+const saveBtn = document.getElementById("saveBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const amountInput = document.getElementById("amountInput");
+const modalTitle = document.getElementById("modalTitle");
+const categorySelect = document.getElementById("category");
+const expenseTable = document.getElementById("expenseTable");
+const searchInput = document.getElementById("searchInput");
+const batchFilter = document.getElementById("batchFilter");
 
-  let currentRow = null;
-  let actionType = null;
-  let allScholars = [];
+let currentRow = null;
+let actionType = null;
+let allScholars = [];
 
-  function formatDate(date) {
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-  }
+function formatDate(date) {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
 
-  // ✅ Fetch verified scholars
-  async function loadVerifiedScholars() {
-    try {
-      const res = await fetch("/api/verified-scholars");
-      const scholars = await res.json();
-      allScholars = scholars;
+// ✅ Fetch verified scholars + expenses
+async function loadVerifiedScholars() {
+  try {
+    const res = await fetch("/api/scholars-with-expenses");
+    const scholars = await res.json();
+    allScholars = scholars;
 
-      // 🔹 Generate unique batch years
-      const batchYears = [...new Set(scholars.map(s => s.batchYear).filter(Boolean))].sort();
+    // 🔹 Generate unique batch years
+    const batchYears = [...new Set(scholars.map(s => s.batchYear).filter(Boolean))].sort();
 
-      // 🔹 Populate filter dropdown
-      batchFilter.innerHTML = `<option value="">All Batches</option>`;
-      batchYears.forEach(year => {
-        const opt = document.createElement("option");
-        opt.value = year;
-        opt.textContent = `Batch ${year}`;
-        batchFilter.appendChild(opt);
-      });
-
-      renderTable(scholars);
-    } catch (err) {
-      console.error("Error loading scholars:", err);
-    }
-  }
-
-  // ✅ Render table with filters
-  function renderTable(data) {
-    expenseTable.innerHTML = "";
-    data.forEach((scholar) => {
-      const row = document.createElement("tr");
-      row.setAttribute("data-id", scholar._id);
-      row.innerHTML = `
-        <td>${scholar.fullname}</td>
-        <td>${scholar.batchYear || "-"}</td>
-        <td data-date="${new Date().toISOString()}">${formatDate(new Date())}</td>
-        <td class="tuition">0</td>
-        <td class="book">0</td>
-        <td class="allowance">0</td>
-        <td class="total">0</td>
-        <td><span class="actions">⋮</span></td>
-      `;
-      expenseTable.appendChild(row);
-    });
-    attachActionEvents();
-  }
-
-  // ✅ Search + Filter
-  function applyFilters() {
-    const searchValue = searchInput.value.toLowerCase();
-    const batchValue = batchFilter.value;
-
-    const filtered = allScholars.filter(s => {
-      const matchesSearch = s.fullname.toLowerCase().includes(searchValue);
-      const matchesBatch = batchValue === "" || String(s.batchYear) === batchValue;
-      return matchesSearch && matchesBatch;
+    // 🔹 Populate filter dropdown
+    batchFilter.innerHTML = `<option value="">All Batches</option>`;
+    batchYears.forEach(year => {
+      const opt = document.createElement("option");
+      opt.value = year;
+      opt.textContent = `Batch ${year}`;
+      batchFilter.appendChild(opt);
     });
 
-    renderTable(filtered);
+    renderTable(scholars);
+  } catch (err) {
+    console.error("Error loading scholars with expenses:", err);
   }
+}
 
-  searchInput.addEventListener("input", applyFilters);
-  batchFilter.addEventListener("change", applyFilters);
+// ✅ Render table
+function renderTable(data) {
+  expenseTable.innerHTML = "";
+  data.forEach((scholar) => {
+    const row = document.createElement("tr");
+    row.setAttribute("data-id", scholar._id);
 
-  // ✅ Attach menu events
-  function attachActionEvents() {
-    document.querySelectorAll(".actions").forEach(action => {
-      action.addEventListener("click", (e) => {
-        const rect = e.target.getBoundingClientRect();
-        menu.style.top = rect.bottom + "px";
-        menu.style.left = rect.left + "px";
-        menu.style.display = "block";
-        currentRow = e.target.closest("tr");
-      });
-    });
-  }
+    row.innerHTML = `
+      <td>${scholar.fullname}</td>
+      <td>${scholar.batchYear || "-"}</td>
+      <td>${scholar.dateModified ? formatDate(new Date(scholar.dateModified)) : "-"}</td>
+      <td class="tuition">${(scholar.tuition || 0).toFixed(2)}</td>
+      <td class="book">${(scholar.bookAllowance || 0).toFixed(2)}</td>
+      <td class="allowance">${(scholar.monthlyAllowance || 0).toFixed(2)}</td>
+      <td class="total">${(scholar.totalSpent || 0).toFixed(2)}</td>
+      <td><span class="actions">⋮</span></td>
+    `;
+    expenseTable.appendChild(row);
+  });
+  attachActionEvents();
+}
 
-  // Close menu
-  document.addEventListener("click", (e) => {
-    if (!menu.contains(e.target) && !e.target.classList.contains("actions")) {
-      menu.style.display = "none";
-    }
+// ✅ Search + Filter
+function applyFilters() {
+  const searchValue = searchInput.value.toLowerCase();
+  const batchValue = batchFilter.value;
+
+  const filtered = allScholars.filter(s => {
+    const matchesSearch = s.fullname.toLowerCase().includes(searchValue);
+    const matchesBatch = batchValue === "" || String(s.batchYear) === batchValue;
+    return matchesSearch && matchesBatch;
   });
 
-  document.getElementById("addBtn").addEventListener("click", () => {
-    actionType = "add";
-    modalTitle.textContent = "Add Amount";
-    amountInput.value = "";
-    modal.style.display = "flex";
+  renderTable(filtered);
+}
+
+searchInput.addEventListener("input", applyFilters);
+batchFilter.addEventListener("change", applyFilters);
+
+// ✅ Attach menu events
+function attachActionEvents() {
+  document.querySelectorAll(".actions").forEach(action => {
+    action.addEventListener("click", (e) => {
+      const rect = e.target.getBoundingClientRect();
+      menu.style.top = rect.bottom + "px";
+      menu.style.left = rect.left + "px";
+      menu.style.display = "block";
+      currentRow = e.target.closest("tr");
+    });
+  });
+}
+
+// Close menu
+document.addEventListener("click", (e) => {
+  if (!menu.contains(e.target) && !e.target.classList.contains("actions")) {
     menu.style.display = "none";
-  });
+  }
+});
 
-  document.getElementById("subBtn").addEventListener("click", () => {
-    actionType = "subtract";
-    modalTitle.textContent = "Subtract Amount";
-    amountInput.value = "";
-    modal.style.display = "flex";
-    menu.style.display = "none";
-  });
+document.getElementById("addBtn").addEventListener("click", () => {
+  actionType = "add";
+  modalTitle.textContent = "Add Amount";
+  amountInput.value = "";
+  modal.style.display = "flex";
+  menu.style.display = "none";
+});
 
-  cancelBtn.addEventListener("click", () => {
-    modal.style.display = "none";
-  });
+document.getElementById("subBtn").addEventListener("click", () => {
+  actionType = "subtract";
+  modalTitle.textContent = "Subtract Amount";
+  amountInput.value = "";
+  modal.style.display = "flex";
+  menu.style.display = "none";
+});
 
-  saveBtn.addEventListener("click", () => {
-    if (!currentRow) return;
-    const category = categorySelect.value;
-    const cell = currentRow.querySelector("." + category);
-    let currentAmount = parseFloat(cell.textContent) || 0;
-    let value = parseFloat(amountInput.value);
-    if (isNaN(value) || value <= 0) return;
+cancelBtn.addEventListener("click", () => {
+  modal.style.display = "none";
+});
 
-    if (actionType === "add") {
-      currentAmount += value;
-    } else if (actionType === "subtract") {
-      currentAmount -= value;
-      if (currentAmount < 0) currentAmount = 0;
-    }
+saveBtn.addEventListener("click", async () => {
+  if (!currentRow) return;
+  const category = categorySelect.value;
+  const cell = currentRow.querySelector("." + category);
+  let currentAmount = parseFloat(cell.textContent) || 0;
+  let value = parseFloat(amountInput.value);
+  if (isNaN(value) || value <= 0) return;
 
-    cell.textContent = currentAmount.toFixed(2);
+  if (actionType === "add") {
+    currentAmount += value;
+  } else if (actionType === "subtract") {
+    currentAmount -= value;
+    if (currentAmount < 0) currentAmount = 0;
+  }
 
-    // update total
-    const tuition = parseFloat(currentRow.querySelector(".tuition").textContent) || 0;
-    const book = parseFloat(currentRow.querySelector(".book").textContent) || 0;
-    const allowance = parseFloat(currentRow.querySelector(".allowance").textContent) || 0;
-    currentRow.querySelector(".total").textContent = (tuition + book + allowance).toFixed(2);
+  cell.textContent = currentAmount.toFixed(2);
 
-    // update date
-    currentRow.cells[2].textContent = formatDate(new Date());
+  // update total
+  const tuition = parseFloat(currentRow.querySelector(".tuition").textContent) || 0;
+  const book = parseFloat(currentRow.querySelector(".book").textContent) || 0;
+  const allowance = parseFloat(currentRow.querySelector(".allowance").textContent) || 0;
+  const total = (tuition + book + allowance).toFixed(2);
+  currentRow.querySelector(".total").textContent = total;
 
-    modal.style.display = "none";
-  });
+  // update date
+  const now = new Date();
+  currentRow.cells[2].textContent = formatDate(now);
 
-  // Load scholars on page load
-  loadVerifiedScholars();
+  // 🔥 Save to backend
+  const scholarId = currentRow.getAttribute("data-id");
+  try {
+    await fetch(`/api/expenses/${scholarId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tuition,
+        bookAllowance: book,
+        monthlyAllowance: allowance
+      })
+    });
+  } catch (err) {
+    console.error("Error saving expense:", err);
+  }
+
+  modal.style.display = "none";
+});
+
+// ✅ Call on page load
+window.addEventListener("DOMContentLoaded", loadVerifiedScholars);
 </script>
-
-
-
 </body>
 </html>

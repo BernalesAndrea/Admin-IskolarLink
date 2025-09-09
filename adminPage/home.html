@@ -175,69 +175,69 @@
     </div>
   </div>
 
-  <script>
-    const API_URL = "http://localhost:3000";
+<script>
+  const API_URL = "http://localhost:3000/api"; // ✅ updated
 
-    async function loadEvents() {
-      try {
-        const res = await fetch(`${API_URL}/events`);
-        const events = await res.json();
-        const container = document.getElementById("upcomingEvents");
-        container.innerHTML = "";
+  async function loadEvents() {
+    try {
+      const res = await fetch(`${API_URL}/events`);
+      const events = await res.json();
+      const container = document.getElementById("upcomingEvents");
+      container.innerHTML = "";
 
-        if (events.length === 0) {
-          container.innerHTML = "<p>No upcoming events.</p>";
-          return;
-        }
+      if (events.length === 0) {
+        container.innerHTML = "<p>No events found.</p>";
+        return;
+      }
 
-        events.forEach(ev => {
-          const dateObj = new Date(ev.dateTime);
-          const month = dateObj.toLocaleString("default", { month: "short" });
-          const day = dateObj.getDate();
+      // ✅ show all events (admin should see everything)
+      events.forEach(ev => {
+        const dateObj = new Date(ev.dateTime);
+        const month = dateObj.toLocaleString("default", { month: "short" });
+        const day = dateObj.getDate();
 
-          const div = document.createElement("div");
-          div.classList.add("eventCard");
-          div.innerHTML = `
-            <div class="eventDate">
-              <h2>${month}</h2>
-              <h1>${day}</h1>
-            </div>
-            <div class="eventDetails">
-              <h3>${ev.title}</h3>
-              <button class="viewMoreBtn">View more...</button>
-            </div>
-          `;
+        const div = document.createElement("div");
+        div.classList.add("eventCard");
+        div.innerHTML = `
+          <div class="eventDate">
+            <h2>${month}</h2>
+            <h1>${day}</h1>
+          </div>
+          <div class="eventDetails">
+            <h3>${ev.title}</h3>
+            <button class="viewMoreBtn">View more...</button>
+          </div>
+        `;
 
-          // View more pop up
-          div.querySelector(".viewMoreBtn").addEventListener("click", function () {
-            document.getElementById("modalTitle").textContent = ev.title;
-            document.getElementById("modalDate").textContent = dateObj.toLocaleString();
-            document.getElementById("modalLocation").textContent = ev.location;
-            document.getElementById("modalDuration").textContent = ev.duration;
-            document.getElementById("modalDescription").textContent = ev.description;
-            document.getElementById("eventModal").style.display = "block";
-          });
-
-          container.appendChild(div);
+        // Open modal
+        div.querySelector(".viewMoreBtn").addEventListener("click", function () {
+          document.getElementById("modalTitle").textContent = ev.title;
+          document.getElementById("modalDate").textContent = dateObj.toLocaleString();
+          document.getElementById("modalLocation").textContent = ev.location;
+          document.getElementById("modalDuration").textContent = ev.duration;
+          document.getElementById("modalDescription").textContent = ev.description;
+          document.getElementById("eventModal").style.display = "block";
         });
-      } catch (err) {
-        console.error(err);
-      }
+
+        container.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Error loading events:", err);
     }
+  }
 
-    // Close modal
-    document.querySelector(".close").addEventListener("click", function () {
+  // Close modal
+  document.querySelector(".close").addEventListener("click", () => {
+    document.getElementById("eventModal").style.display = "none";
+  });
+  window.addEventListener("click", e => {
+    if (e.target.id === "eventModal") {
       document.getElementById("eventModal").style.display = "none";
-    });
-    window.addEventListener("click", function (e) {
-      if (e.target.id === "eventModal") {
-        document.getElementById("eventModal").style.display = "none";
-      }
-    });
+    }
+  });
 
-    // Load events on home load
-    window.onload = loadEvents;
-  </script>
+  window.onload = loadEvents;
+</script>
 </body>
 
 </html>

@@ -9,6 +9,7 @@ const { type } = require('os');
 const app = express();
 
 const User = require("./models/User");
+const Expense = require("./models/Expense");
 
 // Middleware
 app.use(express.json());
@@ -35,9 +36,15 @@ const eventSchema = new mongoose.Schema({
   description: String,
   dateTime: String,
   duration: String,
-  location: String
+  location: String,
+  attendees: [
+    {
+      scholar: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      status: { type: String, enum: ["attend", "not_attend"], required: true }
+    }
+  ]
 });
-const Event = mongoose.model('Event', eventSchema);
+const Event = mongoose.model("Event", eventSchema);
 
 // Task Schema
 const taskSchema = new mongoose.Schema({
@@ -85,7 +92,6 @@ app.post('/auth/signup', async (req, res) => {
     res.status(500).json({ msg: "Error creating user", error: err.message });
   }
 });
-
 
 
 // 🔑 Login
@@ -165,6 +171,80 @@ app.get("/api/verified-scholars", async (req, res) => {
   }
 });
 
+// Expenses API
+
+app.post("/api/expenses/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user || !user.verified || user.role !== "scholar") {
+      return res.status(400).json({ msg: "Scholar not verified or not found" });
+    }
+
+    const { tuition = 0, bookAllowance = 0, monthlyAllowance = 0 } = req.body;
+    const totalSpent = tuition + bookAllowance + monthlyAllowance;
+
+    // Upsert: update if exists, otherwise create new
+    const expense = await Expense.findOneAndUpdate(
+      { scholar: user._id },
+      {
+        scholar: user._id,
+        fullname: user.fullname,
+        batchYear: user.batchYear,
+        tuition,
+        bookAllowance,
+        monthlyAllowance,
+        totalSpent,
+        dateModified: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({ msg: "Expense saved successfully", expense });
+  } catch (err) {
+    res.status(500).json({ msg: "Error saving expense", error: err.message });
+  }
+});
+
+// Get all expenses (for admin)
+app.get("/api/expenses", async (req, res) => {
+  try {
+    const expenses = await Expense.find().populate("scholar", "fullname batchYear");
+    res.json(expenses);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching expenses", error: err.message });
+  }
+});
+
+// Get verified scholars + their expenses
+app.get("/api/scholars-with-expenses", async (req, res) => {
+  try {
+    const scholars = await User.find({ role: "scholar", verified: true })
+      .sort({ fullname: 1 });
+
+    // Find all expenses
+    const expenses = await Expense.find();
+
+    // Map scholar + expense
+    const data = scholars.map(sch => {
+      const exp = expenses.find(e => e.scholar.toString() === sch._id.toString());
+      return {
+        _id: sch._id,
+        fullname: sch.fullname,
+        batchYear: sch.batchYear,
+        dateModified: exp ? exp.dateModified : null,
+        tuition: exp ? exp.tuition : 0,
+        bookAllowance: exp ? exp.bookAllowance : 0,
+        monthlyAllowance: exp ? exp.monthlyAllowance : 0,
+        totalSpent: exp ? exp.totalSpent : 0
+      };
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch scholars with expenses", details: err.message });
+  }
+});
 
 
 
@@ -231,14 +311,72 @@ app.post('/events', async (req, res) => {
 });
 
 // --- API: Get Events
-app.get('/events', async (req, res) => {
+// ====================== EVENTS API ======================
+app.get("/api/events", async (req, res) => {
   try {
     const events = await Event.find();
     res.json(events);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching events', error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
+
+// Create event
+app.post("/api/events", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+
+  try {
+    const newEvent = await Event.create(req.body);
+    res.json(newEvent);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Attendance summary
+app.get("/api/events/:eventId/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId).populate("attendees.scholar");
+    if (!event) return res.status(404).json({ error: "Event not found" });
+
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+
+    res.json({ attendCount, notAttendCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin event page
+ app.get("/admin/events", authMiddleware, (req, res) => {
+    if (req.user.role !== "admin") return res.status(403).send("Access denied");
+    res.sendFile(path.join(__dirname, "adminPage/event.html"));
+  });
+
+
+
+// ✅ Admin fetch attendance summary
+app.get("/events/:eventId/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId).populate("attendees.scholar", "fullname");
+    if (!event) return res.status(404).json({ msg: "Event not found" });
+
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+
+    res.json({
+      eventId: event._id,
+      title: event.title,
+      attendCount,
+      notAttendCount,
+      attendees: event.attendees
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
+  }
+});
+
 
 // --- API: Create Task
 app.post('/tasks', async (req, res) => {
