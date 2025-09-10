@@ -256,7 +256,15 @@ document.getElementById("loginBtn").addEventListener("click", async function (ev
     const data = await res.json();
 
     if (res.ok && data.redirect) {
-      // 🔑 Backend decides if user goes to /admin or /scholar
+      // ✅ Save scholar info for later use
+      if (data.userId) {
+        localStorage.setItem("userId", data.userId);
+      }
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      }
+
+      // 🔑 Redirect based on backend response
       window.location.href = data.redirect;
     } else {
       alert(data.msg || "Login failed");

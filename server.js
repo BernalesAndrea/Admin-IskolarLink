@@ -5,11 +5,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { type } = require('os');
+const multer = require("multer");
 
 const app = express();
 
 const User = require("./models/User");
 const Expense = require("./models/Expense");
+const Grade = require("./models/Grades");
 
 // Middleware
 app.use(express.json());
@@ -65,6 +67,20 @@ const announcementSchema = new mongoose.Schema({
 });
 const Announcement = mongoose.model("Announcement", announcementSchema);
 
+
+// Multer setup (save images in /uploads folder)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+const upload = multer({ storage });
+
+
+
 /* ============= AUTH ROUTES ============= */
 app.post('/auth/signup', async (req, res) => {
   try {
@@ -116,7 +132,13 @@ app.post('/auth/login', async (req, res) => {
     let redirectUrl = "/scholar";
     if (user.role === "admin") redirectUrl = "/admin";
 
-    res.json({ msg: "Login successful", redirect: redirectUrl });
+    res.json({
+  msg: "Login successful",
+  redirect: redirectUrl,
+  userId: user._id,
+  role: user.role
+  });
+
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
@@ -245,6 +267,48 @@ app.get("/api/scholars-with-expenses", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch scholars with expenses", details: err.message });
   }
 });
+
+// ✅ Upload grades for the logged-in scholar
+app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (req, res) => {
+  try {
+    // Get user from JWT
+    const user = await User.findById(req.user.id);
+
+    if (!user || !user.verified || user.role !== "scholar") {
+      return res.status(400).json({ msg: "Scholar not verified or not found" });
+    }
+
+    const { schoolYear, semester, subjects } = req.body;
+
+    const newGrade = new Grade({
+      scholar: user._id,
+      fullname: user.fullname,
+      batchYear: user.batchYear,
+      schoolYear,
+      semester,
+      subjects: JSON.parse(subjects), // frontend sends JSON string
+      attachment: req.file ? `/uploads/${req.file.filename}` : null
+    });
+
+    await newGrade.save();
+    res.json({ msg: "Grade uploaded successfully", grade: newGrade });
+  } catch (err) {
+    res.status(500).json({ msg: "Error uploading grade", error: err.message });
+  }
+});
+
+
+// ✅ Get all grades (with scholar info)
+app.get("/api/grades", async (req, res) => {
+  try {
+    const grades = await Grade.find().sort({ schoolYear: -1, semester: -1 });
+    res.json(grades);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching grades", error: err.message });
+  }
+});
+
+
 
 
 

@@ -281,10 +281,46 @@ function uploadData(){
     modal.style.display="none"; 
     showMessage("Upload cancelled. Please review your data.",true);
   }
-  document.getElementById("confirmBtn").onclick = function(){ 
-    modal.style.display="none"; 
-    showMessage("Data uploaded successfully!",false);
+document.getElementById("confirmBtn").onclick = async function () {
+  modal.style.display = "none";
+
+  const schoolYear = document.getElementById("schoolYear").value.trim();
+  const semester = document.getElementById("semester").value.trim();
+
+  const formData = new FormData();
+  formData.append("schoolYear", schoolYear);
+  formData.append("semester", semester);
+  formData.append("attachment", gradePicture.files[0]);
+
+  let subjectsData = [];
+  for (let i = 0; i < subjects.length; i++) {
+    subjectsData.push({
+      subjectCode: subjects[i].value.trim(),
+      units: parseInt(units[i].value.trim()),
+      grade: parseFloat(grades[i].value.trim())
+    });
   }
+  formData.append("subjects", JSON.stringify(subjectsData));
+
+  try {
+    const userId = localStorage.getItem("userId"); // ✅ actual logged-in scholar
+    const res = await fetch(`/api/grades/me`, {
+  method: "POST",
+  body: formData,
+  credentials: "include" // ✅ send JWT cookie
+  });
+
+
+    const data = await res.json();
+    if (res.ok) {
+      showMessage("Data uploaded successfully!", false);
+    } else {
+      showMessage(data.msg || "Upload failed", true);
+    }
+  } catch (err) {
+    showMessage("Error uploading data", true);
+  }
+};
 }
 
 window.onclick = function(event){
