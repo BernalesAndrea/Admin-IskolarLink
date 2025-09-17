@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -6,12 +8,15 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { type } = require('os');
 const multer = require("multer");
+const fs = require("fs");
 
 const app = express();
 
 const User = require("./models/User");
 const Expense = require("./models/Expense");
 const Grade = require("./models/Grades");
+const SubmittedDocument = require("./models/SubmittedDocument");
+
 
 // Middleware
 app.use(express.json());
@@ -25,6 +30,8 @@ app.get('/', (req, res) => {
 
 // ✅ Serve static files (CSS, JS, images, etc.)
 app.use(express.static(path.join(__dirname)));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB connection
 mongoose.connect('mongodb+srv://hondrea321:bernalesandrea09112003@iskolarlinkcluster.k5dvw5y.mongodb.net/?retryWrites=true&w=majority&appName=IskolarLinkCluster')
@@ -71,7 +78,16 @@ const Announcement = mongoose.model("Announcement", announcementSchema);
 // Multer setup (save images in /uploads folder)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    let folder = path.join(__dirname, "uploads");
+
+    if (file.fieldname === "attachment") {
+      folder = path.join(__dirname, "uploads/grades");
+    } else if (file.fieldname === "document") {
+      folder = path.join(__dirname, "uploads/submittedDocs");
+    }
+
+    fs.mkdirSync(folder, { recursive: true });
+    cb(null, folder);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
@@ -126,7 +142,12 @@ app.post('/auth/login', async (req, res) => {
       return res.status(403).json({ msg: "Your account is awaiting admin verification." });
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, "SECRET_KEY", { expiresIn: "1h" });
+    const token = jwt.sign(
+  { id: user._id, role: user.role },
+  process.env.JWT_SECRET,   // ✅ use env
+  { expiresIn: "1h" }
+);
+
     res.cookie("token", token, { httpOnly: true });
 
     let redirectUrl = "/scholar";
@@ -271,9 +292,7 @@ app.get("/api/scholars-with-expenses", async (req, res) => {
 // ✅ Upload grades for the logged-in scholar
 app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (req, res) => {
   try {
-    // Get user from JWT
     const user = await User.findById(req.user.id);
-
     if (!user || !user.verified || user.role !== "scholar") {
       return res.status(400).json({ msg: "Scholar not verified or not found" });
     }
@@ -286,8 +305,8 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
       batchYear: user.batchYear,
       schoolYear,
       semester,
-      subjects: JSON.parse(subjects), // frontend sends JSON string
-      attachment: req.file ? `/uploads/${req.file.filename}` : null
+      subjects: JSON.parse(subjects),
+      attachment: req.file ? `/uploads/grades/${req.file.filename}` : null   // ✅ fix here
     });
 
     await newGrade.save();
@@ -296,6 +315,7 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
     res.status(500).json({ msg: "Error uploading grade", error: err.message });
   }
 });
+
 
 
 // ✅ Get all grades (with scholar info)
@@ -307,6 +327,60 @@ app.get("/api/grades", async (req, res) => {
     res.status(500).json({ msg: "Error fetching grades", error: err.message });
   }
 });
+
+
+// ✅ Scholar submits a document
+app.post("/api/documents/me", authMiddleware, upload.single("document"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.verified || user.role !== "scholar") {
+      return res.status(400).json({ msg: "Scholar not verified or not found" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ msg: "No file uploaded" });
+    }
+
+    const { docType } = req.body;
+
+    const newDoc = new SubmittedDocument({
+      scholar: user._id,
+      fullname: user.fullname,
+      batchYear: user.batchYear,
+      docType,
+      filePath: `/uploads/submittedDocs/${req.file.filename}`   // ✅ fix here
+    });
+
+    await newDoc.save();
+    res.json({ msg: "Document submitted successfully", document: newDoc });
+  } catch (err) {
+    res.status(500).json({ msg: "Error submitting document", error: err.message });
+  }
+});
+
+
+
+// ✅ Scholar fetches their own submitted documents
+app.get("/api/documents/me", authMiddleware, async (req, res) => {
+  try {
+    const docs = await SubmittedDocument.find({ scholar: req.user.id }).sort({ dateSubmitted: -1 });
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching documents", error: err.message });
+  }
+});
+
+// ✅ Admin fetches all documents
+app.get("/api/documents", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+  try {
+    const docs = await SubmittedDocument.find().sort({ dateSubmitted: -1 });
+    res.json(docs);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching documents", error: err.message });
+  }
+});
+
 
 
 
@@ -322,14 +396,14 @@ function authMiddleware(req, res, next) {
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
 
-  if (!token) return res.redirect("/");
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
-    req.user = decoded;
-    next();
-  } catch {
-    return res.redirect("/");
-  }
+  const decoded = jwt.verify(token, process.env.JWT_SECRET); // ✅ use env
+  req.user = decoded;
+  next();
+} catch {
+  return res.redirect("/");
+}
+
 }
 
 

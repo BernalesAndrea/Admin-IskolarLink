@@ -1,342 +1,491 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scholar Grade</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar Grade</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<style>
-* {margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif;}
-body {
-  margin:0;
-  background-image:url('/assets/iskolarbg.png');
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-}
-main {display:flex; justify-content:center; align-items:center; width:100%;}
-.main {
-  background: rgba(255,255,255,0.95);
-  padding:30px;
-  border-radius:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.2);
-  max-width:950px;
-  width:100%;
-  text-align:center;
-}
-h2 {margin-bottom:20px; color:#333;}
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-/* Term inputs */
-.termInputs {display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;}
-.termInputs input {padding:8px; border:1px solid #ccc; border-radius:8px; width:180px;}
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-/* Layout: left image, right inputs */
-.layout {
-  display:flex;
-  gap:20px;
-  align-items:flex-start;
-}
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
 
-/* Left image */
-.attachmentBox {
-  flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-.attachmentBox input[type="file"] {
-  border:1px solid #ccc;
-  border-radius:8px;
-  padding:5px;
-  background:white;
-  cursor:pointer;
-  margin-bottom:10px;
-}
-.attachmentBox img {
-  width:200px;
-  height:200px;
-  object-fit:cover;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
+    .main {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      max-width: 950px;
+      width: 100%;
+      text-align: center;
+    }
 
-/* Right inputs */
-#subjectsContainer {flex:1;}
-.gradeCompute {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:10px;
-  flex-wrap:wrap;
-}
-.inputBox {display:flex; flex-direction:column; align-items:flex-start;}
-.inputBox input {padding:8px; border:1px solid #ccc; border-radius:8px; width:120px;}
-.removeSubject button {
-  background:white; color:#800000; padding:8px; border-radius:50%; cursor:pointer; font-size:16px;
-  display:flex; justify-content:center; align-items:center;
-}
-.removeSubject button:hover {background:#f0f0f0;}
-.buttons {display:flex; justify-content:center; gap:15px; flex-wrap:wrap; margin-top:15px;}
-.buttons button {display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; border:none; cursor:pointer; color:white; background:#800000;}
-#message {margin-top:10px; font-weight:bold; text-align:center;}
-.error {color:red;}
-.success {color:green;}
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
 
-/* Modal */
-.modal {display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center;}
-.modal-content {background:white; padding:25px; border-radius:12px; text-align:center; max-width:550px; width:90%;}
-.modal-content h3 {color:#800000; margin-bottom:10px;}
-.modal-content p {margin-bottom:15px;}
-.modal-table {width:100%; border-collapse:collapse; margin-bottom:20px;}
-.modal-table th, .modal-table td {border:1px solid #ccc; padding:6px 8px; text-align:center;}
-.modal-table td img {width:50px; height:auto; border-radius:4px;}
-.modal-buttons {display:flex; justify-content:center; gap:15px;}
-.modal-buttons button {padding:10px 18px; border-radius:8px; border:none; cursor:pointer; font-weight:bold;}
-#cancelBtn {background:#ccc;}
-#confirmBtn {background:#800000; color:white;}
-</style>
+    /* Term inputs */
+    .termInputs {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .termInputs input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 180px;
+    }
+
+    /* Layout: left image, right inputs */
+    .layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    /* Left image */
+    .attachmentBox {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .attachmentBox input[type="file"] {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 5px;
+      background: white;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .attachmentBox img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    /* Right inputs */
+    #subjectsContainer {
+      flex: 1;
+    }
+
+    .gradeCompute {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inputBox {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .inputBox input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 120px;
+    }
+
+    .removeSubject button {
+      background: white;
+      color: #800000;
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .removeSubject button:hover {
+      background: #f0f0f0;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+
+    .buttons button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      background: #800000;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 550px;
+      width: 90%;
+    }
+
+    .modal-content h3 {
+      color: #800000;
+      margin-bottom: 10px;
+    }
+
+    .modal-content p {
+      margin-bottom: 15px;
+    }
+
+    .modal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .modal-table th,
+    .modal-table td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .modal-table td img {
+      width: 50px;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .modal-buttons button {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #cancelBtn {
+      background: #ccc;
+    }
+
+    #confirmBtn {
+      background: #800000;
+      color: white;
+    }
+  </style>
 </head>
+
 <body>
 
-<main>
-  <div class="main">
-    <h2>GWA Computation</h2>
+  <main>
+    <div class="main">
+      <h2>GWA Computation</h2>
 
-    <!-- Term Inputs -->
-    <div class="termInputs">
-      <input type="text" id="schoolYear" placeholder="School Year (e.g., 2025-2026)" required>
-      <input type="text" id="semester" placeholder="Semester (e.g., 1st, 2nd, Summer)" required>
-    </div>
-
-    <div class="layout">
-      <!-- Left: single grade image -->
-      <div class="attachmentBox">
-        <input type="file" id="gradePicture" accept="image/*" required>
-        <img id="previewImage" src="" style="display:none;">
+      <!-- Term Inputs -->
+      <div class="termInputs">
+        <input type="text" id="schoolYear" placeholder="School Year (e.g., 2025-2026)" required>
+        <input type="text" id="semester" placeholder="Semester (e.g., 1st, 2nd, Summer)" required>
       </div>
 
-      <!-- Right: subject/unit/grade inputs -->
-      <div id="subjectsContainer">
-        <div class="gradeCompute">
-          <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
-          <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
-          <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
-          <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
+      <div class="layout">
+        <!-- Left: single grade image -->
+        <div class="attachmentBox">
+          <input type="file" id="gradePicture" accept="image/*" required>
+          <img id="previewImage" src="" style="display:none;">
         </div>
 
-        <div class="buttons">
-          <button onclick="addSubject()"><i class="fa fa-plus"></i> Add Subject</button>
-          <button onclick="calculateAverage()"><i class="fa fa-calculator"></i> Calculate Average</button>
-          <button onclick="uploadData()"><i class="fa fa-upload"></i> Upload</button>
-        </div>
+        <!-- Right: subject/unit/grade inputs -->
+        <div id="subjectsContainer">
+          <div class="gradeCompute">
+            <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
+            <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
+            <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
+            <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
+          </div>
 
-        <div id="message"></div>
+          <div class="buttons">
+            <button onclick="addSubject()"><i class="fa fa-plus"></i> Add Subject</button>
+            <button onclick="calculateAverage()"><i class="fa fa-calculator"></i> Calculate Average</button>
+            <button onclick="uploadData()"><i class="fa fa-upload"></i> Upload</button>
+          </div>
+
+          <div id="message"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <h3>NOTICE</h3>
+      <p id="modalNotice">Review all subjects and attached grade picture before submitting.</p>
+      <p id="modalTermText"></p>
+      <table class="modal-table">
+        <thead>
+          <tr>
+            <th>Grade Picture</th>
+            <th>Subject</th>
+            <th>Units</th>
+            <th>Grade</th>
+          </tr>
+        </thead>
+        <tbody id="modalTableBody"></tbody>
+      </table>
+      <div class="modal-buttons">
+        <button id="cancelBtn">Cancel</button>
+        <button id="confirmBtn">Submit</button>
       </div>
     </div>
   </div>
-</main>
 
-<!-- Modal -->
-<div id="confirmationModal" class="modal">
-  <div class="modal-content">
-    <h3>NOTICE</h3>
-    <p id="modalNotice">Review all subjects and attached grade picture before submitting.</p>
-    <p id="modalTermText"></p>
-    <table class="modal-table">
-      <thead>
-        <tr>
-          <th>Grade Picture</th>
-          <th>Subject</th>
-          <th>Units</th>
-          <th>Grade</th>
-        </tr>
-      </thead>
-      <tbody id="modalTableBody"></tbody>
-    </table>
-    <div class="modal-buttons">
-      <button id="cancelBtn">Cancel</button>
-      <button id="confirmBtn">Submit</button>
-    </div>
-  </div>
-</div>
+  <script>
+    const gradePicture = document.getElementById("gradePicture");
+    const previewImage = document.getElementById("previewImage");
 
-<script>
-const gradePicture = document.getElementById("gradePicture");
-const previewImage = document.getElementById("previewImage");
+    gradePicture.addEventListener("change", function () {
+      if (this.files[0]) {
+        previewImage.src = URL.createObjectURL(this.files[0]);
+        previewImage.style.display = "block";
+      }
+    });
 
-gradePicture.addEventListener("change", function(){
-  if(this.files[0]){
-    previewImage.src = URL.createObjectURL(this.files[0]);
-    previewImage.style.display="block";
-  }
-});
-
-function addSubject(){
-  const container = document.getElementById("subjectsContainer");
-  const newDiv = document.createElement("div");
-  newDiv.classList.add("gradeCompute");
-  newDiv.innerHTML = `
+    function addSubject() {
+      const container = document.getElementById("subjectsContainer");
+      const newDiv = document.createElement("div");
+      newDiv.classList.add("gradeCompute");
+      newDiv.innerHTML = `
     <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
     <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
     <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
     <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
   `;
-  container.insertBefore(newDiv, container.querySelector(".buttons"));
-}
+      container.insertBefore(newDiv, container.querySelector(".buttons"));
+    }
 
-function removeSubject(button){
-  const container = document.getElementById("subjectsContainer");
-  const rows = container.querySelectorAll(".gradeCompute");
-  if(rows.length>1){
-    button.closest(".gradeCompute").remove();
-    showMessage("", false);
-  } else {
-    showMessage("There should be at least one subject entry.", true);
-  }
-}
+    function removeSubject(button) {
+      const container = document.getElementById("subjectsContainer");
+      const rows = container.querySelectorAll(".gradeCompute");
+      if (rows.length > 1) {
+        button.closest(".gradeCompute").remove();
+        showMessage("", false);
+      } else {
+        showMessage("There should be at least one subject entry.", true);
+      }
+    }
 
-function calculateAverage(){
-  const subjects = document.querySelectorAll(".subject");
-  const units = document.querySelectorAll(".unit");
-  const grades = document.querySelectorAll(".grade");
+    function calculateAverage() {
+      const subjects = document.querySelectorAll(".subject");
+      const units = document.querySelectorAll(".unit");
+      const grades = document.querySelectorAll(".grade");
 
-  let total=0, totalUnits=0, hasData=false;
-  for(let i=0;i<subjects.length;i++){
-    const s = subjects[i].value.trim();
-    const u = units[i].value.trim();
-    const g = grades[i].value.trim();
-    if(s||u||g) hasData=true;
-    if(!s||!u||!g){showMessage("No specific data was added to the required fields.",true); return;}
-    if(!/^\d+$/.test(u)){showMessage("Units must be integer without decimals.",true); return;}
-    if(isNaN(g)){showMessage("Grade must be valid number.",true); return;}
-    total += parseFloat(g)*parseInt(u);
-    totalUnits += parseInt(u);
-  }
-  if(!hasData){showMessage("No specific data was added to the required fields.",true); return;}
-  showMessage(`Calculated GWA: ${(total/totalUnits).toFixed(2)}`, false);
-}
+      let total = 0, totalUnits = 0, hasData = false;
+      for (let i = 0; i < subjects.length; i++) {
+        const s = subjects[i].value.trim();
+        const u = units[i].value.trim();
+        const g = grades[i].value.trim();
+        if (s || u || g) hasData = true;
+        if (!s || !u || !g) { showMessage("No specific data was added to the required fields.", true); return; }
+        if (!/^\d+$/.test(u)) { showMessage("Units must be integer without decimals.", true); return; }
+        if (isNaN(g)) { showMessage("Grade must be valid number.", true); return; }
+        total += parseFloat(g) * parseInt(u);
+        totalUnits += parseInt(u);
+      }
+      if (!hasData) { showMessage("No specific data was added to the required fields.", true); return; }
+      showMessage(`Calculated GWA: ${(total / totalUnits).toFixed(2)}`, false);
+    }
 
-function uploadData(){
-  const subjects = document.querySelectorAll(".subject");
-  const units = document.querySelectorAll(".unit");
-  const grades = document.querySelectorAll(".grade");
+    function uploadData() {
+      const subjects = document.querySelectorAll(".subject");
+      const units = document.querySelectorAll(".unit");
+      const grades = document.querySelectorAll(".grade");
 
-  const schoolYear = document.getElementById("schoolYear").value.trim();
-  const semester = document.getElementById("semester").value.trim();
-  if(!schoolYear||!semester){showMessage("Please enter both School Year and Semester.", true); return;}
-  if(!gradePicture.files[0]){showMessage("Please attach the grade picture.",true); return;}
+      const schoolYear = document.getElementById("schoolYear").value.trim();
+      const semester = document.getElementById("semester").value.trim();
+      if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
+      if (!gradePicture.files[0]) { showMessage("Please attach the grade picture.", true); return; }
 
-  let hasData=false;
-  for(let i=0;i<subjects.length;i++){
-    const s = subjects[i].value.trim();
-    const u = units[i].value.trim();
-    const g = grades[i].value.trim();
-    if(s||u||g) hasData=true;
-    if(!s||!u||!g){showMessage("No specific data was added to the required fields.",true); return;}
-    if(!/^\d+$/.test(u)){showMessage("Units must be integer without decimals.",true); return;}
-    if(isNaN(g)){showMessage("Grade must be valid number.",true); return;}
-  }
-  if(!hasData){showMessage("No specific data was added to the required fields.",true); return;}
+      let hasData = false;
+      for (let i = 0; i < subjects.length; i++) {
+        const s = subjects[i].value.trim();
+        const u = units[i].value.trim();
+        const g = grades[i].value.trim();
+        if (s || u || g) hasData = true;
+        if (!s || !u || !g) { showMessage("No specific data was added to the required fields.", true); return; }
+        if (!/^\d+$/.test(u)) { showMessage("Units must be integer without decimals.", true); return; }
+        if (isNaN(g)) { showMessage("Grade must be valid number.", true); return; }
+      }
+      if (!hasData) { showMessage("No specific data was added to the required fields.", true); return; }
 
-  // Populate modal
-  const modalNotice = document.getElementById("modalNotice");
-  modalNotice.textContent = "Review all subjects and attached grade picture before submitting.";
+      // Populate modal
+      const modalNotice = document.getElementById("modalNotice");
+      modalNotice.textContent = "Review all subjects and attached grade picture before submitting.";
 
-  const modalTermText = document.getElementById("modalTermText");
-  modalTermText.textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
+      const modalTermText = document.getElementById("modalTermText");
+      modalTermText.textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
 
-  const tbody = document.getElementById("modalTableBody");
-  tbody.innerHTML = "";
-  const picURL = URL.createObjectURL(gradePicture.files[0]);
+      const tbody = document.getElementById("modalTableBody");
+      tbody.innerHTML = "";
+      const picURL = URL.createObjectURL(gradePicture.files[0]);
 
-  for (let i = 0; i < subjects.length; i++) {
-    const row = document.createElement("tr");
+      for (let i = 0; i < subjects.length; i++) {
+        const row = document.createElement("tr");
 
-    if (i === 0) {
-      row.innerHTML = `
+        if (i === 0) {
+          row.innerHTML = `
         <td rowspan="${subjects.length}"><img src="${picURL}" alt="Grade Picture"></td>
         <td>${subjects[i].value.trim()}</td>
         <td>${units[i].value.trim()}</td>
         <td>${grades[i].value.trim()}</td>
       `;
-    } else {
-      row.innerHTML = `
+        } else {
+          row.innerHTML = `
         <td>${subjects[i].value.trim()}</td>
         <td>${units[i].value.trim()}</td>
         <td>${grades[i].value.trim()}</td>
       `;
-    }
-    tbody.appendChild(row);
-  }
+        }
+        tbody.appendChild(row);
+      }
 
-  const modal = document.getElementById("confirmationModal");
-  modal.style.display="flex";
+      const modal = document.getElementById("confirmationModal");
+      modal.style.display = "flex";
 
-  document.getElementById("cancelBtn").onclick = function(){ 
-    modal.style.display="none"; 
-    showMessage("Upload cancelled. Please review your data.",true);
-  }
-document.getElementById("confirmBtn").onclick = async function () {
-  modal.style.display = "none";
-
+      document.getElementById("cancelBtn").onclick = function () {
+        modal.style.display = "none";
+        showMessage("Upload cancelled. Please review your data.", true);
+      }
+      document.getElementById("confirmBtn").addEventListener("click", async () => {
   const schoolYear = document.getElementById("schoolYear").value.trim();
   const semester = document.getElementById("semester").value.trim();
+
+  const subjects = [];
+  document.querySelectorAll(".gradeCompute").forEach(row => {
+    subjects.push({
+      subjectCode: row.querySelector(".subject").value.trim(),
+      units: parseInt(row.querySelector(".unit").value.trim()),
+      grade: parseFloat(row.querySelector(".grade").value.trim())
+    });
+  });
 
   const formData = new FormData();
   formData.append("schoolYear", schoolYear);
   formData.append("semester", semester);
-  formData.append("attachment", gradePicture.files[0]);
-
-  let subjectsData = [];
-  for (let i = 0; i < subjects.length; i++) {
-    subjectsData.push({
-      subjectCode: subjects[i].value.trim(),
-      units: parseInt(units[i].value.trim()),
-      grade: parseFloat(grades[i].value.trim())
-    });
-  }
-  formData.append("subjects", JSON.stringify(subjectsData));
+  formData.append("subjects", JSON.stringify(subjects));
+  formData.append("attachment", gradePicture.files[0]); // <-- match backend field name
 
   try {
-    const userId = localStorage.getItem("userId"); // ✅ actual logged-in scholar
-    const res = await fetch(`/api/grades/me`, {
-  method: "POST",
-  body: formData,
-  credentials: "include" // ✅ send JWT cookie
-  });
-
+    const res = await fetch("/api/grades/me", {
+      method: "POST",
+      body: formData
+    });
 
     const data = await res.json();
     if (res.ok) {
-      showMessage("Data uploaded successfully!", false);
+      showMessage("✅ " + data.msg, false);
+      document.getElementById("confirmationModal").style.display = "none";
     } else {
-      showMessage(data.msg || "Upload failed", true);
+      showMessage("❌ " + data.msg, true);
     }
   } catch (err) {
-    showMessage("Error uploading data", true);
+    showMessage("❌ Upload failed: " + err.message, true);
   }
-};
-}
+});
 
-window.onclick = function(event){
-  const modal = document.getElementById("confirmationModal");
-  if(event.target==modal){ 
-    modal.style.display="none"; 
-    showMessage("Upload cancelled. Please review your data.",true);
-  }
-}
+    }
 
-function showMessage(msg,isError){
-  const messageDiv = document.getElementById("message");
-  messageDiv.textContent = msg;
-  messageDiv.className = isError?"error":"success";
-}
-</script>
+    window.onclick = function (event) {
+      const modal = document.getElementById("confirmationModal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+        showMessage("Upload cancelled. Please review your data.", true);
+      }
+    }
+
+    function showMessage(msg, isError) {
+      const messageDiv = document.getElementById("message");
+      messageDiv.textContent = msg;
+      messageDiv.className = isError ? "error" : "success";
+    }
+  </script>
 
 </body>
+
 </html>

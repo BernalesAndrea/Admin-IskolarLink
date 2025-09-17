@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            outline: none;
+            border: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background-image: url('/assets/iskolarbg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px;
+            gap: 30px;
+        }
+
+        /* The container card */
+        .main {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 40px;
+            width: 350px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Title */
+        .main h2 {
+            text-align: center;
+            color: black;
+            margin-bottom: 10px;
+        }
+
+        /* Select dropdown */
+        .category select,
+        .filter select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #800000;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #800000;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        /* File upload section */
+        .file input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #800000;
+            border-radius: 6px;
+            background-color: white;
+            color: #800000;
+        }
+
+        /* Style the Choose File button */
+        .file input[type="file"]::file-selector-button {
+            background-color: #800000;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hover effect */
+        .file input[type="file"]::file-selector-button:hover {
+            background-color: #a00000;
+        }
+
+
+        /* Submit button */
+        button {
+            background-color: #800000;
+            color: white;
+            padding: 10px;
+            border-radius: 40px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #a00000;
+        }
+
+        /* Container for submitted documents */
+        .viewDocs {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 20px;
+            width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .viewDocs h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #800000;
+        }
+
+        .docItem {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .docItem:last-child {
+            border-bottom: none;
+        }
+
+        .docCategory {
+            font-weight: bold;
+            color: #800000;
+        }
+
+        /* Styling for instruction paragraphs */
+        .main p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            background: #f9f9f9;
+            border-left: 4px solid #800000;
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Form Section -->
+    <div class="main">
+        <h2>Submit Document</h2>
+
+        <div class="category">
+            <select id="docType" required>
+                <option value="" disabled selected>Select Document Type</option>
+                <option value="Statement of Account">Statement of Account</option>
+                <option value="Certificate of Registration">Certificate of Registration</option>
+                <option value="Book Reimbursement">Book Reimbursement</option>
+                <option value="Others">Others</option>
+            </select>
+        </div>
+
+        <div class="file">
+            <input type="file" id="docFile" name="document" required>
+        </div>
+
+        <p>When submitting documents, please ensure that the file type is <strong>.pdf ONLY</strong>, and the file name
+            format: <strong>LastNameFirstName.pdf</strong>.</p>
+        <p>For image files, the acceptable formats are <strong>.jpg and .png</strong>, with the file name in the format
+            <strong>LastNameFirstName</strong>.
+        </p>
+
+        <button type="button" onclick="submitDocument()">Submit</button>
+    </div>
+
+    <!-- Submitted Documents Section -->
+    <div class="viewDocs">
+        <h3>Submitted Documents</h3>
+
+        <!-- Sorting filter -->
+        <div class="filter">
+            <select id="filterSelect" onchange="filterDocuments()">
+                <option value="all">All Documents</option>
+                <option value="Statement of Account">Statement of Account</option>
+                <option value="Certificate of Registration">Certificate of Registration</option>
+                <option value="Book Reimbursement">Book Reimbursement</option>
+                <option value="Others">Others</option>
+            </select>
+        </div>
+
+        <!-- List of submitted documents -->
+        <div id="docList"></div>
+    </div>
+
+    <script>
+async function submitDocument() {
+  const type = document.getElementById("docType").value;
+  const fileInput = document.getElementById("docFile");
+
+  if (!type || fileInput.files.length === 0) {
+    alert("Please select a document type and upload a file.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("docType", type);
+  formData.append("document", fileInput.files[0]);
+
+  try {
+    const res = await fetch("/api/documents/me", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("✅ Document submitted!");
+      fileInput.value = "";
+      document.getElementById("docType").value = "";
+      fetchDocuments(); // refresh list
+    } else {
+      alert("❌ " + data.msg);
+    }
+  } catch (err) {
+    alert("Error submitting document");
+    console.error(err);
+  }
+}
+
+async function fetchDocuments(filter = "all") {
+  try {
+    const res = await fetch("/api/documents/me");
+    const docs = await res.json();
+
+    const list = document.getElementById("docList");
+    list.innerHTML = "";
+
+    const filteredDocs = filter === "all"
+      ? docs
+      : docs.filter(doc => doc.docType === filter);
+
+    if (filteredDocs.length === 0) {
+      list.innerHTML = "<p style='text-align:center; color:#555;'>No documents found.</p>";
+      return;
+    }
+
+    filteredDocs.forEach(doc => {
+      const item = document.createElement("div");
+      item.className = "docItem";
+      item.innerHTML = `
+        <p>
+          <span class="docCategory">${doc.docType.toUpperCase()}</span> - 
+          <a href="${doc.filePath}" target="_blank">${doc.fullname} (${doc.batchYear})</a>
+          <br><small>Submitted: ${new Date(doc.dateSubmitted).toLocaleString()}</small>
+        </p>
+      `;
+      list.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Error fetching documents", err);
+  }
+}
+
+function filterDocuments() {
+  const filter = document.getElementById("filterSelect").value;
+  fetchDocuments(filter);
+}
+
+// Fetch on load
+window.onload = fetchDocuments;
+</script>
+</body>
+</html>

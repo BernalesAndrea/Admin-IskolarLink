@@ -8,245 +8,141 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
     * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: none;
+  text-decoration: none;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: white;
-    }
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url('/assets/iskolarbg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 
-    .mainContainer {
-      width: 1000px;
-      height: 550px;
-      border-radius: 20px;
-      overflow: hidden;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background: #800000;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-    }
+.mainContainer {
+  width: 1000px;
+  height: 550px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
 
-    .assignedTasks {
-      width: 300px;
-      height: 450px;
-      background-color: #fff;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 15px;
-      overflow-y: auto;
-    }
+.assignedTasks {
+  width: 300px;
+  height: 450px;
+  background-color: #fff;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 15px;
+  overflow-y: auto;
+}
 
-    .assignedTasks h2 {
-      margin-bottom: 15px;
-      color: #800000;
-      font-size: 1.4em;
-      text-align: center;
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 10px;
-    }
+.assignedTasks h2 {
+  margin-bottom: 15px;
+  color: black;
+  font-size: 1.4em;
+  text-align: center;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
 
-    /* Task card styling */
-    .task-card {
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      border-left: 4px solid #800000;
-      position: relative;
-      overflow: hidden;
-    }
+.createTask {
+  width: 500px;
+  height: 450px;
+  background-color: #fff;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 10px;
+}
 
-    .task-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-    .task-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-top: 20px solid #800000;
-      opacity: 0.1;
-    }
+.inputBox label {
+  font-weight: bold;
+  margin-top: 5px;
+}
 
-    .task-title {
-      font-weight: bold;
-      color: #2c3e50;
-      font-size: 1.1em;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
+.inputBox input {
+  background-color: rgb(201, 201, 201);
+  border-radius: 20px;
+  padding: 8px 12px;
+}
 
-    .task-dates {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 0.85em;
-      color: #6c757d;
-    }
+.taskDescription textarea {
+  background-color: rgb(201, 201, 201);
+  margin-top: 5px;
+  border-radius: 20px;
+  padding: 8px 12px;
+  resize: none;
+  width: 100%;
+  height: 100px;
+}
 
-    .task-dates::before {
-      content: '📅';
-      font-size: 0.9em;
-    }
+.createButton {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
 
-    .date-separator {
-      color: #800000;
-      font-weight: bold;
-    }
+.createButton button {
+  height: 35px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background-color: rgba(146, 59, 59);
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
 
-    .task-description {
-      color: #495057;
-      font-style: italic;
-      font-size: 0.9em;
-      line-height: 1.4;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 8px;
-      border-radius: 6px;
-      border-left: 3px solid #dee2e6;
-    }
+.dateRow {
+  display: flex;
+  gap: 20px;
+}
 
-    /* Empty state styling */
-    .empty-state {
-      text-align: center;
-      color: #6c757d;
-      font-style: italic;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 12px;
-      border: 2px dashed #dee2e6;
-    }
+.dateRow .inputGroup {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
-    .empty-state::before {
-      content: '📝';
-      display: block;
-      font-size: 2em;
-      margin-bottom: 10px;
-      opacity: 0.5;
-    }
+.dateRow .inputGroup input {
+  background-color: rgb(201, 201, 201);
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-weight: bold;
+  border: none;
+  height: 38px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-    /* Scrollbar styling */
-    .assignedTasks::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .assignedTasks::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
-    }
-
-    .assignedTasks::-webkit-scrollbar-thumb {
-      background: #800000;
-      border-radius: 10px;
-    }
-
-    .assignedTasks::-webkit-scrollbar-thumb:hover {
-      background: #600000;
-    }
-
-    .createTask {
-      width: 500px;
-      height: 450px;
-      background-color: #fff;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 10px;
-    }
-
-    .inputBox {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .inputBox label {
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    .inputBox input {
-      background-color: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
-    }
-
-    .taskDescription textarea {
-      background-color: rgb(201, 201, 201);
-      margin-top: 5px;
-      border-radius: 20px;
-      padding: 8px 12px;
-      resize: none;
-      width: 100%;
-      height: 100px;
-    }
-
-    .createButton {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .createButton button {
-      height: 35px;
-      padding: 0 16px;
-      border-radius: 10px;
-      background-color: rgba(146, 59, 59);
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .dateRow {
-      display: flex;
-      gap: 20px;
-    }
-
-    .dateRow .inputGroup {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-
-    .dateRow .inputGroup input {
-      background-color: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
-      font-weight: bold;
-      border: none;
-      height: 38px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    
   </style>
 </head>
 
