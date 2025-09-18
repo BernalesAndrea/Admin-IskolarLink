@@ -63,19 +63,24 @@
 
     .termInputs input {
       padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      width: 180px;
+      border: 2px solid #800000;
+      border-radius: 50px;
+      width: 250px;
     }
 
-    /* Layout: left image, right inputs */
+
     .layout {
       display: flex;
       gap: 20px;
-      align-items: flex-start;
+      align-items: center;
     }
 
-    /* Left image */
+    /* attach image box */
+
+    .gradeImg {
+      margin-bottom: 20px;
+    }
+
     .attachmentBox {
       flex-shrink: 0;
       display: flex;
@@ -84,25 +89,37 @@
     }
 
     .attachmentBox input[type="file"] {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 5px;
-      background: white;
+      display: none;
+    }
+
+    /* Custom button styling */
+    .custom-file-label {
+      display: inline-block;
+      background: #800000;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
       cursor: pointer;
-      margin-bottom: 10px;
+      transition: 0.3s ease;
+    }
+
+    .custom-file-label:hover {
+      background: #a52a2a;
     }
 
     .attachmentBox img {
       width: 200px;
       height: 200px;
       object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      border-radius: 12px;
+      border: 2px solid #800000;
+      margin-top: 10px;
     }
 
-    /* Right inputs */
+    /* Grade Inputs */
     #subjectsContainer {
       flex: 1;
+      justify-items: center;
     }
 
     .gradeCompute {
@@ -111,6 +128,9 @@
       gap: 10px;
       margin-bottom: 10px;
       flex-wrap: wrap;
+      background: #800000;
+      padding: 12px;
+      border-radius: 25px;
     }
 
     .inputBox {
@@ -122,15 +142,18 @@
     .inputBox input {
       padding: 8px;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 50px;
       width: 120px;
+      background: #fff;
+      color: #000;
+
     }
 
     .removeSubject button {
       background: white;
       color: #800000;
       padding: 8px;
-      border-radius: 50%;
+      border-radius: 50px;
       cursor: pointer;
       font-size: 16px;
       display: flex;
@@ -147,7 +170,7 @@
       justify-content: center;
       gap: 15px;
       flex-wrap: wrap;
-      margin-top: 15px;
+      margin-top: 15px
     }
 
     .buttons button {
@@ -264,31 +287,38 @@
         <input type="text" id="semester" placeholder="Semester (e.g., 1st, 2nd, Summer)" required>
       </div>
 
-      <div class="layout">
-        <!-- Left: single grade image -->
+      <div class="gradeImg">
+        <!--Attach grade img-->
         <div class="attachmentBox">
           <input type="file" id="gradePicture" accept="image/*" required>
+          <label for="gradePicture" class="custom-file-label">
+            <i class="fa fa-upload"></i> Attach Scanned Grade Image
+          </label>
           <img id="previewImage" src="" style="display:none;">
         </div>
+      </div>
 
-        <!-- Right: subject/unit/grade inputs -->
+      <div class="layout">
         <div id="subjectsContainer">
+          <!--subject/unit/grade inputs -->
           <div class="gradeCompute">
             <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
             <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
             <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
             <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
           </div>
-
-          <div class="buttons">
-            <button onclick="addSubject()"><i class="fa fa-plus"></i> Add Subject</button>
-            <button onclick="calculateAverage()"><i class="fa fa-calculator"></i> Calculate Average</button>
-            <button onclick="uploadData()"><i class="fa fa-upload"></i> Upload</button>
-          </div>
-
-          <div id="message"></div>
         </div>
       </div>
+
+      <!-- buttons now below the grade inputs -->
+      <div class="buttons">
+        <button onclick="addSubject()"><i class="fa fa-plus"></i> Add Subject</button>
+        <button onclick="calculateAverage()"><i class="fa fa-calculator"></i> Calculate Average</button>
+        <button onclick="uploadData()"><i class="fa fa-upload"></i> Upload</button>
+      </div>
+
+      <div id="message"></div>
+
     </div>
   </main>
 
