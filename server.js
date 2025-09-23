@@ -376,7 +376,8 @@ app.post("/api/documents/me", authMiddleware, upload.single("document"), async (
       fullname: user.fullname,
       batchYear: user.batchYear,
       docType,
-      filePath: `/uploads/submittedDocs/${req.file.filename}`   // ✅ fix here
+      filePath: `/uploads/submittedDocs/${req.file.filename}`,
+      status: "Pending"
     });
 
     await newDoc.save();
@@ -402,12 +403,41 @@ app.get("/api/documents/me", authMiddleware, async (req, res) => {
 app.get("/api/documents", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).send("Access denied");
   try {
-    const docs = await SubmittedDocument.find().sort({ dateSubmitted: -1 });
+    const docs = await SubmittedDocument.find()
+      .populate("scholar", "fullname batchYear email") // pull from User model
+      .sort({ dateSubmitted: -1 });
+
     res.json(docs);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
   }
 });
+
+
+// Admin updates document status
+app.put("/api/documents/:id/status", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+
+  try {
+    let { status } = req.body; // "accepted" or "rejected"
+
+    if (status === "accepted") status = "Accepted";
+    if (status === "rejected") status = "Rejected";
+
+    const updated = await SubmittedDocument.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) return res.status(404).json({ msg: "Document not found" });
+
+    res.json({ msg: "Status updated successfully", document: updated });
+  } catch (err) {
+    res.status(500).json({ msg: "Error updating status", error: err.message });
+  }
+});
+
 
 
 

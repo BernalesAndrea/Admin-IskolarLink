@@ -214,6 +214,9 @@ async function submitDocument() {
   try {
     const res = await fetch("/api/documents/me", {
       method: "POST",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
       body: formData
     });
 
@@ -234,7 +237,11 @@ async function submitDocument() {
 
 async function fetchDocuments(filter = "all") {
   try {
-    const res = await fetch("/api/documents/me");
+    const res = await fetch("/api/documents/me", {
+  headers: {
+    "Authorization": `Bearer ${localStorage.getItem("token")}`
+  }
+});
     const docs = await res.json();
 
     const list = document.getElementById("docList");

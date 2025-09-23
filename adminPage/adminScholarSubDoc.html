@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submitted Documents</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 90%;
+      height: 80%;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      background: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      background: #eaeaea;
+    }
+
+    .tab.active {
+      background: #800000;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+      min-height: 300px;
+      overflow-y: auto;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* Table Style */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      table-layout: fixed;
+    }
+
+    thead {
+      background: #800000;
+      color: #fff;
+    }
+
+    thead th {
+      padding: 12px;
+      font-size: 14px;
+      text-align: left;
+      letter-spacing: 0.5px;
+    }
+
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+      color: #333;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: rgba(128, 0, 0, 0.08);
+      transition: 0.3s;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status + Actions */
+    .status-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .action-btn {
+      cursor: pointer;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 15px;
+      transition: background 0.3s ease, color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .accept {
+      background: #28a745;
+      color: #fff;
+    }
+
+    .accept:hover {
+      background: #1e7e34;
+    }
+
+    .reject {
+      background: #dc3545;
+      color: #fff;
+    }
+
+    .reject:hover {
+      background: #a71d2a;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none; 
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+      color: #800000;
+    }
+
+    .modal-content ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .modal-content ul li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .modal-content ul li:last-child {
+      border-bottom: none;
+    }
+
+    .modal-content ul li a {
+      color: #333;
+      text-decoration: none;
+      display: block;
+    }
+
+    .modal-content ul li a:hover {
+      color: #800000;
+      font-weight: bold;
+    }
+
+    .close-btn {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      color: #333;
+    }
+
+    .close-btn:hover {
+      color: #800000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="submitted">Submitted Documents</div>
+      <div class="tab" data-target="folders">Scholar Folders</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="content-section active" id="submitted">
+        <h2>Submitted Documents</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Scholar Name</th>
+              <th>Document Type</th>
+              <th>Date Submitted</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="docs-table-body"></tbody>
+        </table>
+      </div>
+
+    <!-- Document Preview Modal (NEW) -->
+    <div id="docPreviewModal" class="modal">
+        <div class="modal-content" style="width: 80%; max-width: 900px; height: 80%;">
+            <span class="close-btn" id="closePreview">&times;</span>
+            <h3>Document Preview</h3>
+            <iframe id="docFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
+        </div>
+    </div>
+
+      <div class="content-section" id="folders">
+        <h2>Scholar Folders</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Scholar Name</th>
+              <th>Folder</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Maria Santos</td>
+              <td><a href="#" class="view-folder" data-scholar="Maria Santos">View Folder</a></td>
+              <td>2025-09-15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="folderModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h3>Scholar Folder</h3>
+      <ul>
+        <li><a href="#">📄 Scanned Grades</a></li>
+        <li><a href="#">📄 SOA</a></li>
+        <li><a href="#">📄 Certificate of Enrollment</a></li>
+        <li><a href="#">📄 Book Reimbursement</a></li>
+        <li><a href="#">📄 Others</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+  async function fetchDocuments() {
+    try {
+      const res = await fetch("/api/documents", {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      });
+      const docs = await res.json();
+
+      const tbody = document.getElementById("docs-table-body");
+      tbody.innerHTML = ""; // clear old data
+
+      docs.forEach(doc => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${doc.fullname}</td>
+          <td>${doc.docType}</td>
+          <td>${new Date(doc.dateSubmitted).toLocaleDateString()}</td>
+          <td>
+            <div class="status-actions">
+              <span>${doc.status}</span>
+              <button class="action-btn" style="background:#007bff;color:#fff;" 
+                onclick="previewDoc('${doc.filePath}')">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button class="action-btn accept" title="Accept" onclick="updateStatus('${doc._id}', 'accepted')">
+                <i class="fa-solid fa-check"></i>
+              </button>
+              <button class="action-btn reject" title="Reject" onclick="updateStatus('${doc._id}', 'rejected')">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      console.error("Error fetching documents:", err);
+    }
+  }
+
+  async function updateStatus(id, status) {
+    try {
+      await fetch(`/api/documents/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ status })
+      });
+      fetchDocuments(); // refresh the table after update
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  }
+
+  // Document Preview Logic
+  const previewModal = document.getElementById("docPreviewModal");
+  const docFrame = document.getElementById("docFrame");
+  const closePreview = document.getElementById("closePreview");
+
+  function previewDoc(fileUrl) {
+    docFrame.src = fileUrl; // fileUrl should come from DB (e.g., uploads path)
+    previewModal.style.display = "block";
+  }
+
+  closePreview.onclick = () => {
+    previewModal.style.display = "none";
+    docFrame.src = ""; // clear src when closed
+  };
+
+  window.onclick = (e) => {
+  if (e.target == previewModal) {
+    previewModal.style.display = "none";
+    docFrame.src = "";
+  }
+  if (e.target == modal) {
+    modal.style.display = "none";
+  }
+};
+
+
+  // Tab Switching Logic
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    // remove active class from all tabs and sections
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".content-section").forEach(c => c.classList.remove("active"));
+
+    // add active to clicked tab and matching section
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.target).classList.add("active");
+  });
+});
+
+// Modal functionality
+    const modal = document.getElementById("folderModal");
+    const closeBtn = modal.querySelector(".close-btn");
+    const viewLinks = document.querySelectorAll(".view-folder");
+
+    viewLinks.forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        modal.style.display = "block";
+      });
+    });
+
+    closeBtn.onclick = () => {
+      modal.style.display = "none";
+    };
+
+
+
+  // Load documents when page loads
+  fetchDocuments();
+</script>
+</body>
+</html>

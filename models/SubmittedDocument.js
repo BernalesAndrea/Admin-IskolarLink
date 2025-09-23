@@ -1,4 +1,3 @@
-// models/SubmittedDocument.js
 const mongoose = require("mongoose");
 
 const submittedDocumentSchema = new mongoose.Schema({
@@ -7,7 +6,8 @@ const submittedDocumentSchema = new mongoose.Schema({
   batchYear: { type: String, required: true },
   docType: { type: String, required: true },
   filePath: { type: String, required: true },
-  dateSubmitted: { type: Date, default: Date.now }
+  dateSubmitted: { type: Date, default: Date.now },
+  status: { type: String, enum: ["Pending", "Accepted", "Rejected"], default: "Pending" }
 });
 
 module.exports = mongoose.model("SubmittedDocument", submittedDocumentSchema);
