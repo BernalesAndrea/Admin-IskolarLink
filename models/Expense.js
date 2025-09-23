@@ -8,7 +8,16 @@ const expenseSchema = new mongoose.Schema({
   bookAllowance: { type: Number, default: 0 },
   monthlyAllowance: { type: Number, default: 0 },
   totalSpent: { type: Number, default: 0 },
-  dateModified: { type: Date, default: Date.now }
+  dateModified: { type: Date, default: Date.now },
+   history: [
+    {
+      date: { type: Date, default: Date.now },
+      action: { type: String }, // "add" or "subtract"
+      category: { type: String }, // "tuition", "bookAllowance", "monthlyAllowance"
+      amount: { type: Number },
+      newTotal: { type: Number }
+    }
+  ]
 });
 
 module.exports = mongoose.model("Expense", expenseSchema);

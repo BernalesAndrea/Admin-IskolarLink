@@ -1,252 +1,306 @@
-  <!DOCTYPE html>
-  <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Event Page</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.css">
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        outline: none;
-        border: none;
-        text-decoration: none;
-        box-sizing: border-box;
-        font-family: Arial, Helvetica, sans-serif;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Page</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .container {
+      width: 90%;
+      height: 80%;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sectionBox {
+      background: transparent;
+      max-width: 800px;
+      border-radius: 12px;
+      padding: 20px;
+      margin: auto;
+    }
+
+    .sectionBox h2 {
+      margin-bottom: 15px;
+      /* space under all section titles */
+    }
+
+
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      background: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      background: #eaeaea;
+    }
+
+    .tab.active {
+      background: #800000;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* Reuse your existing event styles */
+    .inputBox {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .inputBox label {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .inputBox input {
+      background-color: rgb(201, 201, 201);
+      border-radius: 20px;
+      padding: 8px 12px;
+    }
+
+    .datetimeRow {
+      display: flex;
+      gap: 20px;
+    }
+
+    .datetimeRow .inputGroup {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .datetimeRow .inputGroup input {
+      background-color: rgb(201, 201, 201);
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-weight: bold;
+      border: none;
+      height: 38px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .eventDescription textarea {
+      background-color: rgb(201, 201, 201);
+      margin-top: 5px;
+      border-radius: 20px;
+      padding: 8px 12px;
+      resize: none;
+      width: 100%;
+      height: 80px;
+    }
+
+    .createButton {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .createButton button {
+      height: 35px;
+      padding: 0 16px;
+      border-radius: 10px;
+      background-color: rgba(146, 59, 59);
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .eventCard {
+      display: flex;
+      align-items: center;
+      background: #f1f1f1;
+      border-radius: 10px;
+      padding: 10px;
+      gap: 15px;
+      max-height: 500px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+
+    .eventCard:hover {
+      transform: translateY(-4px);
+    }
+
+    .displayEventContainer {
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-height: 500px;/* control how tall the event list can grow */
+      overflow-y: auto;/* adds vertical scroll when overflowing */
+      padding-right: 10px;
+    }
+
+
+    .eventDate {
+      text-align: center;
+      padding: 10px;
+      background: rgba(146, 59, 59);
+      color: white;
+      border-radius: 8px;
+      width: 60px;
+    }
+
+    .eventDate h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .eventDate h1 {
+      font-size: 28px;
+      margin: 0;
+    }
+
+    .viewMoreBtn {
+      background: none;
+      border: none;
+      color: rgba(146, 59, 59);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* Modal overlay */
+    .modal {
+      display: none;
+      /* hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      /* enable scroll if content is long */
+      background-color: rgba(0, 0, 0, 0.5);
+      /* dark overlay */
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Centered modal box */
+    .modal-content {
+      background: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Close button */
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #000;
+    }
+
+    /* Small animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
       }
 
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-image: url('/assets/iskolarbg.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
+    }
+  </style>
+</head>
 
-      .mainContainer {
-        width: 1000px;
-        height: 550px;
-        border-radius: 20px;
-        overflow: hidden;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
-        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-      }
+<body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="create">Create Event</div>
+      <div class="tab" data-target="list">Upcoming Events</div>
+    </div>
 
-      .displayEventContainer {
-        width: 300px;
-        height: 450px;
-        background-color: #fff;
-        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-        border-radius: 15px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        gap: 10px;
-      }
+    <!-- Content -->
+    <div class="content">
 
-      .eventContainer {
-        width: 500px;
-        height: 450px;
-        background-color: #fff;
-        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-        border-radius: 15px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        gap: 10px;
-      }
-
-      .eventContainer h2 {
-        margin-bottom: 10px;
-        justify-content: first baseline;
-      }
-
-      .inputBox {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .inputBox label {
-        font-weight: bold;
-        margin-top: 5px;
-      }
-
-      .inputBox input {
-        background-color: rgb(201, 201, 201);
-        border-radius: 20px;
-        padding: 8px 12px;
-      }
-
-      .datetimeRow {
-        display: flex;
-        gap: 20px;
-      }
-
-      .datetimeRow .inputGroup {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-      }
-
-      .datetimeRow .inputGroup input {
-        background-color: rgb(201, 201, 201);
-        border-radius: 20px;
-        padding: 8px 12px;
-        font-weight: bold;
-        border: none;
-        height: 38px;
-        /* same height across all inputs */
-        width: 100%;
-        /* full width in its flex container */
-        box-sizing: border-box;
-      }
-
-
-      .eventDescription textarea {
-        background-color: rgb(201, 201, 201);
-        margin-top: 5px;
-        border-radius: 20px;
-        padding: 8px 12px;
-        resize: none;
-        width: 100%;
-        height: 80px;
-      }
-
-      .createButton {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 10px;
-      }
-
-      .createButton button {
-        height: 35px;
-        padding: 0 16px;
-        border-radius: 10px;
-        background-color: rgba(146, 59, 59);
-        color: #fff;
-        cursor: pointer;
-        font-weight: bold;
-      }
-
-      .eventCard {
-        display: flex;
-        align-items: center;
-        background: #f1f1f1;
-        border-radius: 10px;
-        padding: 10px;
-        gap: 15px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-
-      .eventDate {
-        text-align: center;
-        padding: 10px;
-        background: rgba(146, 59, 59);
-        color: white;
-        border-radius: 8px;
-        width: 60px;
-      }
-
-      .eventDate h2 {
-        font-size: 18px;
-        margin: 0;
-      }
-
-      .eventDate h1 {
-        font-size: 28px;
-        margin: 0;
-      }
-
-
-      .viewMoreBtn {
-        background: none;
-        border: none;
-        color: rgba(146, 59, 59);
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 14px;
-      }
-
-      /* pop up container Styling */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-      }
-
-      .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        width: 400px;
-        max-width: 90%;
-        margin: 100px auto;
-      }
-
-      .close {
-        float: right;
-        font-size: 20px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-
-      .pika-single.custom-light {
-        background: white;
-        border: 2px solid rgba(146, 59, 59);
-        border-radius: 20px;
-        font-family: Arial, Helvetica, sans-serif;
-        color: black;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .pika-single.custom-light .pika-day:hover {
-        background: rgba(146, 59, 59);
-        color: white;
-        border-radius: 4px;
-      }
-
-      .pika-single.custom-light .is-today {
-        color: rgba(146, 59, 59, 0.9);
-        font-weight: bold;
-      }
-    </style>
-  </head>
-
-  <body>
-    <main>
-      <div class="mainContainer">
-        <!-- Display Event (left) -->
-        <div class="displayEventContainer">
-          <h2>Upcoming Events</h2>
-        </div>
-
-        <!-- Create Event (right) -->
-        <div class="eventContainer">
+      <!-- Create Event -->
+      <div class="content-section active" id="create">
+        <div class="sectionBox">
           <h2>Create Event</h2>
           <form id="eventForm" class="inputBox">
             <label>Event Name</label>
             <input type="text" name="title" required>
 
-            <div class="datetimeRow"> <!--NEED TO CHANGE INTO DATE AND TIME BUTTON-->
+            <div class="datetimeRow">
               <div class="inputGroup">
                 <label>Date</label>
                 <input type="text" id="pikadayDate" name="date" placeholder="Select a date" required>
@@ -257,11 +311,9 @@
               </div>
               <div class="inputGroup">
                 <label>Duration</label>
-                <input type="text" name="duration" placeholder="e.g. 1h 30m" pattern="^(\d+h)?\s*(\d+m)?$"
-                  title="Format: 1h 30m" required>
+                <input type="text" name="duration" placeholder="e.g. 1h 30m" required>
               </div>
             </div>
-
 
             <label>Location</label>
             <input type="text" name="location" required>
@@ -275,29 +327,55 @@
               <button type="reset">Reset</button>
               <button type="submit">Create Event</button>
             </div>
-          </form> <!---->
+          </form>
         </div>
       </div>
-    </main>
 
-    <!-- pop up container -->
-    <div id="eventModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <p><strong>Date:</strong> <span id="modalDate"></span></p>
-        <p><strong>Location:</strong> <span id="modalLocation"></span></p>
-        <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
-        <p><strong>Description:</strong> <span id="modalDescription"></span></p>
-        <p><strong>Will Attend:</strong> <span id="modalAttendCount"></span></p>
-        <p><strong>Not Attend:</strong> <span id="modalNotAttendCount"></span></p>
-
+      <!-- Events List -->
+      <div class="content-section" id="list">
+        <div class="sectionBox">
+          <h2>Upcoming Events</h2>
+          <div class="displayEventContainer">
+            <!-- Event cards will load here -->
+          </div>
+        </div>
       </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+  </div>
+
+  <!-- Modal -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+      <p><strong>Will Attend:</strong> <span id="modalAttendCount"></span></p>
+      <p><strong>Not Attend:</strong> <span id="modalNotAttendCount"></span></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.js"></script>
 
   <script>
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.content-section');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+
+
     new Pikaday({
       field: document.getElementById('pikadayDate'),
       format: 'YYYY-MM-DD',
@@ -318,7 +396,7 @@
       dateFormat: 'hh:mm AA'
     });
 
-  const API_URL = 'http://localhost:3000';
+    const API_URL = 'http://localhost:3000';
 
     // Form submission handler
     document.getElementById('eventForm').addEventListener('submit', async function (e) {
@@ -358,7 +436,7 @@
         const res = await fetch(`${API_URL}/api/events`);
         const events = await res.json();
         const container = document.querySelector('.displayEventContainer');
-        container.innerHTML = '<h2>Upcoming Events</h2>';
+        container.innerHTML = '';
 
         events.forEach(ev => {
           const dateObj = new Date(ev.dateTime);
@@ -433,6 +511,6 @@
     // Load events when page starts
     window.onload = loadEvents;
   </script>
-  </body>
+</body>
 
-  </html>
+</html>

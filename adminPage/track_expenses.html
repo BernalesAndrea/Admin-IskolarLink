@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +19,8 @@
       background-repeat: no-repeat;
       font-family: Arial, Helvetica, sans-serif;
       color: #000;
-      overflow: hidden; /*Prevent page scroll */
+      overflow: hidden;
+      /*Prevent page scroll */
     }
 
     /* Container*/
@@ -26,12 +28,14 @@
       width: 95%;
       max-width: 1200px;
       margin-top: 40px;
-      max-height: 90vh;   /* limit height */
-      overflow-y: auto;   /* enable vertical scroll inside */
+      max-height: 90vh;
+      /* limit height */
+      overflow-y: auto;
+      /* enable vertical scroll inside */
       background: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     /* Header bar */
@@ -69,7 +73,7 @@
       background: #fff;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     thead {
@@ -77,7 +81,8 @@
       color: #fff;
     }
 
-    th, td {
+    th,
+    td {
       padding: 14px 16px;
       text-align: left;
       font-size: 15px;
@@ -94,7 +99,7 @@
     }
 
     tbody tr:hover {
-      background: rgba(128,0,0,0.08);
+      background: rgba(128, 0, 0, 0.08);
     }
 
     td {
@@ -110,7 +115,7 @@
     }
 
     .actions:hover {
-      background: rgba(128,0,0,0.1);
+      background: rgba(128, 0, 0, 0.1);
     }
 
     /* Popup Menu */
@@ -120,7 +125,7 @@
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       z-index: 10;
       overflow: hidden;
     }
@@ -150,7 +155,7 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.5);
+      background-color: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
     }
@@ -159,11 +164,21 @@
       background: #fff;
       padding: 25px;
       border-radius: 12px;
-      width: 320px;
+      width: auto;
+      /* Let it adjust automatically */
+      max-width: 90%;
+      /* Responsive for smaller screens */
+      display: inline-block;
+      /* Shrinks to fit content */
       text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       animation: fadeIn 0.3s ease;
+      max-height: 80vh;
+      /* Prevent it from going off-screen */
+      overflow-y: auto;
+      /* Scroll if content is too tall */
     }
+
 
     .modal-content h3 {
       margin-bottom: 20px;
@@ -216,11 +231,19 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px);}
-      to { opacity: 1; transform: translateY(0);}
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Container -->
@@ -282,64 +305,89 @@
     </div>
   </div>
 
+  <div class="modal" id="historyModal">
+  <div class="modal-content">
+    <h3>Expense History</h3>
+    <div class="table-container">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Action</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Total After</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <button class="cancel-btn" id="closeHistory">Close</button>
+  </div>
+</div>
+
+
+
   <script>
-const menu = document.getElementById("menu");
-const modal = document.getElementById("modal");
-const saveBtn = document.getElementById("saveBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const amountInput = document.getElementById("amountInput");
-const modalTitle = document.getElementById("modalTitle");
-const categorySelect = document.getElementById("category");
-const expenseTable = document.getElementById("expenseTable");
-const searchInput = document.getElementById("searchInput");
-const batchFilter = document.getElementById("batchFilter");
+    const menu = document.getElementById("menu");
+    const modal = document.getElementById("modal");
+    const saveBtn = document.getElementById("saveBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const amountInput = document.getElementById("amountInput");
+    const modalTitle = document.getElementById("modalTitle");
+    const categorySelect = document.getElementById("category");
+    const expenseTable = document.getElementById("expenseTable");
+    const searchInput = document.getElementById("searchInput");
+    const batchFilter = document.getElementById("batchFilter");
 
-let currentRow = null;
-let actionType = null;
-let allScholars = [];
+    let currentRow = null;
+    let actionType = null;
+    let allScholars = [];
 
-function formatDate(date) {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
-}
+    function formatDate(date) {
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
 
-// ✅ Fetch verified scholars + expenses
-async function loadVerifiedScholars() {
-  try {
-    const res = await fetch("/api/scholars-with-expenses");
-    const scholars = await res.json();
-    allScholars = scholars;
+    // ✅ Fetch verified scholars + expenses
+    async function loadVerifiedScholars() {
+      try {
+        const res = await fetch("/api/scholars-with-expenses");
+        const scholars = await res.json();
+        allScholars = scholars;
 
-    // 🔹 Generate unique batch years
-    const batchYears = [...new Set(scholars.map(s => s.batchYear).filter(Boolean))].sort();
+        // 🔹 Generate unique batch years
+        const batchYears = [...new Set(scholars.map(s => s.batchYear).filter(Boolean))].sort();
 
-    // 🔹 Populate filter dropdown
-    batchFilter.innerHTML = `<option value="">All Batches</option>`;
-    batchYears.forEach(year => {
-      const opt = document.createElement("option");
-      opt.value = year;
-      opt.textContent = `Batch ${year}`;
-      batchFilter.appendChild(opt);
-    });
+        // 🔹 Populate filter dropdown
+        batchFilter.innerHTML = `<option value="">All Batches</option>`;
+        batchYears.forEach(year => {
+          const opt = document.createElement("option");
+          opt.value = year;
+          opt.textContent = `Batch ${year}`;
+          batchFilter.appendChild(opt);
+        });
 
-    renderTable(scholars);
-  } catch (err) {
-    console.error("Error loading scholars with expenses:", err);
-  }
-}
+        renderTable(scholars);
+      } catch (err) {
+        console.error("Error loading scholars with expenses:", err);
+      }
+    }
 
-// ✅ Render table
-function renderTable(data) {
-  expenseTable.innerHTML = "";
-  data.forEach((scholar) => {
-    const row = document.createElement("tr");
-    row.setAttribute("data-id", scholar._id);
+    // ✅ Render table
+    function renderTable(data) {
+      expenseTable.innerHTML = "";
+      data.forEach((scholar) => {
+        const row = document.createElement("tr");
+        row.setAttribute("data-id", scholar._id);
 
-    row.innerHTML = `
-      <td>${scholar.fullname}</td>
+        row.innerHTML = `
+      <td class="scholar-name" style="cursor:pointer; color:#800000; text-decoration:underline;">
+        ${scholar.fullname}
+      </td>
       <td>${scholar.batchYear || "-"}</td>
       <td>${scholar.dateModified ? formatDate(new Date(scholar.dateModified)) : "-"}</td>
       <td class="tuition">${(scholar.tuition || 0).toFixed(2)}</td>
@@ -348,117 +396,193 @@ function renderTable(data) {
       <td class="total">${(scholar.totalSpent || 0).toFixed(2)}</td>
       <td><span class="actions">⋮</span></td>
     `;
-    expenseTable.appendChild(row);
-  });
-  attachActionEvents();
-}
+        expenseTable.appendChild(row);
+      });
+      attachActionEvents();
+    }
 
-// ✅ Search + Filter
-function applyFilters() {
-  const searchValue = searchInput.value.toLowerCase();
-  const batchValue = batchFilter.value;
 
-  const filtered = allScholars.filter(s => {
-    const matchesSearch = s.fullname.toLowerCase().includes(searchValue);
-    const matchesBatch = batchValue === "" || String(s.batchYear) === batchValue;
-    return matchesSearch && matchesBatch;
-  });
+    // ✅ Search + Filter
+    function applyFilters() {
+      const searchValue = searchInput.value.toLowerCase();
+      const batchValue = batchFilter.value;
 
-  renderTable(filtered);
-}
+      const filtered = allScholars.filter(s => {
+        const matchesSearch = s.fullname.toLowerCase().includes(searchValue);
+        const matchesBatch = batchValue === "" || String(s.batchYear) === batchValue;
+        return matchesSearch && matchesBatch;
+      });
 
-searchInput.addEventListener("input", applyFilters);
-batchFilter.addEventListener("change", applyFilters);
+      renderTable(filtered);
+    }
 
-// ✅ Attach menu events
-function attachActionEvents() {
-  document.querySelectorAll(".actions").forEach(action => {
-    action.addEventListener("click", (e) => {
-      const rect = e.target.getBoundingClientRect();
-      menu.style.top = rect.bottom + "px";
-      menu.style.left = rect.left + "px";
-      menu.style.display = "block";
-      currentRow = e.target.closest("tr");
+    searchInput.addEventListener("input", applyFilters);
+    batchFilter.addEventListener("change", applyFilters);
+
+    // ✅ Attach menu events
+    function attachActionEvents() {
+      document.querySelectorAll(".actions").forEach(action => {
+        action.addEventListener("click", (e) => {
+          const rect = e.target.getBoundingClientRect();
+          menu.style.top = rect.bottom + "px";
+          menu.style.left = rect.left + "px";
+          menu.style.display = "block";
+          currentRow = e.target.closest("tr");
+        });
+      });
+    }
+
+    // Close menu
+    document.addEventListener("click", (e) => {
+      if (!menu.contains(e.target) && !e.target.classList.contains("actions")) {
+        menu.style.display = "none";
+      }
     });
-  });
-}
 
-// Close menu
-document.addEventListener("click", (e) => {
-  if (!menu.contains(e.target) && !e.target.classList.contains("actions")) {
-    menu.style.display = "none";
-  }
-});
-
-document.getElementById("addBtn").addEventListener("click", () => {
-  actionType = "add";
-  modalTitle.textContent = "Add Amount";
-  amountInput.value = "";
-  modal.style.display = "flex";
-  menu.style.display = "none";
-});
-
-document.getElementById("subBtn").addEventListener("click", () => {
-  actionType = "subtract";
-  modalTitle.textContent = "Subtract Amount";
-  amountInput.value = "";
-  modal.style.display = "flex";
-  menu.style.display = "none";
-});
-
-cancelBtn.addEventListener("click", () => {
-  modal.style.display = "none";
-});
-
-saveBtn.addEventListener("click", async () => {
-  if (!currentRow) return;
-  const category = categorySelect.value;
-  const cell = currentRow.querySelector("." + category);
-  let currentAmount = parseFloat(cell.textContent) || 0;
-  let value = parseFloat(amountInput.value);
-  if (isNaN(value) || value <= 0) return;
-
-  if (actionType === "add") {
-    currentAmount += value;
-  } else if (actionType === "subtract") {
-    currentAmount -= value;
-    if (currentAmount < 0) currentAmount = 0;
-  }
-
-  cell.textContent = currentAmount.toFixed(2);
-
-  // update total
-  const tuition = parseFloat(currentRow.querySelector(".tuition").textContent) || 0;
-  const book = parseFloat(currentRow.querySelector(".book").textContent) || 0;
-  const allowance = parseFloat(currentRow.querySelector(".allowance").textContent) || 0;
-  const total = (tuition + book + allowance).toFixed(2);
-  currentRow.querySelector(".total").textContent = total;
-
-  // update date
-  const now = new Date();
-  currentRow.cells[2].textContent = formatDate(now);
-
-  // 🔥 Save to backend
-  const scholarId = currentRow.getAttribute("data-id");
-  try {
-    await fetch(`/api/expenses/${scholarId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tuition,
-        bookAllowance: book,
-        monthlyAllowance: allowance
-      })
+    document.getElementById("addBtn").addEventListener("click", () => {
+      actionType = "add";
+      modalTitle.textContent = "Add Amount";
+      amountInput.value = "";
+      modal.style.display = "flex";
+      menu.style.display = "none";
     });
-  } catch (err) {
-    console.error("Error saving expense:", err);
-  }
 
-  modal.style.display = "none";
-});
+    document.getElementById("subBtn").addEventListener("click", () => {
+      actionType = "subtract";
+      modalTitle.textContent = "Subtract Amount";
+      amountInput.value = "";
+      modal.style.display = "flex";
+      menu.style.display = "none";
+    });
 
-// ✅ Call on page load
-window.addEventListener("DOMContentLoaded", loadVerifiedScholars);
-</script>
+    cancelBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      if (!currentRow) return;
+
+      const category = categorySelect.value;
+      const cell = currentRow.querySelector("." + category);
+      let currentAmount = parseFloat(cell.textContent) || 0;
+      let value = parseFloat(amountInput.value);
+
+      if (isNaN(value) || value <= 0) return;
+
+      // Update cell based on action
+      if (actionType === "add") {
+        currentAmount += value;
+      } else if (actionType === "subtract") {
+        currentAmount -= value;
+        if (currentAmount < 0) currentAmount = 0;
+      }
+
+      // Update the selected category cell
+      cell.textContent = currentAmount.toFixed(2);
+
+      // ✅ Recalculate totals after update
+      const tuitionVal = parseFloat(currentRow.querySelector(".tuition").textContent) || 0;
+      const bookVal = parseFloat(currentRow.querySelector(".book").textContent) || 0;
+      const allowanceVal = parseFloat(currentRow.querySelector(".allowance").textContent) || 0;
+      const total = tuitionVal + bookVal + allowanceVal;
+      currentRow.querySelector(".total").textContent = total.toFixed(2);
+
+      // Update dateModified in table
+      const now = new Date();
+      currentRow.cells[2].textContent = formatDate(now);
+
+      // 🔥 Send updated amounts to backend
+      const scholarId = currentRow.getAttribute("data-id");
+      try {
+        const res = await fetch(`/api/expenses/${scholarId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tuition: tuitionVal,
+            bookAllowance: bookVal,
+            monthlyAllowance: allowanceVal,
+            action: actionType,
+            category,
+            amount: value,
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          console.error("Error saving expense:", errData);
+          alert("Failed to save expense. Check console for details.");
+        }
+      } catch (err) {
+        console.error("Error saving expense:", err);
+        alert("Error connecting to server. Expense not saved.");
+      }
+
+      // Close modal
+      modal.style.display = "none";
+    });
+
+    // Open history when clicking on scholar name
+    expenseTable.addEventListener("click", (e) => {
+      const cell = e.target.closest("td.scholar-name");
+      if (!cell) return;
+
+      const row = cell.closest("tr");
+      const scholarId = row.getAttribute("data-id");
+      openHistoryModal(scholarId);
+    });
+
+
+    function openHistoryModal(scholarId) {
+      const modal = document.getElementById("historyModal");
+      const tbody = modal.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      fetch(`/api/expenses/${scholarId}/history`)
+        .then(res => res.json())
+        .then(history => {
+          if (!history || history.length === 0) {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td colspan="5" style="text-align:center;">No history found</td>`;
+            tbody.appendChild(row);
+          } else {
+            history.forEach(entry => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+<td>${entry.date ? new Date(entry.date).toLocaleString() : "-"}</td>
+<td>${entry.action || "-"}</td>
+<td>${entry.category || "-"}</td>
+<td>${entry.amount != null ? entry.amount.toFixed(2) : "0.00"}</td>
+<td>${entry.newTotal != null ? entry.newTotal.toFixed(2) : "0.00"}</td>
+`;
+              tbody.appendChild(row);
+            });
+          }
+        })
+        .catch(err => console.error("Failed to fetch history:", err));
+
+      modal.style.display = "flex";
+    }
+
+
+    // Close History Modal
+    const closeHistoryBtn = document.getElementById("closeHistory");
+    const historyModal = document.getElementById("historyModal");
+
+    closeHistoryBtn.addEventListener("click", () => {
+      historyModal.style.display = "none";
+    });
+
+    // Optional: also close modal if clicking outside the content
+    historyModal.addEventListener("click", (e) => {
+      if (e.target === historyModal) {
+        historyModal.style.display = "none";
+      }
+    });
+
+
+    // ✅ Call on page load
+    window.addEventListener("DOMContentLoaded", loadVerifiedScholars);
+  </script>
 </body>
+
 </html>

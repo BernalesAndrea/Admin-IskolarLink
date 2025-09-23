@@ -199,6 +199,7 @@
 <script>
   let currentEventId = null;
 
+  /* ----------------- Load Events ----------------- */
   async function loadEvents() {
     const res = await fetch("/api/events");
     const events = await res.json();
@@ -238,7 +239,46 @@
     });
   }
 
-  // Attendance
+  /* ----------------- Load Tasks ----------------- */
+  async function loadTasks() {
+    const res = await fetch("/tasks");
+    const tasks = await res.json();
+    const container = document.querySelector(".Task");
+    container.innerHTML = "";
+
+    tasks.forEach(task => {
+      const div = document.createElement("div");
+      div.style.marginBottom = "12px";
+      div.innerHTML = `
+        <h4>${task.title}</h4>
+        <p>${task.description}</p>
+        <small><strong>Start:</strong> ${task.startDate} | <strong>Due:</strong> ${task.dueDate}</small>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  /* ----------------- Load Announcements ----------------- */
+  async function loadAnnouncements() {
+    const res = await fetch("/announcements");
+    const anns = await res.json();
+    const container = document.querySelector(".announce");
+
+    anns.forEach(a => {
+      const div = document.createElement("div");
+      div.style.marginBottom = "12px";
+      div.style.borderBottom = "1px solid #ddd";
+      div.style.paddingBottom = "8px";
+      div.innerHTML = `
+        <h4>${a.title} ${a.priority === "high" ? "🔥" : ""}</h4>
+        <p>${a.content}</p>
+        <small><strong>Category:</strong> ${a.category} | <strong>Date:</strong> ${new Date(a.date).toLocaleString()}</small>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  /* ----------------- Attendance ----------------- */
   document.getElementById("attendBtn").onclick = async () => {
     await fetch(`/events/${currentEventId}/attendance`, {
       method: "POST",
@@ -270,7 +310,12 @@
     }
   };
 
-  window.onload = loadEvents;
+  // ✅ Load all data on page load
+  window.onload = () => {
+    loadEvents();
+    loadTasks();
+    loadAnnouncements();
+  };
 </script>
 </body>
 </html>

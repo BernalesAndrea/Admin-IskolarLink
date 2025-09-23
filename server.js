@@ -43,7 +43,7 @@ mongoose.connect('mongodb+srv://hondrea321:bernalesandrea09112003@iskolarlinkclu
 const eventSchema = new mongoose.Schema({
   title: String,
   description: String,
-  dateTime: String,
+  dateTime: Date,
   duration: String,
   location: String,
   attendees: [
@@ -224,7 +224,7 @@ app.post("/api/expenses/:userId", async (req, res) => {
       return res.status(400).json({ msg: "Scholar not verified or not found" });
     }
 
-    const { tuition = 0, bookAllowance = 0, monthlyAllowance = 0 } = req.body;
+    const { tuition = 0, bookAllowance = 0, monthlyAllowance = 0, action, category, amount } = req.body;
     const totalSpent = tuition + bookAllowance + monthlyAllowance;
 
     // Upsert: update if exists, otherwise create new
@@ -238,7 +238,16 @@ app.post("/api/expenses/:userId", async (req, res) => {
         bookAllowance,
         monthlyAllowance,
         totalSpent,
-        dateModified: new Date()
+        dateModified: new Date(),
+        $push: {
+          history: {
+            date: new Date(),
+            action,
+            category,
+            amount,
+            newTotal: totalSpent
+          }
+        }
       },
       { upsert: true, new: true }
     );
@@ -288,6 +297,25 @@ app.get("/api/scholars-with-expenses", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch scholars with expenses", details: err.message });
   }
 });
+
+app.get("/api/expenses/:userId/history", async (req, res) => {
+  try {
+    const expense = await Expense.findOne({ scholar: req.params.userId });
+
+    if (!expense) return res.json([]); // no expense yet for this scholar
+
+    // Sort history newest first
+    const sortedHistory = (expense.history || []).sort((a, b) => b.date - a.date);
+
+    res.json(sortedHistory);
+  } catch (err) {
+    console.error("Error fetching history:", err);
+    res.status(500).json({ msg: "Error fetching history", error: err.message });
+  }
+});
+
+
+
 
 // ✅ Upload grades for the logged-in scholar
 app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (req, res) => {

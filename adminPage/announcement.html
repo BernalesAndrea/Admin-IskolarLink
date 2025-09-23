@@ -21,185 +21,82 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: white;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
-    .mainContainer {
-      width: 1000px;
-      height: 550px;
+    .container {
+      width: 90%;
+      height: 80%;
+      max-width: 1000px;
+      background: #fff;
       border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background: #800000;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      flex-direction: column;
     }
 
-    .announcementsList {
-      width: 300px;
-      height: 450px;
-      background-color: #fff;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
-      padding: 20px;
+    /* Tabs */
+    .tabs {
       display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      gap: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      background: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      background: #eaeaea;
+    }
+
+    .tab.active {
+      background: #800000;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+      flex: 1;
       overflow-y: auto;
     }
 
-    .announcementsList h2 {
-      margin-bottom: 15px;
-      color: #800000;
-      font-size: 1.4em;
-      text-align: center;
-      border-bottom: 2px solid #f0f0f0;
-      padding-bottom: 10px;
+    .content-section {
+      display: none;
     }
 
-    /* Announcement card styling */
-    .announcement-card {
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-      border-left: 4px solid #800000;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .announcement-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .announcement-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-top: 20px solid #800000;
-      opacity: 0.1;
-    }
-
-    .announcement-title {
-      font-weight: bold;
-      color: #2c3e50;
-      font-size: 1.1em;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-
-    .announcement-date {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 0.85em;
-      color: #6c757d;
-    }
-
-    .announcement-date::before {
-      content: '📢';
-      font-size: 0.9em;
-    }
-
-    .announcement-priority {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.75em;
-      font-weight: bold;
-      margin-left: auto;
-    }
-
-    .priority-high {
-      background: #dc3545;
-      color: white;
-    }
-
-    .priority-medium {
-      background: #ffc107;
-      color: #212529;
-    }
-
-    .priority-low {
-      background: #28a745;
-      color: white;
-    }
-
-    .announcement-content {
-      color: #495057;
-      font-size: 0.9em;
-      line-height: 1.4;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 8px;
-      border-radius: 6px;
-      border-left: 3px solid #dee2e6;
-    }
-
-    /* Empty state styling */
-    .empty-state {
-      text-align: center;
-      color: #6c757d;
-      font-style: italic;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      border-radius: 12px;
-      border: 2px dashed #dee2e6;
-    }
-
-    .empty-state::before {
-      content: '📢';
+    .content-section.active {
       display: block;
-      font-size: 2em;
-      margin-bottom: 10px;
-      opacity: 0.5;
     }
 
-    /* Scrollbar styling */
-    .announcementsList::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .announcementsList::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
-    }
-
-    .announcementsList::-webkit-scrollbar-thumb {
-      background: #800000;
-      border-radius: 10px;
-    }
-
-    .announcementsList::-webkit-scrollbar-thumb:hover {
-      background: #600000;
-    }
-
-    .createAnnouncement {
-      width: 500px;
-      height: 450px;
-      background-color: #fff;
-      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
-      padding: 20px;
+    /* Post Announcement */
+    form {
+      max-width: 800px;
+      margin: auto;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
       gap: 10px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 15px;
     }
 
-    .createAnnouncement h2 {
+    form h2 {
       margin-bottom: 10px;
-      color: #800000;
+      color: black;
     }
 
     .inputBox {
@@ -211,31 +108,47 @@
     .inputBox label {
       font-weight: bold;
       margin-top: 5px;
-      color: #2c3e50;
+      color: black;
     }
 
-    .inputBox input, .inputBox select {
+    .inputBox input,
+    .inputBox select,
+    .announcementContent textarea {
       background-color: rgb(201, 201, 201);
+      border: none;
       border-radius: 20px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       font-weight: bold;
+      outline: none;
+      transition: box-shadow 0.2s ease;
     }
 
-    .inputBox select {
-      cursor: pointer;
+    .inputBox input:focus,
+    .inputBox select:focus,
+    .announcementContent textarea:focus {
+      box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.3);
     }
 
     .announcementContent textarea {
-      background-color: rgb(201, 201, 201);
-      margin-top: 5px;
-      border-radius: 20px;
-      padding: 8px 12px;
       resize: none;
       width: 100%;
       height: 120px;
       font-family: Arial, Helvetica, sans-serif;
     }
 
+    .priority-row {
+      display: flex;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .priority-row .inputGroup {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    /* Buttons */
     .createButton {
       display: flex;
       justify-content: flex-end;
@@ -251,11 +164,14 @@
       color: #fff;
       cursor: pointer;
       font-weight: bold;
-      transition: background-color 0.3s;
+      border: none;
+      outline: none;
+      transition: background-color 0.3s, box-shadow 0.2s ease;
     }
 
     .createButton button:hover {
       background-color: rgba(126, 49, 49);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     .createButton button[type="reset"] {
@@ -266,32 +182,88 @@
       background-color: #5a6268;
     }
 
-    .priority-row {
-      display: flex;
-      gap: 20px;
-      align-items: end;
-    }
-
-    .priority-row .inputGroup {
+    /* Announcements Section */
+    .announcementsWrapper {
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
       display: flex;
       flex-direction: column;
-      flex: 1;
+      gap: 15px;
+      max-height: 500px;
+      padding-right: 10px;
+    }
+
+    .announcementsWrapper h2 {
+      color: black;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .announcementsList {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .announcement-card {
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: left;
+      transition: transform 0.2s ease;
+    }
+
+    .announcement-card:hover {
+      transform: translateY(-4px);
+    }
+
+
+    .announcement-card div:first-child {
+      font-weight: bold;
+      font-style: italic;
+      font-size: 1.1em;
+      color: #800000;
+      margin-bottom: 6px;
+    }
+
+    .announcement-card div:nth-child(2) {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: black;
+      margin-bottom: 6px;
+    }
+
+    .announcement-card div:nth-child(3) {
+      font-size: 0.85em;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .announcement-card div:nth-child(4) {
+      font-size: 1em;
+      line-height: 1.4em;
     }
   </style>
 </head>
 
 <body>
-  <main>
-    <div class="mainContainer">
-      <!-- Announcements List -->
-      <div class="announcementsList">
-        <h2>Announcements</h2>
-      </div>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="post">Post Announcement</div>
+      <div class="tab" data-target="list">Announcements</div>
+    </div>
 
-      <!-- Create Announcement -->
-      <div class="createAnnouncement">
-        <h2>Post Announcement</h2>
+    <!-- Content -->
+    <div class="content">
+      <!-- Post Announcement Section -->
+      <div class="content-section active" id="post">
         <form id="announcementForm" class="inputBox">
+          <h2>Post Announcement</h2>
           <label>Announcement Title</label>
           <input type="text" name="announcementTitle" required>
 
@@ -319,7 +291,8 @@
 
           <div class="announcementContent">
             <label>Announcement Content</label>
-            <textarea name="announcementContent" placeholder="Enter your announcement details here..." required></textarea>
+            <textarea name="announcementContent" placeholder="Enter your announcement details here..."
+              required></textarea>
           </div>
 
           <div class="createButton">
@@ -328,107 +301,122 @@
           </div>
         </form>
       </div>
+
+      <!-- Announcements Section -->
+      <div class="content-section" id="list">
+        <div class="announcementsWrapper">
+          <h2>Announcements</h2>
+          <div class="announcementsList"></div>
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
 
   <script>
-  async function loadAnnouncements() {
-    const announcementsDiv = document.querySelector('.announcementsList');
-    announcementsDiv.innerHTML = '<h2>Announcements</h2>';
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.content-section');
 
-    try {
-      const res = await fetch('/announcements');
-      const announcements = await res.json();
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
 
-      if (!announcements || announcements.length === 0) {
-        announcementsDiv.innerHTML += '<div class="empty-state">No announcements posted yet.</div>';
-        return;
-      }
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
 
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
+    async function loadAnnouncements() {
+      const announcementsDiv = document.querySelector('.announcementsList');
+      announcementsDiv.innerHTML = '';
 
-      announcements
-        .sort((a, b) => {
-          if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-            return priorityOrder[b.priority] - priorityOrder[a.priority];
-          }
-          return new Date(b.date) - new Date(a.date);
-        })
-        .forEach(announcement => {
-          const announcementEl = document.createElement('div');
-          announcementEl.className = 'announcement-card';
+      try {
+        const res = await fetch('/announcements');
+        const announcements = await res.json();
 
-          const priorityClass = `priority-${announcement.priority}`;
-          const priorityText = announcement.priority.charAt(0).toUpperCase() + announcement.priority.slice(1);
+        if (!announcements || announcements.length === 0) {
+          announcementsDiv.innerHTML = '<div>No announcements posted yet.</div>';
+          return;
+        }
 
-          const formattedDate = new Date(announcement.date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+
+        announcements
+          .sort((a, b) => {
+            if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+              return priorityOrder[b.priority] - priorityOrder[a.priority];
+            }
+            return new Date(b.date) - new Date(a.date);
+          })
+          .forEach(announcement => {
+            const announcementEl = document.createElement('div');
+            announcementEl.className = 'announcement-card';
+
+            const priorityText = announcement.priority.charAt(0).toUpperCase() + announcement.priority.slice(1);
+
+            const formattedDate = new Date(announcement.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            announcementEl.innerHTML = `
+              <div>${priorityText}</div>
+              <div>${announcement.title}</div>
+              <div>${formattedDate} • ${announcement.category}</div>
+              <div>${announcement.content}</div>
+            `;
+            announcementsDiv.appendChild(announcementEl);
           });
 
-          announcementEl.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-              <div class="announcement-title">${announcement.title}</div>
-              <span class="announcement-priority ${priorityClass}">${priorityText}</span>
-            </div>
-            <div class="announcement-date">
-              ${formattedDate} • ${announcement.category}
-            </div>
-            <div class="announcement-content">${announcement.content}</div>
-          `;
-          announcementsDiv.appendChild(announcementEl);
+      } catch (err) {
+        announcementsDiv.innerHTML = '<div>Error loading announcements.</div>';
+        console.error(err);
+      }
+    }
+
+    document.getElementById('announcementForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const newAnnouncement = {
+        title: formData.get('announcementTitle'),
+        priority: formData.get('priority'),
+        category: formData.get('category'),
+        content: formData.get('announcementContent')
+      };
+
+      try {
+        const res = await fetch('/announcements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newAnnouncement)
         });
 
-    } catch (err) {
-      announcementsDiv.innerHTML += '<div class="empty-state">Error loading announcements.</div>';
-      console.error(err);
-    }
-  }
+        if (res.ok) {
+          this.reset();
+          loadAnnouncements();
 
-  document.getElementById('announcementForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
+          // Show success feedback
+          const submitBtn = this.querySelector('button[type="submit"]');
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Posted!';
+          submitBtn.style.backgroundColor = '#28a745';
 
-    const formData = new FormData(this);
-    const newAnnouncement = {
-      title: formData.get('announcementTitle'),
-      priority: formData.get('priority'),
-      category: formData.get('category'),
-      content: formData.get('announcementContent')
-    };
-
-    try {
-      const res = await fetch('/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newAnnouncement)
-      });
-
-      if (res.ok) {
-        this.reset();
-        loadAnnouncements();
-
-        // Show success feedback
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Posted!';
-        submitBtn.style.backgroundColor = '#28a745';
-
-        setTimeout(() => {
-          submitBtn.textContent = originalText;
-          submitBtn.style.backgroundColor = 'rgba(146, 59, 59)';
-        }, 2000);
+          setTimeout(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.style.backgroundColor = 'rgba(146, 59, 59)';
+          }, 2000);
+        }
+      } catch (err) {
+        console.error("Error posting announcement:", err);
       }
-    } catch (err) {
-      console.error("Error posting announcement:", err);
-    }
-  });
+    });
 
-  window.onload = loadAnnouncements;
-</script>
-
-
+    window.onload = loadAnnouncements;
+  </script>
 </body>
+
 </html>

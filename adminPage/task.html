@@ -28,53 +28,76 @@ body {
   background-repeat: no-repeat;
 }
 
-.mainContainer {
-  width: 1000px;
-  height: 550px;
+.container {
+  width: 90%;
+  height: 80%;
+  max-width: 1000px;
+  background: #fff;
   border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-image: linear-gradient(to right, rgba(146, 59, 59, 0.6), rgba(255, 255, 255, 0.6));
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  flex-direction: column;
 }
 
-.assignedTasks {
-  width: 300px;
-  height: 450px;
-  background-color: #fff;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-  border-radius: 15px;
-  padding: 20px;
+/* Tabs */
+.tabs {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 15px;
+  border-bottom: 2px solid #eee;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  background: #eaeaea;
+}
+
+.tab.active {
+  background: #800000;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Content */
+.content {
+  padding: 20px;
+  flex: 1;
   overflow-y: auto;
 }
 
-.assignedTasks h2 {
-  margin-bottom: 15px;
-  color: black;
-  font-size: 1.4em;
-  text-align: center;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 10px;
+.content-section {
+  display: none;
 }
 
-.createTask {
-  width: 500px;
-  height: 450px;
-  background-color: #fff;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1);
-  border-radius: 15px;
-  padding: 20px;
+.content-section.active {
+  display: block;
+}
+
+/* Create Task Form */
+form {
+  max-width: 800px;
+  margin: auto;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   gap: 10px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+form h2 {
+  margin-bottom: 10px;
+  color: black;
 }
 
 .inputBox {
@@ -86,39 +109,23 @@ body {
 .inputBox label {
   font-weight: bold;
   margin-top: 5px;
+  color: black;
 }
 
-.inputBox input {
+.inputBox input,
+.taskDescription textarea {
   background-color: rgb(201, 201, 201);
+  border: none;
   border-radius: 20px;
-  padding: 8px 12px;
+  padding: 10px 14px;
+  font-weight: bold;
+  outline: none;
 }
 
 .taskDescription textarea {
-  background-color: rgb(201, 201, 201);
-  margin-top: 5px;
-  border-radius: 20px;
-  padding: 8px 12px;
   resize: none;
   width: 100%;
   height: 100px;
-}
-
-.createButton {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.createButton button {
-  height: 35px;
-  padding: 0 16px;
-  border-radius: 10px;
-  background-color: rgba(146, 59, 59);
-  color: #fff;
-  cursor: pointer;
-  font-weight: bold;
 }
 
 .dateRow {
@@ -143,22 +150,113 @@ body {
   box-sizing: border-box;
 }
 
+/* Buttons */
+.createButton {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.createButton button {
+  height: 35px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background-color: rgba(146, 59, 59);
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  border: none;
+  outline: none;
+  transition: background-color 0.3s, box-shadow 0.2s ease;
+}
+
+.createButton button:hover {
+  background-color: rgba(126, 49, 49);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.createButton button[type="reset"] {
+  background-color: #6c757d;
+}
+
+.createButton button[type="reset"]:hover {
+  background-color: #5a6268;
+}
+
+/* Task List */
+.tasksWrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 500px;/* limits height */
+  padding-right: 10px;
+}
+
+.tasksWrapper h2 {
+  color: black;
+  margin-bottom: 10px;
+}
+
+.tasksList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+
+.task-card {
+  background: #fdfdfd;
+  border-left: 5px solid #800000;
+  border-radius: 10px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-4px);
+}
+
+.task-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #800000;
+  margin-bottom: 5px;
+}
+
+.task-dates {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.task-description {
+  font-size: 0.95em;
+  color: #333;
+  line-height: 1.4em;
+}
+
   </style>
 </head>
 
 <body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="create">Create Task</div>
+      <div class="tab" data-target="list">Assigned Tasks</div>
+    </div>
 
-  <main>
-    <div class="mainContainer">
-      <!-- Assigned Tasks -->
-      <div class="assignedTasks">
-        <h2>Assigned Tasks</h2>
-      </div>
-
-      <!-- Create Task -->
-      <div class="createTask">
-        <h2>Create Task</h2>
+    <!-- Content -->
+    <div class="content">
+      <!-- Create Task Section -->
+      <div class="content-section active" id="create">
         <form id="taskForm" class="inputBox">
+          <h2>Create Task</h2>
           <label>Task Title</label>
           <input type="text" name="taskTitle" required>
 
@@ -184,100 +282,126 @@ body {
           </div>
         </form>
       </div>
+
+      <!-- Task List Section -->
+<div class="content-section" id="list">
+  <div class="tasksWrapper">
+    <h2>Assigned Tasks</h2>
+    <div class="tasksList">
+      <!-- Example Task Card -->
+      <!-- Task cards will be injected dynamically here -->
     </div>
-  </main>
+  </div>
+</div>
+
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
-
   <script>
-  new Pikaday({
-    field: document.getElementById('pikadayStartDate'),
-    format: 'YYYY-MM-DD',
-    minDate: new Date(),
-    toString(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+    // -------------------- Tabs --------------------
+const tabs = document.querySelectorAll('.tab');
+const sections = document.querySelectorAll('.content-section');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.target).classList.add('active');
   });
+});
 
-  new Pikaday({
-    field: document.getElementById('pikadayDueDate'),
-    format: 'YYYY-MM-DD',
-    minDate: new Date(),
-    toString(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-  });
-
-  // ✅ Load tasks from backend
-  async function loadTasks() {
-    const assignedTasksDiv = document.querySelector('.assignedTasks');
-    assignedTasksDiv.innerHTML = '<h2>Assigned Tasks</h2>';
-
-    try {
-      const res = await fetch('/tasks');
-      const tasks = await res.json();
-
-      if (!tasks.length) {
-        assignedTasksDiv.innerHTML += '<div class="empty-state">No tasks assigned yet.</div>';
-        return;
-      }
-
-      tasks.forEach(task => {
-        const taskEl = document.createElement('div');
-        taskEl.className = 'task-card';
-        taskEl.innerHTML = `
-          <div class="task-title">${task.title}</div>
-          <div class="task-dates">
-            ${task.startDate} <span class="date-separator">→</span> ${task.dueDate}
-          </div>
-          <div class="task-description">${task.description}</div>
-        `;
-        assignedTasksDiv.appendChild(taskEl);
-      });
-    } catch (err) {
-      console.error('Error loading tasks:', err);
-      assignedTasksDiv.innerHTML += '<div class="empty-state">⚠️ Failed to load tasks.</div>';
-    }
+// -------------------- Pikaday Datepickers --------------------
+new Pikaday({
+  field: document.getElementById('pikadayStartDate'),
+  format: 'YYYY-MM-DD',
+  minDate: new Date(),
+  toString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
+});
 
-  // ✅ Handle form submission (save to backend)
-  document.getElementById('taskForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
+new Pikaday({
+  field: document.getElementById('pikadayDueDate'),
+  format: 'YYYY-MM-DD',
+  minDate: new Date(),
+  toString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+});
 
-    const formData = new FormData(this);
-    const newTask = {
-      title: formData.get('taskTitle'),
-      startDate: formData.get('startDate'),
-      dueDate: formData.get('dueDate'),
-      description: formData.get('taskDesc')
-    };
+// -------------------- Load Tasks --------------------
+async function loadTasks() {
+  const tasksDiv = document.querySelector('.tasksList');
+  tasksDiv.innerHTML = '';
 
-    try {
-      const res = await fetch('/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTask)
-      });
+  try {
+    const res = await fetch('/tasks'); // your API endpoint
+    const tasks = await res.json();
 
-      if (res.ok) {
-        this.reset();
-        loadTasks(); // refresh list
-      } else {
-        console.error('Failed to save task');
-      }
-    } catch (err) {
-      console.error('Error saving task:', err);
+    if (!tasks.length) {
+      tasksDiv.innerHTML = '<div>No tasks assigned yet.</div>';
+      return;
     }
-  });
 
-  window.onload = loadTasks;
-</script>
+    tasks.forEach(task => {
+      const taskEl = document.createElement('div');
+      taskEl.className = 'task-card';
+      taskEl.innerHTML = `
+        <div class="task-title">${task.title}</div>
+        <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
+        <div class="task-description">${task.description}</div>
+      `;
+      tasksDiv.appendChild(taskEl);
+    });
+  } catch (err) {
+    tasksDiv.innerHTML = '<div>⚠️ Failed to load tasks.</div>';
+    console.error(err);
+  }
+}
 
+// -------------------- Handle Create Task --------------------
+document.getElementById('taskForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  const newTask = {
+    title: formData.get('taskTitle'),
+    startDate: formData.get('startDate'),
+    dueDate: formData.get('dueDate'),
+    description: formData.get('taskDesc')
+  };
+
+  try {
+    const res = await fetch('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTask)
+    });
+
+    if (res.ok) {
+      this.reset();
+      loadTasks();
+    } else {
+      console.error('Failed to create task:', await res.text());
+    }
+  } catch (err) {
+    console.error('Error saving task:', err);
+  }
+});
+
+// -------------------- Initialize --------------------
+window.onload = loadTasks;
+
+  </script>
 </body>
+
 </html>
