@@ -84,6 +84,8 @@ const storage = multer.diskStorage({
       folder = path.join(__dirname, "uploads/grades");
     } else if (file.fieldname === "document") {
       folder = path.join(__dirname, "uploads/submittedDocs");
+    } else if (file.fieldname === "file") { 
+      folder = path.join(__dirname, "uploads/tasks");
     }
 
     fs.mkdirSync(folder, { recursive: true });
@@ -437,6 +439,63 @@ app.put("/api/documents/:id/status", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Error updating status", error: err.message });
   }
 });
+
+const SubmittedTask = require("./models/SubmittedTask");
+
+// Scholar submits task
+app.post("/tasks/:taskId/submit", authMiddleware, upload.single("file"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.verified || user.role !== "scholar") {
+      return res.status(400).json({ msg: "Scholar not verified or not found" });
+    }
+
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+
+    const newSubmission = new SubmittedTask({
+      task: req.params.taskId,
+      scholar: user._id,
+      fullname: user.fullname,
+      batchYear: user.batchYear,
+      filePath: `/uploads/tasks/${req.file.filename}`,
+    });
+
+    await newSubmission.save();
+    res.json({ msg: "Task submitted successfully!", submission: newSubmission });
+  } catch (err) {
+    res.status(500).json({ msg: "Error submitting task", error: err.message });
+  }
+});
+
+
+// Admin fetch all submitted tasks
+app.get("/api/submitted-tasks", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+  try {
+    const submissions = await SubmittedTask.find()
+      .populate("task", "title dueDate")
+      .populate("scholar", "fullname batchYear email")
+      .sort({ dateSubmitted: -1 });
+
+    res.json(submissions);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching submissions", error: err.message });
+  }
+});
+
+// Get all submissions for a specific task
+app.get("/api/submitted-tasks/:taskId", authMiddleware, async (req, res) => {
+  try {
+    const submissions = await SubmittedTask.find({ task: req.params.taskId })
+      .populate("scholar", "fullname batchYear email")
+      .populate("task", "title dueDate");
+    res.json(submissions);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching task submissions", error: err.message });
+  }
+});
+
+
 
 
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +35,7 @@
       max-width: 1000px;
       background: #fff;
       border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       overflow: hidden;
     }
 
@@ -89,7 +90,7 @@
       background: #fff;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       table-layout: fixed;
     }
 
@@ -160,7 +161,7 @@
 
     /* Modal Styles */
     .modal {
-      display: none; 
+      display: none;
       position: fixed;
       z-index: 1000;
       left: 0;
@@ -168,7 +169,7 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
     }
 
     .modal-content {
@@ -178,7 +179,7 @@
       border-radius: 12px;
       width: 400px;
       max-width: 90%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
     .modal-content h3 {
@@ -223,12 +224,14 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <!-- Tabs -->
     <div class="tabs">
       <div class="tab active" data-target="submitted">Submitted Documents</div>
       <div class="tab" data-target="folders">Scholar Folders</div>
+      <div class="tab" data-target="uploads">Upload Documents</div>
     </div>
 
     <!-- Content -->
@@ -248,14 +251,20 @@
         </table>
       </div>
 
-    <!-- Document Preview Modal (NEW) -->
-    <div id="docPreviewModal" class="modal">
+      <!-- Document Preview Modal (NEW) -->
+      <div id="docPreviewModal" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 900px; height: 80%;">
-            <span class="close-btn" id="closePreview">&times;</span>
-            <h3>Document Preview</h3>
-            <iframe id="docFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
+          <span class="close-btn" id="closePreview">&times;</span>
+          <h3>Document Preview</h3>
+          <iframe id="docFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
         </div>
-    </div>
+      </div>
+
+      <div class="content-section" id="uploads">
+        <h2>Upload Documents</h2>
+        <p>upload docs here</p>
+      </div>
+
 
       <div class="content-section" id="folders">
         <h2>Scholar Folders</h2>
@@ -295,20 +304,20 @@
   </div>
 
   <script>
-  async function fetchDocuments() {
-    try {
-      const res = await fetch("/api/documents", {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      const docs = await res.json();
+    async function fetchDocuments() {
+      try {
+        const res = await fetch("/api/documents", {
+          headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+        });
+        const docs = await res.json();
 
-      const tbody = document.getElementById("docs-table-body");
-      tbody.innerHTML = ""; // clear old data
+        const tbody = document.getElementById("docs-table-body");
+        tbody.innerHTML = ""; // clear old data
 
-      docs.forEach(doc => {
-        const row = document.createElement("tr");
+        docs.forEach(doc => {
+          const row = document.createElement("tr");
 
-        row.innerHTML = `
+          row.innerHTML = `
           <td>${doc.fullname}</td>
           <td>${doc.docType}</td>
           <td>${new Date(doc.dateSubmitted).toLocaleDateString()}</td>
@@ -329,69 +338,69 @@
           </td>
         `;
 
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error("Error fetching documents:", err);
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching documents:", err);
+      }
     }
-  }
 
-  async function updateStatus(id, status) {
-    try {
-      await fetch(`/api/documents/${id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify({ status })
-      });
-      fetchDocuments(); // refresh the table after update
-    } catch (err) {
-      console.error("Error updating status:", err);
+    async function updateStatus(id, status) {
+      try {
+        await fetch(`/api/documents/${id}/status`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify({ status })
+        });
+        fetchDocuments(); // refresh the table after update
+      } catch (err) {
+        console.error("Error updating status:", err);
+      }
     }
-  }
 
-  // Document Preview Logic
-  const previewModal = document.getElementById("docPreviewModal");
-  const docFrame = document.getElementById("docFrame");
-  const closePreview = document.getElementById("closePreview");
+    // Document Preview Logic
+    const previewModal = document.getElementById("docPreviewModal");
+    const docFrame = document.getElementById("docFrame");
+    const closePreview = document.getElementById("closePreview");
 
-  function previewDoc(fileUrl) {
-    docFrame.src = fileUrl; // fileUrl should come from DB (e.g., uploads path)
-    previewModal.style.display = "block";
-  }
+    function previewDoc(fileUrl) {
+      docFrame.src = fileUrl; // fileUrl should come from DB (e.g., uploads path)
+      previewModal.style.display = "block";
+    }
 
-  closePreview.onclick = () => {
-    previewModal.style.display = "none";
-    docFrame.src = ""; // clear src when closed
-  };
+    closePreview.onclick = () => {
+      previewModal.style.display = "none";
+      docFrame.src = ""; // clear src when closed
+    };
 
-  window.onclick = (e) => {
-  if (e.target == previewModal) {
-    previewModal.style.display = "none";
-    docFrame.src = "";
-  }
-  if (e.target == modal) {
-    modal.style.display = "none";
-  }
-};
+    window.onclick = (e) => {
+      if (e.target == previewModal) {
+        previewModal.style.display = "none";
+        docFrame.src = "";
+      }
+      if (e.target == modal) {
+        modal.style.display = "none";
+      }
+    };
 
 
-  // Tab Switching Logic
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    // remove active class from all tabs and sections
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".content-section").forEach(c => c.classList.remove("active"));
+    // Tab Switching Logic
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        // remove active class from all tabs and sections
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".content-section").forEach(c => c.classList.remove("active"));
 
-    // add active to clicked tab and matching section
-    tab.classList.add("active");
-    document.getElementById(tab.dataset.target).classList.add("active");
-  });
-});
+        // add active to clicked tab and matching section
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.target).classList.add("active");
+      });
+    });
 
-// Modal functionality
+    // Modal functionality
     const modal = document.getElementById("folderModal");
     const closeBtn = modal.querySelector(".close-btn");
     const viewLinks = document.querySelectorAll(".view-folder");
@@ -409,8 +418,9 @@ document.querySelectorAll(".tab").forEach(tab => {
 
 
 
-  // Load documents when page loads
-  fetchDocuments();
-</script>
+    // Load documents when page loads
+    fetchDocuments();
+  </script>
 </body>
+
 </html>

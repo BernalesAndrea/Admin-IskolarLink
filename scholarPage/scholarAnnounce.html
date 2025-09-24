@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 90%;
+      max-height: 500px;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      background: #f9f9f9;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      background: #eaeaea;
+    }
+
+    .tab.active {
+      background: #800000;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .content-section {
+      display: none;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    /* Announcement card */
+    .announceCard {
+      background: #fdfdfd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .announceCard h3 {
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .announceCard p {
+      font-size: 14px;
+      color: #444;
+    }
+
+    .announceCard small {
+      display: block;
+      margin-top: 6px;
+      color: #777;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-target="high">High Priority</div>
+      <div class="tab" data-target="medium">Medium Priority</div>
+      <div class="tab" data-target="low">Low Priority</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="content-section active" id="high"></div>
+      <div class="content-section" id="medium"></div>
+      <div class="content-section" id="low"></div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.content-section');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+    // Fetch announcements from DB
+    async function loadAnnouncements() {
+      const res = await fetch("/announcements");
+      const anns = await res.json();
+
+      // Clear old content
+      document.getElementById("high").innerHTML = "";
+      document.getElementById("medium").innerHTML = "";
+      document.getElementById("low").innerHTML = "";
+
+      if (!anns.length) {
+        ["high", "medium", "low"].forEach(id => {
+          document.getElementById(id).innerHTML = "<p>No announcements available.</p>";
+        });
+        return;
+      }
+
+      anns.forEach(a => {
+        const section = document.getElementById(a.priority || "low"); // fallback to low
+        const card = document.createElement("div");
+        card.className = "announceCard";
+
+        const formattedDate = new Date(a.date).toLocaleDateString("en-US", {
+          year: "numeric", month: "short", day: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+
+        card.innerHTML = `
+          <h3>${a.title}</h3>
+          <p>${a.content}</p>
+          <small>${formattedDate} • ${a.category || "General"}</small>
+        `;
+
+        section.appendChild(card);
+      });
+    }
+
+    // Load on page start
+    window.onload = loadAnnouncements;
+  </script>
+</body>
+
+</html>
