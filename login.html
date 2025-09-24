@@ -256,17 +256,13 @@ document.getElementById("loginBtn").addEventListener("click", async function (ev
     const data = await res.json();
 
     if (res.ok && data.redirect) {
-      // ✅ Save scholar info for later use
-      if (data.userId) {
-        localStorage.setItem("userId", data.userId);
-      }
-      if (data.role) {
-        localStorage.setItem("role", data.role);
-      }
+  localStorage.setItem("userId", data.userId);
+  localStorage.setItem("userEmail", email);   // store the login email
+  localStorage.setItem("userRole", data.role);
 
-      // 🔑 Redirect based on backend response
-      window.location.href = data.redirect;
-    } else {
+  // 🔑 Redirect based on backend response
+  window.location.href = data.redirect;
+} else {
       alert(data.msg || "Login failed");
     }
   } catch (err) {

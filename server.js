@@ -9,6 +9,9 @@ const cookieParser = require('cookie-parser');
 const { type } = require('os');
 const multer = require("multer");
 const fs = require("fs");
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/users");
+
 
 const app = express();
 
@@ -22,6 +25,12 @@ const SubmittedDocument = require("./models/SubmittedDocument");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const messagesRoutes = require("./routes/messages");
+const usersRoutes = require("./routes/users");
+
+app.use("/api/messages", messagesRoutes);
+app.use("/api/users", usersRoutes);
 
 // ✅ Force root ("/") to always load login.html
 app.get('/', (req, res) => {
@@ -156,9 +165,10 @@ app.post('/auth/login', async (req, res) => {
     res.json({
   msg: "Login successful",
   redirect: redirectUrl,
-  userId: user._id,
+  userId: user._id.toString(),  // ✅ this is what frontend should store
   role: user.role
-  });
+});
+
 
   } catch (err) {
     res.status(500).json({ msg: "Server error" });

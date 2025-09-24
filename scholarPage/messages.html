@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Messages - IskolarLink</title>
+    <link rel="stylesheet" href="/assets/css/style.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            outline: none;
+            border: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('/assets/iskolarbg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .messages-container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .chat-sidebar {
+            width: 320px;
+            background: #f6f6f6;
+            border-right: 1px solid #ddd;
+            padding: 16px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .chat-sidebar h3 {
+            margin: 0 0 8px 0;
+        }
+
+        #searchUser {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        #userResults {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: calc(100vh - 150px);
+            overflow: auto;
+        }
+
+        #userResults li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        #userResults li:hover {
+            background: #f0f0f0;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fafafa;
+        }
+
+        .chat-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat message block */
+        .message {
+            display: flex;
+            flex-direction: column;
+            margin: 8px 0;
+            max-width: 70%;
+        }
+
+        .message.me {
+            align-self: flex-end;
+            text-align: right;
+        }
+
+        .message.them {
+            align-self: flex-start;
+            text-align: left;
+        }
+
+        .message .sender {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .message .bubble {
+            display: inline-block;
+            padding: 10px 14px;
+            border-radius: 16px;
+            word-wrap: break-word;
+        }
+
+        .message.me .bubble {
+            background: #8B0000;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.them .bubble {
+            background: #eee;
+            color: #111;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message .timestamp {
+            font-size: 11px;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 14px 18px;
+            border-top: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chat-input button {
+            margin-left: 10px;
+            padding: 10px 16px;
+            border: none;
+            background: #8B0000;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="messages-container">
+        <div class="chat-sidebar">
+            <h3>Chats</h3>
+            <input id="searchUser" placeholder="Search by name or email..." autocomplete="off" />
+            <ul id="userResults"></ul>
+        </div>
+
+        <div class="chat-window">
+            <div class="chat-header">
+                <div id="chatWith" class="muted">Select someone to start chatting</div>
+            </div>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <div class="chat-input">
+                <input id="messageInput" placeholder="Type a message..." />
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const CURRENT_USER_ID = localStorage.getItem("userId");
+            if (!CURRENT_USER_ID) console.warn("No userId in localStorage — login must store userId.");
+
+            let selectedUserId = null;
+            let selectedUserLabel = null;
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 180;
+
+            const searchEl = document.getElementById("searchUser");
+            const resultsEl = document.getElementById("userResults");
+            const chatMessagesEl = document.getElementById("chatMessages");
+            const chatWithEl = document.getElementById("chatWith");
+            const msgInput = document.getElementById("messageInput");
+            const sendBtn = document.getElementById("sendBtn");
+
+            function escapeHtml(s) { return String(s || "").replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+            function renderUserList(users) {
+                if (!Array.isArray(users)) users = [];
+                const toRender = users.slice(0, 10);
+                resultsEl.innerHTML = toRender.map(u =>
+                    `<li data-id="${u._id}" data-label="${escapeHtml(u.fullname)} (${escapeHtml(u.email)})">
+         <strong>${escapeHtml(u.fullname)}</strong><br>
+         <small class="muted">${escapeHtml(u.email)} — ${escapeHtml(u.role)}</small>
+       </li>`
+                ).join("");
+                resultsEl.querySelectorAll("li").forEach(li => {
+                    li.addEventListener("click", () => {
+                        selectUser(li.getAttribute("data-id"), li.getAttribute("data-label"));
+                    });
+                });
+            }
+
+            async function loadInitialList() {
+                try {
+                    const res = await fetch(`/api/users/list/${CURRENT_USER_ID}`);
+                    if (!res.ok) return;
+                    const users = await res.json();
+                    renderUserList(users);
+                } catch (err) { console.error("loadInitialList error:", err); }
+            }
+
+            searchEl.addEventListener("input", (e) => {
+                clearTimeout(debounceTimer);
+                const q = e.target.value.trim();
+                debounceTimer = setTimeout(() => performSearch(q), DEBOUNCE_MS);
+            });
+
+            async function performSearch(q) {
+                if (!q) return loadInitialList();
+                try {
+                    const res = await fetch(`/api/users/search?query=${encodeURIComponent(q)}`);
+                    if (!res.ok) return;
+                    const users = await res.json();
+                    renderUserList(users);
+                } catch (err) { console.error("performSearch error:", err); }
+            }
+
+            function selectUser(id, label) {
+                selectedUserId = id;
+                selectedUserLabel = label;
+                chatWithEl.textContent = "Chatting with " + label;
+                resultsEl.innerHTML = "";
+                searchEl.value = "";
+                loadMessages();
+                if (window._chatPoll) clearInterval(window._chatPoll);
+                window._chatPoll = setInterval(loadMessages, 2000);
+            }
+
+            async function loadMessages() {
+                if (!selectedUserId) return;
+                try {
+                    const res = await fetch(`/api/messages/${CURRENT_USER_ID}/${selectedUserId}`);
+                    if (!res.ok) return;
+                    const msgs = await res.json();
+                    chatMessagesEl.innerHTML = msgs.map(m => {
+                        const isMe = (m.sender_id === CURRENT_USER_ID);
+                        const cls = isMe ? "message me" : "message them";
+                        const senderLabel = isMe ? "You" : escapeHtml(selectedUserLabel);
+                        const time = new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                        return `
+          <div class="${cls}">
+            <div class="sender">${senderLabel}</div>
+            <div class="bubble">${escapeHtml(m.message)}</div>
+            <div class="timestamp">${time}</div>
+          </div>
+        `;
+                    }).join("");
+                    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+                } catch (err) { console.error("loadMessages error:", err); }
+            }
+
+            async function sendMessage() {
+                const txt = msgInput.value.trim();
+                if (!txt || !selectedUserId) return;
+                try {
+                    const res = await fetch("/api/messages", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            sender_id: CURRENT_USER_ID,
+                            receiver_id: selectedUserId,
+                            message: txt
+                        })
+                    });
+                    if (!res.ok) return;
+                    msgInput.value = "";
+                    loadMessages();
+                } catch (err) { console.error("sendMessage error:", err); }
+            }
+
+            sendBtn.addEventListener("click", sendMessage);
+            msgInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
+
+            loadInitialList();
+        })();
+    </script>
+</body>
+
+</html>
