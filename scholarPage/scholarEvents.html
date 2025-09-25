@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events</title>
+
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    #calendar {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      max-width: 90%;
+      margin: 100px auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .modal h2 {
+      margin-bottom: 10px;
+      color: #800000;
+    }
+
+    .modal p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2 style="margin-bottom: 20px; color:#800000;">📅 Event Calendar</h2>
+    <div id="calendar"></div>
+  </div>
+
+  <!-- Event Modal -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Date:</strong> <span id="modalDate"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+    </div>
+  </div>
+
+  <!-- FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+
+      // ✅ Initialize Calendar
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        height: 600,
+        events: async function (fetchInfo, successCallback, failureCallback) {
+          try {
+            const res = await fetch('/api/events');
+            const events = await res.json();
+
+            const formattedEvents = events.map(ev => ({
+              id: ev._id,
+              title: ev.title,
+              start: ev.dateTime,
+              extendedProps: {
+                location: ev.location,
+                duration: ev.duration,
+                description: ev.description
+              }
+            }));
+
+            successCallback(formattedEvents);
+          } catch (err) {
+            console.error('Error fetching events:', err);
+            failureCallback(err);
+          }
+        },
+        eventClick: function (info) {
+          // Open modal with event details
+          document.getElementById("modalTitle").textContent = info.event.title;
+          document.getElementById("modalDate").textContent = new Date(info.event.start).toLocaleString();
+          document.getElementById("modalLocation").textContent = info.event.extendedProps.location || "N/A";
+          document.getElementById("modalDuration").textContent = info.event.extendedProps.duration || "N/A";
+          document.getElementById("modalDescription").textContent = info.event.extendedProps.description || "No details";
+          document.getElementById("eventModal").style.display = "block";
+        }
+      });
+
+      calendar.render();
+
+      // ✅ Modal close logic
+      document.querySelector(".close").onclick = () => {
+        document.getElementById("eventModal").style.display = "none";
+      };
+
+      window.onclick = (e) => {
+        const modal = document.getElementById("eventModal");
+        if (e.target === modal) modal.style.display = "none";
+      };
+    });
+  </script>
+</body>
+
+</html>
