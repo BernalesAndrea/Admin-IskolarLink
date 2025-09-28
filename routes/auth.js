@@ -46,13 +46,18 @@ router.post("/login", async (req, res) => {
     // create JWT
     const token = jwt.sign({ id: user._id }, "SECRET_KEY", { expiresIn: "1h" });
 
-    res.cookie("token", token, { httpOnly: true });
-res.json({
-  msg: "Login successful",
-  redirect: (user.role === "admin" ? "/admin" : "/scholar"),
-  userId: user._id.toString(),
-  role: user.role
-});
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "lax", // allows sending cookie on refresh & navigation
+      secure: process.env.NODE_ENV === "production", // true in production
+      maxAge: 60 * 60 * 1000 // 1 hour
+    });
+    res.json({
+      msg: "Login successful",
+      redirect: (user.role === "admin" ? "/admin" : "/scholar"),
+      userId: user._id.toString(),
+      role: user.role
+    });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }

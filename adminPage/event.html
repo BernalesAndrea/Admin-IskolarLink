@@ -473,7 +473,7 @@
               const eventId = ev._id || ev.id;
               if (!eventId) throw new Error('Event id missing on event object');
 
-              const res = await fetch(`${API_URL}/api/events/${ev._id}/attendance`);
+              const res = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
               if (!res.ok) {
                 console.warn('Attendance API returned', res.status);
                 document.getElementById('modalAttendCount').textContent = '0';

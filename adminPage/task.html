@@ -338,15 +338,13 @@ form h2 {
       </thead>
       <tbody id="submissionTableBody"></tbody>
     </table>
-    <!-- Preview Modal -->
-<div id="taskFilePreviewModal" class="modal">
-  <div class="modal-content" style="width: 80%; max-width: 900px; height: 80%;">
-    <span class="close-btn" id="closeTaskPreview">&times;</span>
-    <h3>File Preview</h3>
-    <iframe id="taskFileFrame" src="" style="width:100%; height:90%; border:none;"></iframe>
   </div>
 </div>
-
+<!-- File Preview Modal -->
+<div id="taskFilePreviewModal" class="modal">
+  <div class="modal-content" style="max-width:800px;">
+    <span id="closeTaskPreview" class="close">&times;</span>
+    <iframe id="taskFileFrame" width="100%" height="500px"></iframe>
   </div>
 </div>
 
@@ -401,7 +399,9 @@ async function loadTasks() {
   tasksDiv.innerHTML = '';
 
   try {
-    const res = await fetch('/tasks'); // your API endpoint
+    const res = await fetch("/api/tasks", { method: "GET", credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch tasks");
+
     const tasks = await res.json();
 
     if (!tasks.length) {
@@ -417,15 +417,17 @@ async function loadTasks() {
     <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
     <div class="task-description">${task.description}</div>
   `;
-  taskEl.addEventListener("click", () => showTaskSubmissions(task));
+  taskEl.addEventListener("click", () => showTaskSubmissions(task)); // ✅
   tasksDiv.appendChild(taskEl);
 });
 
+
   } catch (err) {
     tasksDiv.innerHTML = '<div>⚠️ Failed to load tasks.</div>';
-    console.error(err);
+    console.error("Error in loadTasks:", err);
   }
 }
+
 
 // -------------------- Handle Create Task --------------------
 document.getElementById('taskForm').addEventListener('submit', async function (e) {
@@ -440,11 +442,13 @@ document.getElementById('taskForm').addEventListener('submit', async function (e
   };
 
   try {
-    const res = await fetch('/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newTask)
-    });
+    const res = await fetch('/api/tasks', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(newTask),
+  credentials: "include"
+});
+
 
     if (res.ok) {
       this.reset();
@@ -457,124 +461,83 @@ document.getElementById('taskForm').addEventListener('submit', async function (e
   }
 });
 
-async function loadSubmittedTasks() {
-  const submissionsDiv = document.querySelector(".tasksList");
-  submissionsDiv.innerHTML = "";
-
-  try {
-    const res = await fetch("/api/submitted-tasks");
-    const submissions = await res.json();
-
-    if (!submissions.length) {
-      submissionsDiv.innerHTML = "<div>No task submissions yet.</div>";
-      return;
-    }
-
-    submissions.forEach(sub => {
-  const el = document.createElement("div");
-  el.className = "task-card";
-  el.innerHTML = `
-    <div class="task-title">${sub.task.title}</div>
-    <div class="task-dates">Due: ${sub.task.dueDate}</div>
-    <div><strong>Submitted by:</strong> ${sub.fullname || sub.scholar.fullname}</div>
-  `;
-
-  el.addEventListener("click", () => {
-    document.getElementById("modalTaskTitle").innerText = sub.task.title;
-    document.getElementById("modalScholar").innerText = sub.fullname || sub.scholar.fullname;
-    document.getElementById("modalBatch").innerText = sub.batchYear || sub.scholar.batchYear;
-    document.getElementById("modalDate").innerText = new Date(sub.dateSubmitted).toLocaleString();
-
-    // Preview attached file (PDF/image/other)
-    let previewHtml = "";
-    if (sub.filePath.endsWith(".pdf")) {
-      previewHtml = `<iframe src="${sub.filePath}" width="100%" height="400px"></iframe>`;
-    } else if (/\.(jpg|jpeg|png|gif)$/i.test(sub.filePath)) {
-      previewHtml = `<img src="${sub.filePath}" style="max-width:100%; border-radius:8px;" />`;
-    } else {
-      previewHtml = `<a href="${sub.filePath}" target="_blank">📂 Download File</a>`;
-    }
-    document.getElementById("modalFilePreview").innerHTML = previewHtml;
-
-    document.getElementById("submissionModal").style.display = "block";
-  });
-
-  submissionsDiv.appendChild(el);
-});
-
-  } catch (err) {
-    submissionsDiv.innerHTML = "<div>⚠️ Failed to load submissions.</div>";
-    console.error(err);
-  }
-}
-
 async function showTaskSubmissions(task) {
-  document.getElementById("modalTaskTitle").innerText = task.title;
-
   try {
-    const res = await fetch(`/api/submitted-tasks/${task._id}`); 
+    // Fetch submissions for the specific task
+    const res = await fetch(`/api/admin/submitted-tasks/${task._id}`, {
+      method: "GET",
+      credentials: "include" // important for cookies/auth
+    });
+    if (!res.ok) throw new Error("Failed to fetch submissions");
     const submissions = await res.json();
 
+    // Set modal title
+    document.getElementById("modalTaskTitle").innerText = task.title;
+
+    // Clear previous table rows
     const tbody = document.getElementById("submissionTableBody");
-    tbody.innerHTML = ""; // clear previous
+    tbody.innerHTML = "";
 
     if (!submissions.length) {
-      tbody.innerHTML = `<tr><td colspan="4">No submissions yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No submissions yet.</td></tr>`;
     } else {
       submissions.forEach(sub => {
         const tr = document.createElement("tr");
+
+        // Format submission date safely
+        const submittedDate = sub.dateSubmitted
+          ? new Date(sub.dateSubmitted).toLocaleString()
+          : "N/A";
+
+
         tr.innerHTML = `
-          <td>${sub.fullname || sub.scholar.fullname}</td>
-          <td>${sub.batchYear || sub.scholar.batchYear}</td>
-          <td>${new Date(sub.dateSubmitted).toLocaleString()}</td>
+          <td>${sub.scholar?.fullname || sub.fullname || "N/A"}</td>
+          <td>${sub.scholar?.batchYear || sub.batchYear || "N/A"}</td>
+          <td>${submittedDate}</td>
           <td>
-            <button onclick="previewFile('${sub.filePath}')">Preview</button>
+            <button class="previewBtn" data-file="${sub.filePath}">Preview</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      // Add event listeners to preview buttons dynamically
+      tbody.querySelectorAll(".previewBtn").forEach(btn => {
+        btn.addEventListener("click", () => previewFile(btn.dataset.file));
+      });
     }
 
+    // Show modal
     document.getElementById("submissionModal").style.display = "block";
   } catch (err) {
     console.error("Failed to load submissions:", err);
   }
+  console.log("Opening modal for task:", task.title);
 }
+
 
 const taskPreviewModal = document.getElementById("taskFilePreviewModal");
 const taskFileFrame = document.getElementById("taskFileFrame");
 const closeTaskPreview = document.getElementById("closeTaskPreview");
 
 function previewFile(filePath) {
-  // Open modal and set file
-  taskFileFrame.src = filePath;
+  taskFileFrame.src = filePath; // set iframe src
   taskPreviewModal.style.display = "block";
 }
 
-// Close modal logic
-closeTaskPreview.onclick = () => {
-  taskPreviewModal.style.display = "none";
-  taskFileFrame.src = "";
-};
+// Close modal when clicking outside or on close button
+document.querySelectorAll(".close").forEach(btn => {
+  btn.onclick = () => {
+    btn.closest(".modal").style.display = "none";
+    if (btn.id === "closeTaskPreview") taskFileFrame.src = "";
+  };
+});
 
 window.onclick = (event) => {
   if (event.target == taskPreviewModal) {
     taskPreviewModal.style.display = "none";
     taskFileFrame.src = "";
   }
-
-  // Replace modal content with preview
-  function previewFile(filePath) {
-  taskFileFrame.src = filePath;
-  taskPreviewModal.style.display = "block";
-}
-}
-
-
-document.querySelector(".close").onclick = () => {
-  document.getElementById("submissionModal").style.display = "none";
-};
-window.onclick = (event) => {
   if (event.target == document.getElementById("submissionModal")) {
     document.getElementById("submissionModal").style.display = "none";
   }
@@ -582,10 +545,6 @@ window.onclick = (event) => {
 
 
 window.addEventListener("load", loadTasks);
-window.addEventListener("load", loadSubmittedTasks);
-
-
   </script>
 </body>
-
 </html>

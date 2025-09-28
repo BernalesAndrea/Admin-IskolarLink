@@ -340,7 +340,7 @@
 
     /* ----------------- Load Tasks ----------------- */
     async function loadTasks() {
-  const res = await fetch("/tasks");
+  const res = await fetch("/api/tasks");
   const tasks = await res.json();
   const container = document.querySelector(".Task");
   container.innerHTML = "";
@@ -413,22 +413,25 @@
 
     /* ----------------- Attendance ----------------- */
     document.getElementById("attendBtn").onclick = async () => {
-      await fetch(`/events/${currentEventId}/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "attend" })
-      });
-      alert("Attendance saved!");
-    };
+  await fetch(`/events/${currentEventId}/attendance`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "attend" }),
+    credentials: "include"   // ✅ send cookies!
+  });
+  alert("Attendance saved!");
+};
 
-    document.getElementById("notAttendBtn").onclick = async () => {
-      await fetch(`/events/${currentEventId}/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "not_attend" })
-      });
-      alert("Attendance saved!");
-    };
+document.getElementById("notAttendBtn").onclick = async () => {
+  await fetch(`/events/${currentEventId}/attendance`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "not_attend" }),
+    credentials: "include"   // ✅ send cookies!
+  });
+  alert("Attendance saved!");
+};
+
 
     // ✅ Close modal when X is clicked
     document.querySelector(".close").onclick = () => {

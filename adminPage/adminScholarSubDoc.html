@@ -139,6 +139,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
     }
 
     .accept {
@@ -230,12 +231,14 @@
     <!-- Tabs -->
     <div class="tabs">
       <div class="tab active" data-target="submitted">Submitted Documents</div>
+      <div class="tab" data-target="grades">Submitted Grades</div>
       <div class="tab" data-target="folders">Scholar Folders</div>
       <div class="tab" data-target="uploads">Upload Documents</div>
     </div>
 
     <!-- Content -->
     <div class="content">
+      <!-- Submitted Documents -->
       <div class="content-section active" id="submitted">
         <h2>Submitted Documents</h2>
         <table>
@@ -251,7 +254,24 @@
         </table>
       </div>
 
-      <!-- Document Preview Modal (NEW) -->
+      <!-- Submitted Grades -->
+      <div class="content-section" id="grades">
+        <h2>Submitted Grades</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Scholar Name</th>
+              <th>Batch</th>
+              <th>Subjects</th>
+              <th>Attachment</th>
+              <th>Status</th> <!-- ✅ New -->
+            </tr>
+          </thead>
+          <tbody id="grades-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Document Preview Modal -->
       <div id="docPreviewModal" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 900px; height: 80%;">
           <span class="close-btn" id="closePreview">&times;</span>
@@ -264,7 +284,6 @@
         <h2>Upload Documents</h2>
         <p>upload docs here</p>
       </div>
-
 
       <div class="content-section" id="folders">
         <h2>Scholar Folders</h2>
@@ -288,7 +307,7 @@
     </div>
   </div>
 
-  <!-- Modal -->
+  <!-- Folder Modal -->
   <div id="folderModal" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
@@ -303,41 +322,60 @@
     </div>
   </div>
 
+  <!-- Grades Modal -->
+  <div id="gradesModal" class="modal">
+    <div class="modal-content" style="width: 500px; max-width: 95%;">
+      <span class="close-btn" id="closeGrades">&times;</span>
+      <h3>Subjects & Grades</h3>
+      <p id="gradesModalTerm" style="margin:6px 0 10px; color:#333; font-weight:600;"></p>
+      <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="background:#800000; color:white;">
+            <th style="padding:8px; text-align:left;">Subject Code</th>
+            <th style="padding:8px; text-align:left;">Units</th>
+            <th style="padding:8px; text-align:left;">Grade</th>
+          </tr>
+        </thead>
+        <tbody id="gradesModalBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <script>
     async function fetchDocuments() {
       try {
-        const res = await fetch("/api/documents", {
-          headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+        const res = await fetch("/api/admin/documents", {
+          method: "GET",
+          credentials: "include"
         });
-        const docs = await res.json();
 
+        if (!res.ok) throw new Error("Failed to fetch documents");
+
+        const docs = await res.json();
         const tbody = document.getElementById("docs-table-body");
-        tbody.innerHTML = ""; // clear old data
+        tbody.innerHTML = "";
 
         docs.forEach(doc => {
           const row = document.createElement("tr");
-
           row.innerHTML = `
-          <td>${doc.fullname}</td>
-          <td>${doc.docType}</td>
-          <td>${new Date(doc.dateSubmitted).toLocaleDateString()}</td>
-          <td>
-            <div class="status-actions">
-              <span>${doc.status}</span>
-              <button class="action-btn" style="background:#007bff;color:#fff;" 
-                onclick="previewDoc('${doc.filePath}')">
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              <button class="action-btn accept" title="Accept" onclick="updateStatus('${doc._id}', 'accepted')">
-                <i class="fa-solid fa-check"></i>
-              </button>
-              <button class="action-btn reject" title="Reject" onclick="updateStatus('${doc._id}', 'rejected')">
-                <i class="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-          </td>
-        `;
-
+            <td>${doc.scholar ? doc.scholar.fullname : doc.fullname}</td>
+            <td>${doc.docType}</td>
+            <td>${new Date(doc.dateSubmitted).toLocaleDateString()}</td>
+            <td>
+              <div class="status-actions">
+                <span>${doc.status}</span>
+                <button class="action-btn" style="background:#007bff;color:#fff;" onclick="previewDoc('${doc.filePath}')">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="action-btn accept" onclick="updateStatus('${doc._id}', 'accepted')">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                <button class="action-btn reject" onclick="updateStatus('${doc._id}', 'rejected')">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </td>
+          `;
           tbody.appendChild(row);
         });
       } catch (err) {
@@ -345,35 +383,125 @@
       }
     }
 
+    async function fetchGrades() {
+      try {
+        const res = await fetch("/api/admin/grades", {
+          method: "GET",
+          credentials: "include"
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch grades");
+
+        const grades = await res.json();
+        const tbody = document.getElementById("grades-table-body");
+        tbody.innerHTML = "";
+
+        grades.forEach(grade => {
+          const avg = grade.subjects.length
+            ? (grade.subjects.reduce((sum, s) => sum + parseFloat(s.grade), 0) / grade.subjects.length).toFixed(2)
+            : "N/A";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
+            <td>${grade.scholar ? grade.scholar.batchYear : grade.batchYear}</td>
+            <td>
+              <button class="action-btn" style="background:#800000;color:#fff;"
+                onclick='showGrades(${JSON.stringify(grade.subjects)}, "${avg}", "${encodeURIComponent(grade.schoolYear || "")}", "${encodeURIComponent(grade.semester || "")}")'>
+                See Grades
+              </button>
+            </td>
+            <td>
+              ${grade.attachment
+              ? `<button class="action-btn" style="background:#007bff;color:#fff;" onclick="previewDoc('${grade.attachment}')">
+                    <i class="fa fa-eye"></i> Preview</button>`
+              : "No file"}
+            </td>
+            <td>
+              <div class="status-actions">
+                <span>${grade.status || "Pending"}</span>
+                <button class="action-btn accept" onclick="updateGradeStatus('${grade._id}', 'accepted')">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                <button class="action-btn reject" onclick="updateGradeStatus('${grade._id}', 'rejected')">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+      }
+    }
+
     async function updateStatus(id, status) {
       try {
-        await fetch(`/api/documents/${id}/status`, {
+        await fetch(`/api/admin/documents/${id}/status`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ status })
         });
-        fetchDocuments(); // refresh the table after update
+        fetchDocuments();
       } catch (err) {
         console.error("Error updating status:", err);
       }
     }
 
-    // Document Preview Logic
+    async function updateGradeStatus(id, status) {
+      try {
+        await fetch(`/api/admin/grades/${id}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status })
+        });
+        fetchGrades();
+      } catch (err) {
+        console.error("Error updating grade status:", err);
+      }
+    }
+
+    function showGrades(subjects, avg, schoolYearEnc, semesterEnc) {
+      // decode encoded values
+      const schoolYear = schoolYearEnc ? decodeURIComponent(schoolYearEnc) : "";
+      const semester = semesterEnc ? decodeURIComponent(semesterEnc) : "";
+
+      // set the term text at top of modal
+      const termEl = document.getElementById("gradesModalTerm");
+      if (termEl) {
+        termEl.textContent = (schoolYear || semester) ? `S.Y. ${schoolYear} — ${semester}` : "";
+      }
+      const tbody = document.getElementById("gradesModalBody");
+      tbody.innerHTML = "";
+
+      subjects.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.subjectCode}</td>
+          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.units}</td>
+          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.grade}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("gradesModal").style.display = "block";
+    }
+
     const previewModal = document.getElementById("docPreviewModal");
     const docFrame = document.getElementById("docFrame");
     const closePreview = document.getElementById("closePreview");
 
     function previewDoc(fileUrl) {
-      docFrame.src = fileUrl; // fileUrl should come from DB (e.g., uploads path)
+      docFrame.src = fileUrl;
       previewModal.style.display = "block";
     }
 
     closePreview.onclick = () => {
       previewModal.style.display = "none";
-      docFrame.src = ""; // clear src when closed
+      docFrame.src = "";
     };
 
     window.onclick = (e) => {
@@ -381,26 +509,24 @@
         previewModal.style.display = "none";
         docFrame.src = "";
       }
+      if (e.target == gradesModal) {
+        gradesModal.style.display = "none";
+      }
       if (e.target == modal) {
         modal.style.display = "none";
       }
     };
 
-
-    // Tab Switching Logic
     document.querySelectorAll(".tab").forEach(tab => {
       tab.addEventListener("click", () => {
-        // remove active class from all tabs and sections
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.querySelectorAll(".content-section").forEach(c => c.classList.remove("active"));
 
-        // add active to clicked tab and matching section
         tab.classList.add("active");
         document.getElementById(tab.dataset.target).classList.add("active");
       });
     });
 
-    // Modal functionality
     const modal = document.getElementById("folderModal");
     const closeBtn = modal.querySelector(".close-btn");
     const viewLinks = document.querySelectorAll(".view-folder");
@@ -416,11 +542,19 @@
       modal.style.display = "none";
     };
 
+    const gradesModal = document.getElementById("gradesModal");
+    const closeGrades = document.getElementById("closeGrades");
 
+    closeGrades.onclick = () => {
+      gradesModal.style.display = "none";
+    };
 
-    // Load documents when page loads
     fetchDocuments();
+    fetchGrades();
+    setInterval(fetchDocuments, 5000);
+    setInterval(fetchGrades, 5000);
   </script>
+
 </body>
 
 </html>

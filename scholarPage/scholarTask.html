@@ -246,7 +246,7 @@
 
         // Load tasks
         async function loadTasks() {
-            const res = await fetch("/tasks");
+            const res = await fetch("/api/tasks");
             tasks = await res.json();
 
             const taskList = document.getElementById("taskList");
@@ -325,10 +325,12 @@
             const formData = new FormData();
             formData.append("file", fileInput.files[0]);
 
-            await fetch(`/tasks/${currentTaskId}/submit`, {
-                method: "POST",
-                body: formData
-            });
+            await fetch(`/api/tasks/${currentTaskId}/submit`, {
+  method: "POST",
+  body: formData,
+  credentials: "include"  // important if using cookies for auth
+});
+
 
             alert("Task submitted successfully!");
         }

@@ -9,8 +9,6 @@ const cookieParser = require('cookie-parser');
 const { type } = require('os');
 const multer = require("multer");
 const fs = require("fs");
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/users");
 
 
 const app = express();
@@ -19,6 +17,10 @@ const User = require("./models/User");
 const Expense = require("./models/Expense");
 const Grade = require("./models/Grades");
 const SubmittedDocument = require("./models/SubmittedDocument");
+const messagesRoutes = require("./routes/messages");
+const usersRoutes = require("./routes/users");
+const SubmittedTask = require("./models/SubmittedTask");
+
 
 
 // Middleware
@@ -26,8 +28,49 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const messagesRoutes = require("./routes/messages");
-const usersRoutes = require("./routes/users");
+/* ============= MIDDLEWARE ============= */
+function authMiddleware(req, res, next) {
+
+  let token;
+
+  if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
+    token = req.cookies.adminToken;
+  } else {
+    // Default: scholar
+    token = req.cookies.scholarToken;
+  }
+
+  console.log("AuthMiddleware path:", req.path, "token:", token ? "found" : "MISSING");
+
+  // Prevent browser caching
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+
+  if (!token) {
+    // If request is for API (starts with /api) return 401 JSON,
+    // otherwise redirect to login page for normal HTML GETs
+    if (req.path.startsWith("/api") || req.xhr || req.headers.accept?.includes("application/json")) {
+      return res.status(401).json({ msg: "Unauthorized" });
+    } else {
+      return res.redirect("/");
+    }
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    // token invalid or expired
+    if (req.path.startsWith("/api") || req.xhr || req.headers.accept?.includes("application/json")) {
+      return res.status(401).json({ msg: "Invalid or expired token" });
+    } else {
+      return res.redirect("/");
+    }
+  }
+}
+
 
 app.use("/api/messages", messagesRoutes);
 app.use("/api/users", usersRoutes);
@@ -79,7 +122,13 @@ const announcementSchema = new mongoose.Schema({
   priority: { type: String, enum: ["high", "medium", "low"], default: "low" },
   category: String,
   content: String,
-  date: { type: Date, default: Date.now }
+  date: { type: Date, default: Date.now },
+  attendees: [
+    {
+      scholar: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      status: { type: String, enum: ["attend", "not_attend"] }
+    }
+  ]
 });
 const Announcement = mongoose.model("Announcement", announcementSchema);
 
@@ -159,7 +208,22 @@ app.post('/auth/login', async (req, res) => {
   { expiresIn: "1h" }
 );
 
-    res.cookie("token", token, { httpOnly: true });
+    if (user.role === "scholar") {
+  res.cookie("scholarToken", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 1000
+  });
+} 
+    if (user.role === "admin") {
+  res.cookie("adminToken", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 1000
+  });
+}
 
     let redirectUrl = "/scholar";
     if (user.role === "admin") redirectUrl = "/admin";
@@ -177,15 +241,23 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-// 🔑 Logout
+// 🔑 Logout (safe for both roles)
 app.post("/auth/logout", (req, res) => {
-  res.clearCookie("token", {
+  res.clearCookie("scholarToken", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // only use secure cookies in prod
-    sameSite: "strict"
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
   });
+
+  res.clearCookie("adminToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+  });
+
   res.json({ msg: "Logged out successfully", redirect: "/" });
 });
+
 
 
 
@@ -358,15 +430,21 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
 
 
 
-// ✅ Get all grades (with scholar info)
-app.get("/api/grades", async (req, res) => {
+// ✅ Admin fetch all submitted grades
+app.get("/api/admin/grades", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
   try {
-    const grades = await Grade.find().sort({ schoolYear: -1, semester: -1 });
+    const grades = await Grade.find()
+      .populate("scholar", "fullname batchYear email")
+      .sort({ schoolYear: -1, semester: -1 });
+
     res.json(grades);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching grades", error: err.message });
   }
 });
+
 
 
 // ✅ Scholar submits a document
@@ -404,21 +482,23 @@ app.post("/api/documents/me", authMiddleware, upload.single("document"), async (
 // ✅ Scholar fetches their own submitted documents
 app.get("/api/documents/me", authMiddleware, async (req, res) => {
   try {
-    const docs = await SubmittedDocument.find({ scholar: req.user.id }).sort({ dateSubmitted: -1 });
+    const docs = await SubmittedDocument.find({ scholar: req.user.id })
+      .populate("scholar", "fullname batchYear")   // ✅ populate scholar info
+      .sort({ dateSubmitted: -1 });
     res.json(docs);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
   }
 });
 
+
 // ✅ Admin fetches all documents
-app.get("/api/documents", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+app.get("/api/admin/documents", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
   try {
     const docs = await SubmittedDocument.find()
-      .populate("scholar", "fullname batchYear email") // pull from User model
-      .sort({ dateSubmitted: -1 });
-
+  .populate("scholar", "fullname batchYear email")
+  .sort({ dateSubmitted: -1 });
     res.json(docs);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
@@ -428,7 +508,7 @@ app.get("/api/documents", authMiddleware, async (req, res) => {
 
 // Admin updates document status
 app.put("/api/documents/:id/status", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
   try {
     let { status } = req.body; // "accepted" or "rejected"
@@ -450,130 +530,94 @@ app.put("/api/documents/:id/status", authMiddleware, async (req, res) => {
   }
 });
 
-const SubmittedTask = require("./models/SubmittedTask");
+// Admin: Get all submitted tasks
+app.get("/api/admin/submitted-tasks", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
-// Scholar submits task
-app.post("/tasks/:taskId/submit", authMiddleware, upload.single("file"), async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user || !user.verified || user.role !== "scholar") {
-      return res.status(400).json({ msg: "Scholar not verified or not found" });
-    }
-
-    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
-
-    const newSubmission = new SubmittedTask({
-      task: req.params.taskId,
-      scholar: user._id,
-      fullname: user.fullname,
-      batchYear: user.batchYear,
-      filePath: `/uploads/tasks/${req.file.filename}`,
-    });
-
-    await newSubmission.save();
-    res.json({ msg: "Task submitted successfully!", submission: newSubmission });
-  } catch (err) {
-    res.status(500).json({ msg: "Error submitting task", error: err.message });
-  }
-});
-
-
-// Admin fetch all submitted tasks
-app.get("/api/submitted-tasks", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).send("Access denied");
   try {
     const submissions = await SubmittedTask.find()
-      .populate("task", "title dueDate")
       .populate("scholar", "fullname batchYear email")
-      .sort({ dateSubmitted: -1 });
+      .sort({ createdAt: -1 });
 
     res.json(submissions);
   } catch (err) {
+    console.error("Error fetching submissions:", err);
+    res.status(500).json({ msg: "Error fetching all submissions", error: err.message });
+  }
+});
+
+// Admin: Get submissions for a specific task
+app.get("/api/admin/submitted-tasks/:taskId", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    const submissions = await SubmittedTask.find({ task: req.params.taskId })
+      .populate("scholar", "fullname batchYear email")
+      .sort({ createdAt: -1 });
+
+    res.json(submissions);
+  } catch (err) {
+    console.error("Error fetching submissions:", err);
     res.status(500).json({ msg: "Error fetching submissions", error: err.message });
   }
 });
 
-// Get all submissions for a specific task
-app.get("/api/submitted-tasks/:taskId", authMiddleware, async (req, res) => {
+// Scholar: Submit a task
+app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), async (req, res) => {
+  if (req.user.role !== "scholar") return res.status(403).json({ msg: "Access denied" });
+
   try {
-    const submissions = await SubmittedTask.find({ task: req.params.taskId })
-      .populate("scholar", "fullname batchYear email")
-      .populate("task", "title dueDate");
-    res.json(submissions);
+    const user = await User.findById(req.user.id);
+    if (!user || !user.verified) return res.status(400).json({ msg: "Scholar not verified or not found" });
+
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+
+    const submission = new SubmittedTask({
+      task: req.params.taskId,
+      scholar: user._id,
+      fullname: user.fullname,
+      batchYear: user.batchYear,
+      filePath: `/uploads/tasks/${req.file.filename}`
+    });
+
+    await submission.save();
+    res.json({ msg: "Task submitted successfully", submission });
   } catch (err) {
-    res.status(500).json({ msg: "Error fetching task submissions", error: err.message });
+    console.error("Error submitting task:", err);
+    res.status(500).json({ msg: "Error submitting task", error: err.message });
   }
 });
 
-
-
-
-
-
-
-
-
-
-/* ============= MIDDLEWARE ============= */
-function authMiddleware(req, res, next) {
-  const token = req.cookies.token;
-
-  // 🔒 Prevent browser caching
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
-  try {
-  const decoded = jwt.verify(token, process.env.JWT_SECRET); // ✅ use env
-  req.user = decoded;
-  next();
-} catch {
-  return res.redirect("/");
-}
-
-}
 
 
 
 /* ============= PROTECTED ROUTES ============= */
 // --- Admin dashboard (only for role "admin")
 app.get('/admin', authMiddleware, (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+  if (req.user.role !== "admin") {
+    // Redirect to login if not admin
+    return res.redirect("/");
+  }
   res.sendFile(path.join(__dirname, '/adminPage/navigation.html')); 
 });
 
 // --- Scholar dashboard
 app.get('/scholar', authMiddleware, (req, res) => {
-  if (req.user.role !== "scholar") return res.status(403).send("Access denied");
+  if (req.user.role !== "scholar") {
+    // Redirect to login if not scholar
+    return res.redirect("/");
+  }
   res.sendFile(path.join(__dirname, '/scholarPage/scholarNav.html')); 
 });
 
 // --- Task page (example direct link)
 app.get('/task', authMiddleware, (req, res) => {
+  if (req.user.role !== "admin") return res.redirect("/");
   res.sendFile(path.join(__dirname, '/adminPage/task.html'));
-});
-
-app.get("/api/unverified-scholars", async (req, res) => {
-  try {
-    const scholars = await Scholar.find({ isVerified: false }); // adjust field name
-    res.json(scholars);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch scholars" });
-  }
 });
 
 
 /* ============= EVENTS + TASKS ============= */
-// --- API: Create Event
-app.post('/events', async (req, res) => {
-  try {
-    const newEvent = new Event(req.body);
-    await newEvent.save();
-    res.status(201).json({ message: 'Event saved', event: newEvent });
-  } catch (err) {
-    res.status(500).json({ message: 'Error saving event', error: err.message });
-  }
-});
 
 // --- API: Get Events
 // ====================== EVENTS API ======================
@@ -588,7 +632,7 @@ app.get("/api/events", async (req, res) => {
 
 // Create event
 app.post("/api/events", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).send("Access denied");
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
   try {
     const newEvent = await Event.create(req.body);
@@ -598,26 +642,50 @@ app.post("/api/events", authMiddleware, async (req, res) => {
   }
 });
 
-// Attendance summary
-app.get("/api/events/:eventId/attendance", async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.eventId).populate("attendees.scholar");
-    if (!event) return res.status(404).json({ error: "Event not found" });
-
-    const attendCount = event.attendees.filter(a => a.status === "attend").length;
-    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
-
-    res.json({ attendCount, notAttendCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+// Admin event page
+app.get("/admin/events", authMiddleware, (req, res) => {
+  if (req.user.role !== "admin") return res.redirect("/");
+  res.sendFile(path.join(__dirname, "adminPage/event.html"));
 });
 
-// Admin event page
- app.get("/admin/events", authMiddleware, (req, res) => {
-    if (req.user.role !== "admin") return res.status(403).send("Access denied");
-    res.sendFile(path.join(__dirname, "adminPage/event.html"));
-  });
+
+// Scholar marks attendance
+app.post("/events/:id/attendance", authMiddleware, async (req, res) => {
+  try {
+    console.log("Incoming attendance request:", req.params.id, req.user, req.body);
+
+    const user = await User.findById(req.user.id);
+    if (!user || !user.verified || user.role !== "scholar") {
+      return res.status(400).json({ msg: "Scholar not verified or not found" });
+    }
+
+    const { status } = req.body;
+    console.log("Attendance status:", status);
+
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ msg: "Event not found" });
+
+    const existing = event.attendees.find(
+      a => a.scholar.toString() === user._id.toString()
+    );
+
+    if (existing) {
+      existing.status = status;
+      console.log("Updating existing attendance");
+    } else {
+      event.attendees.push({ scholar: user._id, status });
+      console.log("Pushing new attendance:", { scholar: user._id, status });
+    }
+
+    await event.save();
+    console.log("Event saved:", event.attendees);
+
+    res.json({ msg: "Attendance updated", event });
+  } catch (err) {
+    console.error("Error saving attendance:", err);
+    res.status(500).json({ msg: "Error saving attendance", error: err.message });
+  }
+});
 
 
 
@@ -643,25 +711,67 @@ app.get("/events/:eventId/attendance", async (req, res) => {
 });
 
 
-// --- API: Create Task
-app.post('/tasks', async (req, res) => {
+/* ============= EVENT ROUTES ============= */
+
+// Create new event
+app.post("/api/events", async (req, res) => {
   try {
-    const newTask = new Task(req.body);
-    await newTask.save();
-    res.status(201).json({ message: 'Task saved', task: newTask });
+    const { title, description, dateTime, duration, location } = req.body;
+
+    const newEvent = new Event({
+      title,
+      description,
+      dateTime,
+      duration,
+      location,
+      attendees: [] // empty by default
+    });
+
+    await newEvent.save();
+    res.json(newEvent);
   } catch (err) {
-    res.status(500).json({ message: 'Error saving task', error: err.message });
+    res.status(500).json({ msg: "Error creating event", error: err.message });
   }
 });
 
-// --- API: Get Tasks
-app.get('/tasks', async (req, res) => {
+// Get all events
+app.get("/api/events", async (req, res) => {
   try {
-    const tasks = await Task.find().sort({ startDate: 1 });
-    res.json(tasks);
+    const events = await Event.find().sort({ dateTime: 1 }); // upcoming first
+    res.json(events);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching tasks' });
+    res.status(500).json({ msg: "Error fetching events", error: err.message });
   }
+});
+
+// Get attendance counts
+app.get("/api/events/:id/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ msg: "Event not found" });
+
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+
+    res.json({ attendCount, notAttendCount });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
+  }
+});
+
+
+
+// --- API: Create Task
+app.post('/api/tasks', authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+  const newTask = await Task.create(req.body);
+  res.status(201).json({ message: 'Task saved', task: newTask });
+});
+
+// --- API: Get Tasks
+app.get('/api/tasks', async (req, res) => {
+  const tasks = await Task.find().sort({ startDate: 1 });
+  res.json(tasks);
 });
 
 // --- API: Create Announcement
@@ -684,6 +794,37 @@ app.get("/announcements", async (req, res) => {
     res.status(500).json({ message: "Error fetching announcements", error: err.message });
   }
 });
+
+// ================= TASK ROUTES =================
+
+// Get all tasks (admin + scholar)
+app.get("/api/tasks", authMiddleware, async (req, res) => {
+  try {
+    const tasks = await Task.find().sort({ dueDate: 1 }); // upcoming tasks first
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ msg: "Error fetching tasks", error: err.message });
+  }
+});
+
+// Create a new task (admin only)
+app.post("/api/tasks", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    const { title, description, startDate, dueDate } = req.body;
+
+    const newTask = new Task({ title, description, startDate, dueDate });
+    await newTask.save();
+
+    res.status(201).json({ msg: "Task created successfully", task: newTask });
+  } catch (err) {
+    console.error("Error creating task:", err);
+    res.status(500).json({ msg: "Error creating task", error: err.message });
+  }
+});
+
 
 /* ============= START SERVER ============= */
 const PORT = 3000;
