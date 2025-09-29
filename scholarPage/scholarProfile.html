@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholar Profile</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat;
+      font-family: Arial, sans-serif;
+    }
+
+    .profileContainer {
+      width: 90%;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+
+    .profileContainer h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .profile-pic {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-pic img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #800000;
+    }
+
+    .profile-pic input {
+      margin-top: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .form-group input[readonly] {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #800000;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background: #a00000;
+    }
+  </style>
+</head>
+<body>
+  <div class="profileContainer">
+    <h2>Edit Scholar Profile</h2>
+
+    <form id="profileForm" enctype="multipart/form-data">
+      <div class="profile-pic">
+        <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
+        <input type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+      </div>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="fullname" id="fullname" required>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" id="email" required>
+      </div>
+
+      <div class="form-group">
+        <label>Barangay</label>
+        <input type="text" name="barangay" id="barangay" required>
+      </div>
+
+      <div class="form-group">
+        <label>Batch Year</label>
+        <input type="text" name="batchNumber" id="batchNumber" readonly>
+      </div>
+
+      <div class="form-group">
+        <label>Course</label>
+        <input type="text" name="course" id="course" required>
+      </div>
+
+      <div class="form-group">
+        <label>School Name</label>
+        <input type="text" name="schoolName" id="schoolName" required>
+      </div>
+
+      <button type="submit">Save Changes</button>
+    </form>
+  </div>
+
+  <script>
+    // Preview uploaded image
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        document.getElementById('preview').src = reader.result;
+      }
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // Load scholar profile
+    async function loadProfile() {
+      const res = await fetch('/api/users/me');
+      if (!res.ok) return;
+      const user = await res.json();
+
+      document.getElementById('fullname').value = user.fullname || '';
+      document.getElementById('email').value = user.email || '';
+      document.getElementById('barangay').value = user.barangay || '';
+      
+      // ✅ Batch year from DB (readonly)
+      document.getElementById('batchNumber').value = user.batchYear || 'Not Assigned';
+
+      document.getElementById('course').value = user.course || '';
+      document.getElementById('schoolName').value = user.schoolName || '';
+
+      if (user.profilePic) {
+        document.getElementById('preview').src = user.profilePic;
+      }
+    }
+
+    loadProfile();
+
+    // Submit form
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      // ❌ remove batchNumber from update since it comes from DB
+      formData.delete('batchNumber');
+
+      const res = await fetch('/api/users/me', {
+        method: 'PUT',
+        body: formData
+      });
+
+      const data = await res.json();
+      alert(data.msg || 'Profile updated!');
+      loadProfile();
+    });
+  </script>
+</body>
+</html>

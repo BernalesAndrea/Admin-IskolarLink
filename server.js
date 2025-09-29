@@ -33,10 +33,9 @@ function authMiddleware(req, res, next) {
 
   let token;
 
-  if (req.path.startsWith("/admin") || req.path.startsWith("/api/admin")) {
+  if (req.cookies.adminToken) {
     token = req.cookies.adminToken;
-  } else {
-    // Default: scholar
+  } else if (req.cookies.scholarToken) {
     token = req.cookies.scholarToken;
   }
 
@@ -144,6 +143,8 @@ const storage = multer.diskStorage({
       folder = path.join(__dirname, "uploads/submittedDocs");
     } else if (file.fieldname === "file") { 
       folder = path.join(__dirname, "uploads/tasks");
+    } else if (file.fieldname === "profilePic") {
+      folder = path.join(__dirname, "uploads/profilePics");
     }
 
     fs.mkdirSync(folder, { recursive: true });
@@ -172,6 +173,8 @@ app.post('/auth/signup', async (req, res) => {
       fullname,
       barangay,
       batchYear,
+      course,
+      schoolName,
       email,
       password: hashedPassword,
       role: "scholar",
@@ -297,6 +300,43 @@ app.get("/api/verified-scholars", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch verified scholars" });
   }
 });
+
+// Get logged-in user profile
+app.get("/api/users/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching profile", error: err.message });
+  }
+});
+
+// Update logged-in user profile
+app.put("/api/users/me", authMiddleware, upload.single("profilePic"), async (req, res) => {
+  try {
+    const updates = {
+      fullname: req.body.fullname,
+      email: req.body.email,
+      barangay: req.body.barangay,
+      course: req.body.course,
+      schoolName: req.body.schoolName
+    };
+
+    if (req.file) {
+      updates.profilePic = `/uploads/profilePics/${req.file.filename}`;
+    }
+
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select("-password");
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json({ msg: "Profile updated successfully", user });
+  } catch (err) {
+    res.status(500).json({ msg: "Error updating profile", error: err.message });
+  }
+});
+
 
 // Expenses API
 

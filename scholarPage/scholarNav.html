@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
+  <title>Scholar Navigation</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     * {
@@ -27,6 +27,8 @@
       transition: 0.5s ease;
       transform: translateX(-250px);
       z-index: 10;
+      display: flex;
+      flex-direction: column;
     }
 
     .image {
@@ -40,6 +42,10 @@
       height: 50px;
       display: block;
       margin: 0 auto;
+    }
+
+    ul {
+      flex: 1;
     }
 
     ul li {
@@ -100,7 +106,6 @@
     input {
       display: none;
       visibility: hidden;
-      /*-webkit-appearance: none;*/
     }
 
     .toggle {
@@ -172,7 +177,6 @@
       transition: transform 0.3s ease;
     }
 
-    /* rotate arrow when submenu is open */
     .has-submenu.open .dropdown-icon {
       transform: rotate(180deg);
     }
@@ -182,6 +186,54 @@
       width: 100%;
       height: 100vh;
       border: none;
+    }
+
+    /* Profile section like admin */
+    .profile-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .profile-section img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .profile-info p {
+      margin: 0;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .profile-info span {
+      font-size: 14px;
+      color: gray;
+    }
+
+    .profile-section .logout-icon {
+      color: black;
+      text-decoration: none;
+      font-size: 18px;
+      transition: 0.2s ease-out;
+      padding: 8px;
+      border-radius: 50%;
+    }
+
+    .profile-section .logout-icon:hover {
+      background-color: #800000;
+      color: white;
     }
   </style>
 </head>
@@ -198,74 +250,97 @@
       <div class="image">
         <img src="/assets/iskolarlink.png" alt="IskolarLink Logo">
       </div>
+
       <ul>
         <li><a href="#" onclick="loadIframe('/scholarPage/scholarHome.html')"><i class="fas fa-home"></i>Home</a></li>
         <li class="has-submenu">
           <a href="#">
-            <i class="fas fa-file"></i>Documents 
+            <i class="fas fa-file"></i>Documents
             <i class="fas fa-chevron-down dropdown-icon"></i>
           </a>
           <ul class="submenu">
-            <li><a href="#" onclick="loadIframe('/scholarPage/scholarSubDoc.html')"><i class="fas fa-file-upload"></i>Submit Documents</a></li> <!--include grades-->
+            <li><a href="#" onclick="loadIframe('/scholarPage/scholarSubDoc.html')"><i class="fas fa-file-upload"></i>Submit Documents</a></li>
             <li><a href="#" onclick="loadIframe('/scholarPage/scholarGrade.html')"><i class="fas fa-award"></i>Submit Grades</a></li>
           </ul>
         </li>
-        
+
         <li class="has-submenu">
           <a href="#">
             <i class="fas fa-bullhorn"></i>Updates
             <i class="fas fa-chevron-down dropdown-icon"></i>
           </a>
           <ul class="submenu">
-            <li><a href="#" onclick="loadIframe('scholarPage/scholarAnnounce.html')"><i class="fas fa-newspaper"></i>Announcements</a></li>
-            <li><a href="#" onclick="loadIframe('scholarPage/scholarEvents.html')"><i class="fas fa-calendar-day"></i>Events</a></li>
-            <li><a href="#" onclick="loadIframe('scholarPage/scholarTask.html')"><i class="fas fa-tasks"></i>Tasks</a></li>
+            <li><a href="#" onclick="loadIframe('/scholarPage/scholarAnnounce.html')"><i class="fas fa-newspaper"></i>Announcements</a></li>
+            <li><a href="#" onclick="loadIframe('/scholarPage/scholarEvents.html')"><i class="fas fa-calendar-day"></i>Events</a></li>
+            <li><a href="#" onclick="loadIframe('/scholarPage/scholarTask.html')"><i class="fas fa-tasks"></i>Tasks</a></li>
           </ul>
         </li>
         <li><a href="#" onclick="loadIframe('/scholarPage/messages.html')"><i class="fas fa-message"></i>Messages</a></li>
-        <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i>Logout</a></li> <!--To transfer below beside the profile-->
       </ul>
+
+      <!-- ✅ Profile + Logout -->
+      <div class="profile-section">
+        <div class="profile-click" onclick="loadIframe('/scholarPage/scholarProfile.html')"
+          style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+          <img id="profile-pic" src="/assets/default-avatar.png" alt="Profile Picture">
+          <div class="profile-info">
+            <p id="profile-name">Scholar Name</p>
+            <span id="profile-role">Scholar</span>
+          </div>
+        </div>
+        <a href="#" id="logoutBtn" class="logout-icon"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
     </div>
   </label>
 
-  <!-- Iframe where admin pages will load -->
-<iframe id="page-frame" src="/scholarPage/scholarHome.html"></iframe>
-
+  <!-- Iframe where scholar pages will load -->
+  <iframe id="page-frame" src="/scholarPage/scholarHome.html"></iframe>
 
   <script>
     function loadIframe(page) {
-    document.getElementById("page-frame").src = page;
-  }
+      document.getElementById("page-frame").src = page;
+    }
 
-  // Handle submenu toggle on click
-  document.querySelectorAll(".has-submenu > a").forEach(menu => {
-    menu.addEventListener("click", function (e) {
-      e.preventDefault(); // prevent jumping
-      let parent = this.parentElement;
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/users/me");
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const user = await res.json();
 
-      // close other open submenus
-      document.querySelectorAll(".has-submenu").forEach(item => {
-        if (item !== parent) {
-          item.classList.remove("open");
-        }
+        document.getElementById("profile-name").innerText = user.fullname || "Scholar";
+        document.getElementById("profile-role").innerText = "Scholar";
+        document.getElementById("profile-pic").src = user.profilePic || "/assets/default-avatar.png";
+      } catch (err) {
+        console.error("Profile load error:", err);
+      }
+    }
+    loadProfile();
+
+    document.querySelectorAll(".has-submenu > a").forEach(menu => {
+      menu.addEventListener("click", function (e) {
+        e.preventDefault();
+        let parent = this.parentElement;
+
+        document.querySelectorAll(".has-submenu").forEach(item => {
+          if (item !== parent) {
+            item.classList.remove("open");
+          }
+        });
+
+        parent.classList.toggle("open");
       });
-
-      // toggle clicked submenu
-      parent.classList.toggle("open");
     });
-  });
 
-  // ✅ Logout handler
-  document.getElementById("logoutBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    fetch("/auth/logout", { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.msg); // optional, can remove
-        window.location.href = data.redirect; // go back to login
-      })
-      .catch(err => console.error("Logout failed", err));
-  });
+    document.getElementById("logoutBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      fetch("/auth/logout", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.msg);
+          window.location.href = data.redirect;
+        })
+        .catch(err => console.error("Logout failed", err));
+    });
   </script>
 </body>
 </html>

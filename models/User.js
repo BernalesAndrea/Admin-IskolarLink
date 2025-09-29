@@ -8,7 +8,12 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: "scholar" },
-  verified: { type: Boolean, default: false } // for admin verification later
+  verified: { type: Boolean, default: false }, // for admin verification later
+  profilePic: { type: String, default: "/assets/default-avatar.png" },
+  course: { type: String, default: "" },
+  schoolName: { type: String, default: "" }
+
+
 });
 
 // Automatically create expense record when a scholar is verified
