@@ -173,8 +173,8 @@ app.post('/auth/signup', async (req, res) => {
       fullname,
       barangay,
       batchYear,
-      course,
-      schoolName,
+      // course,
+      // schoolName,
       email,
       password: hashedPassword,
       role: "scholar",
@@ -275,20 +275,25 @@ app.get("/api/unverified-scholars", async (req, res) => {
 });
 
 // Verify scholar by ID
-app.put("/api/verify-scholar/:id", async (req, res) => {
+app.put("/api/verified-scholar/:id", async (req, res) => { 
   try {
-    const scholar = await User.findByIdAndUpdate(
+    const updates = { verified: true };
+
+    if (req.body.course) updates.course = req.body.course;
+    if (req.body.schoolName) updates.schoolName = req.body.schoolName;
+
+    const user = await User.findByIdAndUpdate(
       req.params.id,
-      { verified: true },
+      updates,
       { new: true }
     );
-    if (!scholar) return res.status(404).json({ msg: "Scholar not found" });
-
-    res.json({ msg: "Scholar verified successfully", scholar });
+    res.json(user);
   } catch (err) {
-    res.status(500).json({ error: "Failed to verify scholar" });
+    res.status(500).json({ msg: "Error updating user" });
   }
 });
+
+
 
 // ✅ Fetch all verified scholars (sorted alphabetically by fullname)
 app.get("/api/verified-scholars", async (req, res) => {

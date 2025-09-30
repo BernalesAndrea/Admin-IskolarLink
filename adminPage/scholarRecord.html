@@ -233,13 +233,17 @@
     }
 
     async function verifyScholar(id) {
-      try {
-        await fetch(`/api/verify-scholar/${id}`, { method: "PUT" });
-        fetchUnverifiedScholars();
-      } catch (err) {
-        console.error("Error verifying scholar:", err);
+        try {
+          await fetch(`/api/verified-scholar/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ verified: true }) // ✅ only verification for now
+          });
+          fetchUnverifiedScholars(); // refresh list
+        } catch (err) {
+          console.error("Error verifying scholar:", err);
+        }
       }
-    }
 
     async function rejectScholar(id) {
       try {
