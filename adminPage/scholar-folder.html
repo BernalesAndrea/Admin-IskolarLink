@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Scholar Folder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            outline: none;
+            border: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url('/assets/iskolarbg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        .card {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        h1,
+        h2 {
+            color: #800000
+        }
+
+        .meta {
+            margin-bottom: 12px;
+            color: #333
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: #eee;
+            cursor: pointer
+        }
+
+        .tab.active {
+            background: #800000;
+            color: #fff
+        }
+
+        ul.docs {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul.docs li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        a.preview {
+            text-decoration: none;
+            color: #007bff
+        }
+
+        .small {
+            font-size: 13px;
+            color: #666
+        }
+
+        .btn {
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #800000;
+            color: #fff;
+            text-decoration: none
+        }
+
+        /* modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 9999;
+        }
+
+        .modal .inner {
+            width: 90%;
+            max-width: 1000px;
+            height: 85vh;
+            margin: 3% auto;
+            background: #fff;
+            border-radius: 10px;
+            padding: 8px;
+        }
+
+        .close {
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+            padding: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <a href="javascript:history.back()" class="btn small" style="float:right">← Back</a>
+        <h1>Scholar Folder</h1>
+        <div id="scholarMeta" class="meta">Loading scholar...</div>
+
+        <div class="tabs" id="folderTabs">
+            <div class="tab active" data-target="all">All</div>
+            <div class="tab" data-target="scanned-grades">Scanned Grades</div>
+            <div class="tab" data-target="soa">SOA</div>
+            <div class="tab" data-target="coe">Certificate of Enrollment</div>
+            <div class="tab" data-target="others">Others</div>
+        </div>
+
+        <div id="contentArea">
+            <div id="all" class="folderSection">
+                <h2>All Documents</h2>
+                <ul id="docsAll" class="docs"></ul>
+            </div>
+
+            <div id="scanned-grades" class="folderSection" style="display:none">
+                <h2>Scanned Grades</h2>
+                <ul id="docsGrades" class="docs"></ul>
+            </div>
+
+            <div id="soa" class="folderSection" style="display:none">
+                <h2>SOA</h2>
+                <ul id="docsSoa" class="docs"></ul>
+            </div>
+
+            <div id="coe" class="folderSection" style="display:none">
+                <h2>Certificate of Enrollment</h2>
+                <ul id="docsCoe" class="docs"></ul>
+            </div>
+
+            <div id="others" class="folderSection" style="display:none">
+                <h2>Others</h2>
+                <ul id="docsOthers" class="docs"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="inner">
+            <span id="closePreview" class="close">&times;</span>
+            <iframe id="previewFrame" src="" style="width:100%; height:calc(100% - 30px); border:none;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        (async function () {
+            // helpers
+            function qs(name) { return new URLSearchParams(window.location.search).get(name); }
+            function show(selector) { document.querySelectorAll('.folderSection').forEach(el => el.style.display = 'none'); document.getElementById(selector).style.display = 'block'; }
+            function groupByType(doc) { // simple type grouping (adjust to your docType values)
+                const t = (doc.docType || "").toLowerCase();
+                if (t.includes('grade')) return 'scanned-grades';
+                if (t.includes('soa')) return 'soa';
+                if (t.includes('certificate') || t.includes('enrollment') || t.includes('coe')) return 'coe';
+                return 'others';
+            }
+
+            // UI elements
+            const scholarMeta = document.getElementById('scholarMeta');
+            const docsAll = document.getElementById('docsAll');
+            const docsGrades = document.getElementById('docsGrades');
+            const docsSoa = document.getElementById('docsSoa');
+            const docsCoe = document.getElementById('docsCoe');
+            const docsOthers = document.getElementById('docsOthers');
+
+            // get scholarId
+            const scholarId = qs('scholarId');
+            if (!scholarId) {
+                scholarMeta.textContent = 'No scholar selected. Go back and choose a scholar.';
+                return;
+            }
+
+            // bind tabs
+            document.getElementById('folderTabs').addEventListener('click', (e) => {
+                const t = e.target.closest('.tab');
+                if (!t) return;
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                t.classList.add('active');
+                show(t.dataset.target);
+            });
+
+            // fetch scholar info (try admin endpoint)
+            async function fetchScholarInfo() {
+                try {
+                    const r = await fetch(`/api/admin/scholars/${scholarId}`, { credentials: 'include' });
+                    if (!r.ok) throw new Error('admin endpoint not allowed');
+                    const s = await r.json();
+                    return s;
+                } catch (err) {
+                    // fallback: try to find scholar from verified list (if admin endpoint not present)
+                    try {
+                        const r2 = await fetch('/api/verified-scholars', { credentials: 'include' });
+                        const list = await r2.json();
+                        return list.find(x => x._id === scholarId) || null;
+                    } catch (err2) {
+                        return null;
+                    }
+                }
+            }
+
+            // fetch documents for this scholar
+            async function fetchScholarDocs() {
+                try {
+                    // preferred: admin endpoint we added
+                    let r = await fetch(`/api/admin/scholars/${scholarId}/documents`, { credentials: 'include' });
+                    if (!r.ok) {
+                        // fallback: fetch all admin docs then filter
+                        const all = await (await fetch('/api/admin/documents', { credentials: 'include' })).json();
+                        return all.filter(d => (d.scholar && d.scholar._id ? d.scholar._id === scholarId : (d.scholar && d.scholar.toString ? d.scholar.toString() === scholarId : false)));
+                    }
+                    return await r.json();
+                } catch (err) {
+                    console.error('Error fetching scholar docs:', err);
+                    return [];
+                }
+            }
+
+            // fetch grades for this scholar
+            async function fetchScholarGrades() {
+                try {
+                    const r = await fetch(`/api/admin/grades/${scholarId}`, { credentials: 'include' });
+                    if (!r.ok) return [];
+                    return await r.json();
+                } catch (err) {
+                    console.error('Error fetching grades:', err);
+                    return [];
+                }
+            }
+
+
+            const scholar = await fetchScholarInfo();
+            if (!scholar) {
+                scholarMeta.textContent = 'Scholar not found or you are not authorized to view this. (Make sure you are logged in as admin.)';
+                return;
+            }
+
+            scholarMeta.innerHTML = `
+    <strong>${scholar.fullname}</strong> <span class="small"> • Batch: ${scholar.batchYear || 'N/A'} • ${scholar.email || ''}</span>
+  `;
+
+            // get docs & populate lists
+            const docs = await fetchScholarDocs();
+            function addDocToList(listEl, doc) {
+                const li = document.createElement('li');
+                const fileLabel = doc.docType || (doc.filePath ? doc.filePath.split('/').pop() : 'File');
+                const date = doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : '';
+                li.innerHTML = `
+      <div>
+        <strong>${fileLabel}</strong><div class="small">${date}</div>
+      </div>
+      <div>
+        ${doc.filePath ? `<a href="#" class="preview" data-file="${doc.filePath}"><i class="fa fa-eye"></i> Preview</a>` : ''}
+        &nbsp;
+        <a href="${doc.filePath || '#'}" target="_blank" class="small">Open</a>
+      </div>
+    `;
+                listEl.appendChild(li);
+            }
+
+            const grades = await fetchScholarGrades();
+
+                        // Push grades into "docs" format
+                        grades.forEach(g => {
+                              if (g.status === "accepted") {
+                                    docs.push({
+                                          docType: "Scanned Grades",
+                                          filePath: g.attachment,
+                                          dateSubmitted: g.dateSubmitted
+                                    });
+                              }
+                        });
+
+
+            docs.forEach(doc => {
+                addDocToList(docsAll, doc);
+                const group = groupByType(doc);
+                if (group === 'scanned-grades') addDocToList(docsGrades, doc);
+                else if (group === 'soa') addDocToList(docsSoa, doc);
+                else if (group === 'coe') addDocToList(docsCoe, doc);
+                else addDocToList(docsOthers, doc);
+            });
+
+            // preview clicks
+            document.body.addEventListener('click', (e) => {
+                const a = e.target.closest('a.preview');
+                if (!a) return;
+                e.preventDefault();
+                const href = a.dataset.file;
+                if (!href) return;
+                document.getElementById('previewFrame').src = href;
+                document.getElementById('previewModal').style.display = 'block';
+            });
+
+            document.getElementById('closePreview').onclick = () => {
+                document.getElementById('previewFrame').src = '';
+                document.getElementById('previewModal').style.display = 'none';
+            };
+
+        })();
+    </script>
+</body>
+
+</html>

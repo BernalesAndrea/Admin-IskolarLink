@@ -295,13 +295,7 @@
               <th>Last Updated</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Maria Santos</td>
-              <td><a href="#" class="view-folder" data-scholar="Maria Santos">View Folder</a></td>
-              <td>2025-09-15</td>
-            </tr>
-          </tbody>
+          <tbody id="folders-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -436,6 +430,33 @@
       }
     }
 
+     // Fetch verified scholars and populate Scholar Folders table
+    async function fetchScholarFolders() {
+      try {
+        const res = await fetch("/api/verified-scholars", {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error("Failed to fetch scholars");
+
+        const scholars = await res.json();
+        const tbody = document.getElementById("folders-tbody");
+        tbody.innerHTML = "";
+
+        scholars.forEach(sch => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td>${sch.fullname}</td>
+        <td><a href="scholar-folder.html?scholarId=${sch._id}" class="view-folder">View Folder</a></td>
+        <td>${sch.updatedAt ? new Date(sch.updatedAt).toLocaleDateString() : "N/A"}</td>
+      `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error fetching scholar folders:", err);
+      }
+    }
+
+
     async function updateStatus(id, status) {
       try {
         await fetch(`/api/admin/documents/${id}/status`, {
@@ -551,10 +572,12 @@
 
     fetchDocuments();
     fetchGrades();
+    fetchScholarFolders();
+
     setInterval(fetchDocuments, 5000);
     setInterval(fetchGrades, 5000);
+    setInterval(fetchScholarFolders, 5000);
   </script>
-
 </body>
 
 </html>

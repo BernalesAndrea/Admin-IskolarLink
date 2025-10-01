@@ -490,6 +490,46 @@ app.get("/api/admin/grades", authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ Admin fetch grades of a specific scholar
+app.get("/api/admin/grades/:scholarId", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    const grades = await Grade.find({ scholar: req.params.scholarId })
+      .populate("scholar", "fullname batchYear email")
+      .sort({ dateSubmitted: -1 });   // newest first
+    res.json(grades);
+  } catch (err) {
+    console.error("Error fetching scholar grades:", err);
+    res.status(500).json({ msg: "Error fetching scholar grades", error: err.message });
+  }
+});
+
+
+// ✅ Admin updates grade status
+app.put("/api/admin/grades/:id/status", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    let { status } = req.body; // "accepted" or "rejected"
+    if (status === "accepted") status = "Accepted";
+    if (status === "rejected") status = "Rejected";
+
+    const updated = await Grade.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) return res.status(404).json({ msg: "Grade not found" });
+
+    res.json({ msg: "Grade status updated successfully", grade: updated });
+  } catch (err) {
+    res.status(500).json({ msg: "Error updating grade status", error: err.message });
+  }
+});
+
+
 
 
 // ✅ Scholar submits a document
@@ -552,7 +592,7 @@ app.get("/api/admin/documents", authMiddleware, async (req, res) => {
 
 
 // Admin updates document status
-app.put("/api/documents/:id/status", authMiddleware, async (req, res) => {
+app.put("/api/admin/documents/:id/status", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
   try {
