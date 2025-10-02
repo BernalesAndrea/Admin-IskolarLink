@@ -132,30 +132,38 @@ const announcementSchema = new mongoose.Schema({
 const Announcement = mongoose.model("Announcement", announcementSchema);
 
 
-// Multer setup (save images in /uploads folder)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let folder = path.join(__dirname, "uploads");
-
-    if (file.fieldname === "attachment") {
-      folder = path.join(__dirname, "uploads/grades");
-    } else if (file.fieldname === "document") {
-      folder = path.join(__dirname, "uploads/submittedDocs");
-    } else if (file.fieldname === "file") { 
-      folder = path.join(__dirname, "uploads/tasks");
-    } else if (file.fieldname === "profilePic") {
-      folder = path.join(__dirname, "uploads/profilePics");
-    }
-
-    fs.mkdirSync(folder, { recursive: true });
-    cb(null, folder);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
+// Multer setup
+const upload = multer({
+  storage: multer.memoryStorage(),
+  // optional hard caps:
+  // limits: { fileSize: 20 * 1024 * 1024 } // 20 MB
 });
-const upload = multer({ storage });
 
+const { ObjectId } = mongoose.Types;
+
+async function putToGridFS({ buffer, filename, bucketName, contentType, metadata = {} }) {
+  const db = mongoose.connection.db;
+  const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName });
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = bucket.openUploadStream(filename, { contentType, metadata });
+
+    uploadStream.on("error", reject);
+
+    // No file argument here — use uploadStream.id
+    uploadStream.on("finish", () => {
+      resolve({
+        _id: uploadStream.id,       // <-- GridFS ObjectId
+        filename: uploadStream.filename,
+        bucketName,
+        contentType,
+        metadata,
+      });
+    });
+
+    uploadStream.end(buffer);
+  });
+}
 
 
 /* ============= AUTH ROUTES ============= */
@@ -329,18 +337,30 @@ app.put("/api/users/me", authMiddleware, upload.single("profilePic"), async (req
     };
 
     if (req.file) {
-      updates.profilePic = `/uploads/profilePics/${req.file.filename}`;
+      const file = await putToGridFS({
+        buffer: req.file.buffer,
+        filename: `${Date.now()}-${req.file.originalname}`,
+        bucketName: 'profilePics',
+        contentType: req.file.mimetype,
+        metadata: { userId: req.user.id, field: 'profilePic' }
+      });
+      updates.profilePicId = file._id;
+      updates.profilePicBucket = 'profilePics';
     }
 
     const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select("-password");
-
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    res.json({ msg: "Profile updated successfully", user });
+    const profilePicUrl = (user.profilePicId && user.profilePicBucket)
+      ? `/files/${user.profilePicBucket}/${user.profilePicId}`
+      : null;
+
+    res.json({ msg: "Profile updated successfully", user, profilePicUrl });
   } catch (err) {
     res.status(500).json({ msg: "Error updating profile", error: err.message });
   }
 });
+
 
 
 // Expenses API
@@ -455,6 +475,19 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
     }
 
     const { schoolYear, semester, subjects } = req.body;
+    let attachmentId = null, attachmentBucket = null;
+
+    if (req.file) {
+      const file = await putToGridFS({
+        buffer: req.file.buffer,
+        filename: `${Date.now()}-${req.file.originalname}`,
+        bucketName: 'grades',
+        contentType: req.file.mimetype,
+        metadata: { userId: req.user.id, field: 'attachment' }
+      });
+      attachmentId = file._id;
+      attachmentBucket = 'grades';
+    }
 
     const newGrade = new Grade({
       scholar: user._id,
@@ -462,16 +495,19 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
       batchYear: user.batchYear,
       schoolYear,
       semester,
-      subjects: JSON.parse(subjects),
-      attachment: req.file ? `/uploads/grades/${req.file.filename}` : null   // ✅ fix here
+      subjects: JSON.parse(subjects || '[]'),
+      attachmentId,
+      attachmentBucket
     });
 
     await newGrade.save();
-    res.json({ msg: "Grade uploaded successfully", grade: newGrade });
+    const attachmentUrl = attachmentId ? `/files/${attachmentBucket}/${attachmentId}` : null;
+    res.json({ msg: "Grade uploaded successfully", grade: newGrade, attachmentUrl });
   } catch (err) {
     res.status(500).json({ msg: "Error uploading grade", error: err.message });
   }
 });
+
 
 
 
@@ -539,28 +575,55 @@ app.post("/api/documents/me", authMiddleware, upload.single("document"), async (
     if (!user || !user.verified || user.role !== "scholar") {
       return res.status(400).json({ msg: "Scholar not verified or not found" });
     }
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
 
-    if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded" });
+    // helpful debug (keep for now)
+    console.log("Upload doc:", {
+      userId: req.user.id,
+      docType: req.body.docType,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    const file = await putToGridFS({
+      buffer: req.file.buffer,
+      filename: `${Date.now()}-${req.file.originalname}`,
+      bucketName: "submittedDocs",
+      contentType: req.file.mimetype,
+      metadata: { userId: req.user.id, docType: req.body.docType, field: "document" }
+    });
+
+    if (!file || !file._id) {
+      console.error("GridFS returned no file/_id:", file);
+      return res.status(500).json({ msg: "Upload failed: no file id returned from GridFS" });
     }
-
-    const { docType } = req.body;
 
     const newDoc = new SubmittedDocument({
       scholar: user._id,
       fullname: user.fullname,
       batchYear: user.batchYear,
-      docType,
-      filePath: `/uploads/submittedDocs/${req.file.filename}`,
+      docType: req.body.docType,
+      fileId: file._id,
+      bucket: "submittedDocs",
       status: "Pending"
     });
 
-    await newDoc.save();
-    res.json({ msg: "Document submitted successfully", document: newDoc });
+    const saved = await newDoc.save();
+    console.log("✅ SubmittedDocument saved:", saved._id);
+
+    res.json({
+      msg: "Document submitted successfully",
+      document: saved,
+      fileUrl: `/files/submittedDocs/${file._id}`
+    });
   } catch (err) {
+    console.error("❌ Submit document error:", err);
     res.status(500).json({ msg: "Error submitting document", error: err.message });
   }
 });
+
+
 
 
 
@@ -568,13 +631,14 @@ app.post("/api/documents/me", authMiddleware, upload.single("document"), async (
 app.get("/api/documents/me", authMiddleware, async (req, res) => {
   try {
     const docs = await SubmittedDocument.find({ scholar: req.user.id })
-      .populate("scholar", "fullname batchYear")   // ✅ populate scholar info
-      .sort({ dateSubmitted: -1 });
+      .populate("scholar", "fullname batchYear")
+      .sort({ createdAt: -1 }); // <-- use createdAt
     res.json(docs);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
   }
 });
+
 
 
 // ✅ Admin fetches all documents
@@ -582,13 +646,20 @@ app.get("/api/admin/documents", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
   try {
     const docs = await SubmittedDocument.find()
-  .populate("scholar", "fullname batchYear email")
-  .sort({ dateSubmitted: -1 });
-    res.json(docs);
+      .populate("scholar", "fullname batchYear email")
+      .sort({ createdAt: -1 });
+
+    const shaped = docs.map(d => ({
+      ...d.toObject(),
+      fileUrl: d.fileId && d.bucket ? `/files/${d.bucket}/${d.fileId}` : d.filePath || null
+    }));
+
+    res.json(shaped);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
   }
 });
+
 
 
 // Admin updates document status
@@ -654,24 +725,107 @@ app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), asy
   try {
     const user = await User.findById(req.user.id);
     if (!user || !user.verified) return res.status(400).json({ msg: "Scholar not verified or not found" });
-
     if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+
+    const file = await putToGridFS({
+      buffer: req.file.buffer,
+      filename: `${Date.now()}-${req.file.originalname}`,
+      bucketName: 'tasks',
+      contentType: req.file.mimetype,
+      metadata: { userId: req.user.id, taskId: req.params.taskId, field: 'file' }
+    });
 
     const submission = new SubmittedTask({
       task: req.params.taskId,
       scholar: user._id,
       fullname: user.fullname,
       batchYear: user.batchYear,
-      filePath: `/uploads/tasks/${req.file.filename}`
+      fileId: file._id,
+      bucket: 'tasks'
     });
 
     await submission.save();
-    res.json({ msg: "Task submitted successfully", submission });
+    res.json({ msg: "Task submitted successfully", submission, fileUrl: `/files/tasks/${file._id}` });
   } catch (err) {
-    console.error("Error submitting task:", err);
     res.status(500).json({ msg: "Error submitting task", error: err.message });
   }
 });
+
+
+const ALLOWED_BUCKETS = new Set(['grades','submittedDocs','tasks','profilePics']);
+
+function assertBucket(name) {
+  if (!ALLOWED_BUCKETS.has(name)) throw new Error('Invalid bucket');
+  return name;
+}
+
+app.get('/files/:bucket/:id', authMiddleware, async (req, res) => {
+  try {
+    const bucketName = assertBucket(req.params.bucket);
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+
+    const db = mongoose.connection.db;
+    const filesCol = db.collection(`${bucketName}.files`);
+    const fileDoc = await filesCol.findOne({ _id: fileId });
+    if (!fileDoc) return res.status(404).json({ msg: 'File not found' });
+
+    // Example ownership gate (uncomment to enforce):
+    // if (req.user.role !== 'admin' && String(fileDoc.metadata?.userId) !== req.user.id) {
+    //   return res.status(403).json({ msg: 'Forbidden' });
+    // }
+
+    res.set('Content-Type', fileDoc.contentType || 'application/octet-stream');
+    res.set('Content-Disposition', `inline; filename="${fileDoc.filename}"`);
+
+    const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName });
+    bucket.openDownloadStream(fileId).pipe(res);
+  } catch (e) {
+    res.status(400).json({ msg: 'Invalid file/bucket', error: e.message });
+  }
+});
+
+app.get('/files/:bucket/:id/download', authMiddleware, async (req, res) => {
+  try {
+    const bucketName = assertBucket(req.params.bucket);
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+
+    const db = mongoose.connection.db;
+    const filesCol = db.collection(`${bucketName}.files`);
+    const fileDoc = await filesCol.findOne({ _id: fileId });
+    if (!fileDoc) return res.status(404).json({ msg: 'File not found' });
+
+    res.set('Content-Type', 'application/octet-stream');
+    res.set('Content-Disposition', `attachment; filename="${fileDoc.filename}"`);
+
+    const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName });
+    bucket.openDownloadStream(fileId).pipe(res);
+  } catch (e) {
+    res.status(400).json({ msg: 'Invalid file/bucket', error: e.message });
+  }
+});
+
+app.get('/files/:bucket/:id/meta', authMiddleware, async (req, res) => {
+  try {
+    const bucketName = assertBucket(req.params.bucket);
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+
+    const db = mongoose.connection.db;
+    const filesCol = db.collection(`${bucketName}.files`);
+    const fileDoc = await filesCol.findOne({ _id: fileId });
+    if (!fileDoc) return res.status(404).json({ msg: 'File not found' });
+
+    res.json({
+      filename: fileDoc.filename,
+      contentType: fileDoc.contentType || 'application/octet-stream',
+      length: fileDoc.length,
+      uploadDate: fileDoc.uploadDate
+    });
+  } catch (e) {
+    res.status(400).json({ msg: 'Invalid file/bucket', error: e.message });
+  }
+});
+
+
 
 
 

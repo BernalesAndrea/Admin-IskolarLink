@@ -1,276 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
-    * {
-  margin: 0;
-  padding: 0;
-  outline: none;
-  border: none;
-  text-decoration: none;
-  box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-image: url('/assets/iskolarbg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.container {
-  width: 90%;
-  height: 80%;
-  max-width: 1000px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  border-bottom: 2px solid #eee;
-}
-
-.tab {
-  flex: 1;
-  text-align: center;
-  padding: 14px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  background: #f9f9f9;
-  transition: all 0.3s ease;
-}
-
-.tab:hover {
-  background: #eaeaea;
-}
-
-.tab.active {
-  background: #800000;
-  color: #fff;
-  font-weight: bold;
-}
-
-/* Content */
-.content {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.content-section {
-  display: none;
-}
-
-.content-section.active {
-  display: block;
-}
-
-/* Create Task Form */
-form {
-  max-width: 800px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 15px;
-}
-
-form h2 {
-  margin-bottom: 10px;
-  color: black;
-}
-
-.inputBox {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.inputBox label {
-  font-weight: bold;
-  margin-top: 5px;
-  color: black;
-}
-
-.inputBox input,
-.taskDescription textarea {
-  background-color: rgb(201, 201, 201);
-  border: none;
-  border-radius: 20px;
-  padding: 10px 14px;
-  font-weight: bold;
-  outline: none;
-}
-
-.taskDescription textarea {
-  resize: none;
-  width: 100%;
-  height: 100px;
-}
-
-.dateRow {
-  display: flex;
-  gap: 20px;
-}
-
-.dateRow .inputGroup {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.dateRow .inputGroup input {
-  background-color: rgb(201, 201, 201);
-  border-radius: 20px;
-  padding: 8px 12px;
-  font-weight: bold;
-  border: none;
-  height: 38px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Buttons */
-.createButton {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.createButton button {
-  height: 35px;
-  padding: 0 16px;
-  border-radius: 10px;
-  background-color: rgba(146, 59, 59);
-  color: #fff;
-  cursor: pointer;
-  font-weight: bold;
-  border: none;
-  outline: none;
-  transition: background-color 0.3s, box-shadow 0.2s ease;
-}
-
-.createButton button:hover {
-  background-color: rgba(126, 49, 49);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.createButton button[type="reset"] {
-  background-color: #6c757d;
-}
-
-.createButton button[type="reset"]:hover {
-  background-color: #5a6268;
-}
-
-/* Task List */
-.tasksWrapper {
-  width: 100%;
-  max-width: 800px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-height: 500px;/* limits height */
-  padding-right: 10px;
-}
-
-.tasksWrapper h2 {
-  color: black;
-  margin-bottom: 10px;
-}
-
-.tasksList {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  overflow-y: auto;
-}
-
-.task-card {
-  background: #fdfdfd;
-  border-left: 5px solid #800000;
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-
-.task-card:hover {
-  transform: translateY(-4px);
-}
-
-.task-title {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #800000;
-  margin-bottom: 5px;
-}
-
-.task-dates {
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.task-description {
-  font-size: 0.95em;
-  color: #333;
-  line-height: 1.4em;
-}
-
-.modal {
-  display: none; 
-  position: fixed;
-  z-index: 9999;
-  padding-top: 80px;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-}
-
-.modal-content {
-  background: #fff;
-  margin: auto;
-  padding: 20px;
-  border-radius: 12px;
-  max-width: 600px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.close {
-  float: right;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{
+      display:flex;justify-content:center;align-items:center;min-height:100vh;
+      background-image:url('/assets/iskolarbg.png');background-size:cover;background-position:center;background-repeat:no-repeat;
+    }
+    .container{width:90%;height:80%;max-width:1000px;background:#fff;border-radius:20px;box-shadow:0 4px 10px rgba(0,0,0,.1);overflow:hidden;display:flex;flex-direction:column}
+    .tabs{display:flex;border-bottom:2px solid #eee}
+    .tab{flex:1;text-align:center;padding:14px;cursor:pointer;font-size:14px;font-weight:500;color:#333;background:#f9f9f9;transition:.3s}
+    .tab:hover{background:#eaeaea}
+    .tab.active{background:#800000;color:#fff;font-weight:bold}
+    .content{padding:20px;flex:1;overflow-y:auto}
+    .content-section{display:none}
+    .content-section.active{display:block}
+    form{max-width:800px;margin:auto;display:flex;flex-direction:column;gap:10px;background:#fff;padding:20px;border-radius:15px}
+    form h2{margin-bottom:10px;color:black}
+    .inputBox{display:flex;flex-direction:column;gap:8px}
+    .inputBox label{font-weight:bold;margin-top:5px;color:black}
+    .inputBox input,.taskDescription textarea{background:rgb(201,201,201);border:none;border-radius:20px;padding:10px 14px;font-weight:bold;outline:none}
+    .taskDescription textarea{resize:none;width:100%;height:100px}
+    .dateRow{display:flex;gap:20px}
+    .dateRow .inputGroup{display:flex;flex-direction:column;flex:1}
+    .dateRow .inputGroup input{background:rgb(201,201,201);border-radius:20px;padding:8px 12px;font-weight:bold;border:none;height:38px;width:100%;box-sizing:border-box}
+    .createButton{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
+    .createButton button{height:35px;padding:0 16px;border-radius:10px;background:rgba(146,59,59);color:#fff;cursor:pointer;font-weight:bold;border:none;outline:none;transition:.3s}
+    .createButton button:hover{background:rgba(126,49,49);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+    .createButton button[type="reset"]{background:#6c757d}
+    .createButton button[type="reset"]:hover{background:#5a6268}
+    .tasksWrapper{width:100%;max-width:800px;margin:auto;display:flex;flex-direction:column;gap:15px;max-height:500px;padding-right:10px}
+    .tasksWrapper h2{color:black;margin-bottom:10px}
+    .tasksList{display:flex;flex-direction:column;gap:15px;overflow-y:auto}
+    .task-card{background:#fdfdfd;border-left:5px solid #800000;border-radius:10px;padding:15px 20px;box-shadow:0 2px 6px rgba(0,0,0,.1);transition:.2s}
+    .task-card:hover{transform:translateY(-4px)}
+    .task-title{font-weight:bold;font-size:1.1em;color:#800000;margin-bottom:5px}
+    .task-dates{font-size:.9em;color:#555;margin-bottom:8px}
+    .task-description{font-size:.95em;color:#333;line-height:1.4em}
+    .modal{display:none;position:fixed;z-index:9999;padding-top:80px;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.6)}
+    .modal-content{background:#fff;margin:auto;padding:20px;border-radius:12px;max-width:600px;box-shadow:0 4px 8px rgba(0,0,0,.3)}
+    .close{float:right;font-size:22px;cursor:pointer}
   </style>
 </head>
-
 <body>
   <div class="container">
     <!-- Tabs -->
@@ -281,7 +56,7 @@ form h2 {
 
     <!-- Content -->
     <div class="content">
-      <!-- Create Task Section -->
+      <!-- Create Task -->
       <div class="content-section active" id="create">
         <form id="taskForm" class="inputBox">
           <h2>Create Task</h2>
@@ -311,240 +86,222 @@ form h2 {
         </form>
       </div>
 
-      <!-- Task List Section -->
-<div class="content-section" id="list">
-  <div class="tasksWrapper">
-    <h2>Assigned Tasks</h2>
-    <div class="tasksList">
-      <!-- Example Task Card -->
-      <!-- Task cards will be injected dynamically here -->
-    </div>
-  </div>
-</div>
+      <!-- Task List -->
+      <div class="content-section" id="list">
+        <div class="tasksWrapper">
+          <h2>Assigned Tasks</h2>
+          <div class="tasksList"></div>
+        </div>
+      </div>
 
-<!-- Modal -->
-<div id="submissionModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2 id="modalTaskTitle"></h2>
-    <table border="1" width="100%" style="border-collapse:collapse; margin-top:15px;">
-      <thead>
-        <tr>
-          <th>Scholar Name</th>
-          <th>Batch Year</th>
-          <th>Date Submitted</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="submissionTableBody"></tbody>
-    </table>
-  </div>
-</div>
-<!-- File Preview Modal -->
-<div id="taskFilePreviewModal" class="modal">
-  <div class="modal-content" style="max-width:800px;">
-    <span id="closeTaskPreview" class="close">&times;</span>
-    <iframe id="taskFileFrame" width="100%" height="500px"></iframe>
-  </div>
-</div>
+      <!-- Submissions Modal -->
+      <div id="submissionModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2 id="modalTaskTitle"></h2>
+          <table border="1" width="100%" style="border-collapse:collapse; margin-top:15px;">
+            <thead>
+              <tr>
+                <th>Scholar Name</th>
+                <th>Batch Year</th>
+                <th>Date Submitted</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="submissionTableBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-
+      <!-- File Preview Modal -->
+      <div id="taskFilePreviewModal" class="modal">
+        <div class="modal-content" style="max-width:800px;">
+          <span id="closeTaskPreview" class="close">&times;</span>
+          <iframe id="taskFileFrame" width="100%" height="500px"></iframe>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
   <script>
-    // -------------------- Tabs --------------------
-const tabs = document.querySelectorAll('.tab');
-const sections = document.querySelectorAll('.content-section');
-
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    sections.forEach(s => s.classList.remove('active'));
-
-    tab.classList.add('active');
-    document.getElementById(tab.dataset.target).classList.add('active');
-  });
-});
-
-// -------------------- Pikaday Datepickers --------------------
-new Pikaday({
-  field: document.getElementById('pikadayStartDate'),
-  format: 'YYYY-MM-DD',
-  minDate: new Date(),
-  toString(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-});
-
-new Pikaday({
-  field: document.getElementById('pikadayDueDate'),
-  format: 'YYYY-MM-DD',
-  minDate: new Date(),
-  toString(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-});
-
-// -------------------- Load Tasks --------------------
-async function loadTasks() {
-  const tasksDiv = document.querySelector('.tasksList');
-  tasksDiv.innerHTML = '';
-
-  try {
-    const res = await fetch("/api/tasks", { method: "GET", credentials: "include" });
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-
-    const tasks = await res.json();
-
-    if (!tasks.length) {
-      tasksDiv.innerHTML = '<div>No tasks assigned yet.</div>';
-      return;
-    }
-
-    tasks.forEach(task => {
-  const taskEl = document.createElement('div');
-  taskEl.className = 'task-card';
-  taskEl.innerHTML = `
-    <div class="task-title">${task.title}</div>
-    <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
-    <div class="task-description">${task.description}</div>
-  `;
-  taskEl.addEventListener("click", () => showTaskSubmissions(task)); // ✅
-  tasksDiv.appendChild(taskEl);
-});
-
-
-  } catch (err) {
-    tasksDiv.innerHTML = '<div>⚠️ Failed to load tasks.</div>';
-    console.error("Error in loadTasks:", err);
-  }
-}
-
-
-// -------------------- Handle Create Task --------------------
-document.getElementById('taskForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
-
-  const formData = new FormData(this);
-  const newTask = {
-    title: formData.get('taskTitle'),
-    startDate: formData.get('startDate'),
-    dueDate: formData.get('dueDate'),
-    description: formData.get('taskDesc')
-  };
-
-  try {
-    const res = await fetch('/api/tasks', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(newTask),
-  credentials: "include"
-});
-
-
-    if (res.ok) {
-      this.reset();
-      loadTasks();
-    } else {
-      console.error('Failed to create task:', await res.text());
-    }
-  } catch (err) {
-    console.error('Error saving task:', err);
-  }
-});
-
-async function showTaskSubmissions(task) {
-  try {
-    // Fetch submissions for the specific task
-    const res = await fetch(`/api/admin/submitted-tasks/${task._id}`, {
-      method: "GET",
-      credentials: "include" // important for cookies/auth
+    // ---------- Tabs ----------
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.content-section');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
     });
-    if (!res.ok) throw new Error("Failed to fetch submissions");
-    const submissions = await res.json();
 
-    // Set modal title
-    document.getElementById("modalTaskTitle").innerText = task.title;
+    // ---------- Datepickers ----------
+    new Pikaday({
+      field: document.getElementById('pikadayStartDate'),
+      format: 'YYYY-MM-DD',
+      minDate: new Date(),
+      toString(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+    });
+    new Pikaday({
+      field: document.getElementById('pikadayDueDate'),
+      format: 'YYYY-MM-DD',
+      minDate: new Date(),
+      toString(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+    });
 
-    // Clear previous table rows
-    const tbody = document.getElementById("submissionTableBody");
-    tbody.innerHTML = "";
-
-    if (!submissions.length) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No submissions yet.</td></tr>`;
-    } else {
-      submissions.forEach(sub => {
-        const tr = document.createElement("tr");
-
-        // Format submission date safely
-        const submittedDate = sub.dateSubmitted
-          ? new Date(sub.dateSubmitted).toLocaleString()
-          : "N/A";
-
-
-        tr.innerHTML = `
-          <td>${sub.scholar?.fullname || sub.fullname || "N/A"}</td>
-          <td>${sub.scholar?.batchYear || sub.batchYear || "N/A"}</td>
-          <td>${submittedDate}</td>
-          <td>
-            <button class="previewBtn" data-file="${sub.filePath}">Preview</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      // Add event listeners to preview buttons dynamically
-      tbody.querySelectorAll(".previewBtn").forEach(btn => {
-        btn.addEventListener("click", () => previewFile(btn.dataset.file));
-      });
+    // ---------- GridFS URL helpers ----------
+    function fileUrl(bucket, id, { download = false } = {}) {
+      if (!bucket || !id) return null;
+      return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
+    }
+    function resolveSubmissionUrl(sub) {
+      // Prefer GridFS fields (bucket + fileId); fallback to legacy filePath
+      return fileUrl(sub.bucket, sub.fileId) || sub.filePath || null;
     }
 
-    // Show modal
-    document.getElementById("submissionModal").style.display = "block";
-  } catch (err) {
-    console.error("Failed to load submissions:", err);
-  }
-  console.log("Opening modal for task:", task.title);
-}
+    // ---------- Load Tasks ----------
+    async function loadTasks() {
+      const tasksDiv = document.querySelector('.tasksList');
+      tasksDiv.innerHTML = '';
+      try {
+        const res = await fetch("/api/tasks", { method: "GET", credentials: "include" });
+        if (res.status === 401) { window.location.href = "/"; return; }
+        if (!res.ok) throw new Error("Failed to fetch tasks");
 
+        const tasks = await res.json();
+        if (!Array.isArray(tasks) || !tasks.length) {
+          tasksDiv.innerHTML = '<div>No tasks assigned yet.</div>';
+          return;
+        }
 
-const taskPreviewModal = document.getElementById("taskFilePreviewModal");
-const taskFileFrame = document.getElementById("taskFileFrame");
-const closeTaskPreview = document.getElementById("closeTaskPreview");
+        tasks.forEach(task => {
+          const taskEl = document.createElement('div');
+          taskEl.className = 'task-card';
+          taskEl.innerHTML = `
+            <div class="task-title">${esc(task.title)}</div>
+            <div class="task-dates">${esc(task.startDate)} → ${esc(task.dueDate)}</div>
+            <div class="task-description">${esc(task.description)}</div>
+          `;
+          taskEl.addEventListener("click", () => showTaskSubmissions(task));
+          tasksDiv.appendChild(taskEl);
+        });
+      } catch (err) {
+        tasksDiv.innerHTML = '<div>⚠️ Failed to load tasks.</div>';
+        console.error("Error in loadTasks:", err);
+      }
+    }
 
-function previewFile(filePath) {
-  taskFileFrame.src = filePath; // set iframe src
-  taskPreviewModal.style.display = "block";
-}
+    // ---------- Create Task (admin) ----------
+    document.getElementById('taskForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+      const newTask = {
+        title: fd.get('taskTitle'),
+        startDate: fd.get('startDate'),
+        dueDate: fd.get('dueDate'),
+        description: fd.get('taskDesc')
+      };
 
-// Close modal when clicking outside or on close button
-document.querySelectorAll(".close").forEach(btn => {
-  btn.onclick = () => {
-    btn.closest(".modal").style.display = "none";
-    if (btn.id === "closeTaskPreview") taskFileFrame.src = "";
-  };
-});
+      try {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTask),
+          credentials: "include"
+        });
+        if (res.status === 401) { window.location.href = "/"; return; }
+        if (!res.ok) throw new Error(await res.text());
+        this.reset();
+        loadTasks();
+      } catch (err) {
+        console.error('Failed to create task:', err);
+        alert('Failed to create task.');
+      }
+    });
 
-window.onclick = (event) => {
-  if (event.target == taskPreviewModal) {
-    taskPreviewModal.style.display = "none";
-    taskFileFrame.src = "";
-  }
-  if (event.target == document.getElementById("submissionModal")) {
-    document.getElementById("submissionModal").style.display = "none";
-  }
-};
+    // ---------- Show Submissions ----------
+    async function showTaskSubmissions(task) {
+      try {
+        const res = await fetch(`/api/admin/submitted-tasks/${task._id}`, {
+          method: "GET",
+          credentials: "include"
+        });
+        if (res.status === 401) { window.location.href = "/"; return; }
+        if (!res.ok) throw new Error("Failed to fetch submissions");
+        const submissions = await res.json();
 
+        document.getElementById("modalTaskTitle").innerText = task.title;
 
-window.addEventListener("load", loadTasks);
+        const tbody = document.getElementById("submissionTableBody");
+        tbody.innerHTML = "";
+
+        if (!Array.isArray(submissions) || !submissions.length) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No submissions yet.</td></tr>`;
+        } else {
+          submissions.forEach(sub => {
+            const url = resolveSubmissionUrl(sub); // ✅ GridFS or legacy
+            const submittedDate = sub.dateSubmitted ? new Date(sub.dateSubmitted).toLocaleString() : "N/A";
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${esc(sub.scholar?.fullname || sub.fullname || "N/A")}</td>
+              <td>${esc(sub.scholar?.batchYear || sub.batchYear || "N/A")}</td>
+              <td>${esc(submittedDate)}</td>
+              <td>
+                ${url
+                  ? `<button class="previewBtn" data-url="${url.replace(/"/g,'&quot;')}">Preview</button>
+                     <a href="${url}/download" target="_blank" rel="noopener" style="margin-left:6px;">Download</a>`
+                  : `<span style="color:#999;">No file</span>`}
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          // Preview buttons
+          tbody.querySelectorAll(".previewBtn").forEach(btn => {
+            btn.addEventListener("click", () => previewFile(btn.dataset.url));
+          });
+        }
+
+        // Show modal
+        document.getElementById("submissionModal").style.display = "block";
+      } catch (err) {
+        console.error("Failed to load submissions:", err);
+        alert("Failed to load submissions.");
+      }
+    }
+
+    // ---------- Preview Modal ----------
+    const taskPreviewModal = document.getElementById("taskFilePreviewModal");
+    const taskFileFrame = document.getElementById("taskFileFrame");
+    const closeTaskPreview = document.getElementById("closeTaskPreview");
+
+    function previewFile(url) {
+      taskFileFrame.src = url; // inline route streams with Content-Type set
+      taskPreviewModal.style.display = "block";
+    }
+
+    // Close buttons
+    document.querySelectorAll(".close").forEach(btn => {
+      btn.onclick = () => {
+        const m = btn.closest(".modal");
+        m.style.display = "none";
+        if (m.id === "taskFilePreviewModal") taskFileFrame.src = "";
+      };
+    });
+
+    // Close on backdrop click
+    window.onclick = (e) => {
+      if (e.target == taskPreviewModal) { taskPreviewModal.style.display = "none"; taskFileFrame.src = ""; }
+      if (e.target == document.getElementById("submissionModal")) { document.getElementById("submissionModal").style.display = "none"; }
+    };
+
+    // ---------- Utils ----------
+    function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+
+    // Init
+    window.addEventListener("load", loadTasks);
   </script>
 </body>
 </html>

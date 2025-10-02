@@ -290,11 +290,12 @@
       <div class="gradeImg">
         <!--Attach grade img-->
         <div class="attachmentBox">
-          <input type="file" id="gradePicture" accept="image/*" required>
+          <input type="file" id="gradePicture" accept="image/*,application/pdf" required>
           <label for="gradePicture" class="custom-file-label">
             <i class="fa fa-upload"></i> Attach Scanned Grade Image
           </label>
           <img id="previewImage" src="" style="display:none;">
+          <iframe id="previewPdf" style="display:none;width:200px;height:200px;border:2px solid #800000;border-radius:12px;margin-top:10px;"></iframe>
         </div>
       </div>
 
@@ -349,26 +350,65 @@
   <script>
     const gradePicture = document.getElementById("gradePicture");
     const previewImage = document.getElementById("previewImage");
+    const previewPdf   = document.getElementById("previewPdf");
 
     gradePicture.addEventListener("change", function () {
-      if (this.files[0]) {
-        previewImage.src = URL.createObjectURL(this.files[0]);
-        previewImage.style.display = "block";
-      }
-    });
+  const file = this.files[0];
+  if (!file) return;
+
+  // 10 MB limit (tweak as you like)
+  const MAX = 10 * 1024 * 1024;
+  if (file.size > MAX) {
+    showMessage("File too large (max 10MB).", true);
+    this.value = "";
+    previewImage.style.display = "none";
+    previewPdf.style.display = "none";
+    return;
+  }
+
+  const isImage = file.type.startsWith("image/");
+  const isPdf   = file.type === "application/pdf";
+  if (!isImage && !isPdf) {
+    showMessage("Please upload an image or PDF.", true);
+    this.value = "";
+    previewImage.style.display = "none";
+    previewPdf.style.display = "none";
+    return;
+  }
+
+  // Revoke old object URL if any
+  if (previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
+  if (previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
+
+  const url = URL.createObjectURL(file);
+
+  if (isImage) {
+    previewPdf.style.display = "none";
+    previewImage.src = url;
+    previewImage.dataset.url = url;
+    previewImage.style.display = "block";
+  } else {
+    previewImage.style.display = "none";
+    previewPdf.src = url;
+    previewPdf.dataset.url = url;
+    previewPdf.style.display = "block";
+  }
+});
 
     function addSubject() {
-      const container = document.getElementById("subjectsContainer");
-      const newDiv = document.createElement("div");
-      newDiv.classList.add("gradeCompute");
-      newDiv.innerHTML = `
+  const container = document.getElementById("subjectsContainer");
+  const newDiv = document.createElement("div");
+  newDiv.classList.add("gradeCompute");
+  newDiv.innerHTML = `
     <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
     <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
     <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
     <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
   `;
-      container.insertBefore(newDiv, container.querySelector(".buttons"));
-    }
+  container.appendChild(newDiv);
+}
+
+
 
     function removeSubject(button) {
       const container = document.getElementById("subjectsContainer");
@@ -382,124 +422,156 @@
     }
 
     function calculateAverage() {
-      const subjects = document.querySelectorAll(".subject");
-      const units = document.querySelectorAll(".unit");
-      const grades = document.querySelectorAll(".grade");
+  const subjects = document.querySelectorAll(".subject");
+  const units = document.querySelectorAll(".unit");
+  const grades = document.querySelectorAll(".grade");
 
-      let total = 0, totalUnits = 0, hasData = false;
-      for (let i = 0; i < subjects.length; i++) {
-        const s = subjects[i].value.trim();
-        const u = units[i].value.trim();
-        const g = grades[i].value.trim();
-        if (s || u || g) hasData = true;
-        if (!s || !u || !g) { showMessage("No specific data was added to the required fields.", true); return; }
-        if (!/^\d+$/.test(u)) { showMessage("Units must be integer without decimals.", true); return; }
-        if (isNaN(g)) { showMessage("Grade must be valid number.", true); return; }
-        total += parseFloat(g) * parseInt(u);
-        totalUnits += parseInt(u);
-      }
-      if (!hasData) { showMessage("No specific data was added to the required fields.", true); return; }
-      showMessage(`Calculated GWA: ${(total / totalUnits).toFixed(2)}`, false);
+  let totalWeighted = 0;
+  let totalUnits = 0;
+
+  for (let i = 0; i < subjects.length; i++) {
+    const s = subjects[i].value.trim();
+    const u = parseInt(units[i].value.trim(), 10);
+    const g = parseFloat(grades[i].value.trim());
+
+    if (!s || Number.isNaN(u) || Number.isNaN(g)) {
+      showMessage("Please complete Subject, Units (integer), and Grade (number) for all rows.", true);
+      return;
     }
+    if (!Number.isInteger(u) || u <= 0) {
+      showMessage("Units must be a positive integer.", true);
+      return;
+    }
+    totalWeighted += g * u;
+    totalUnits += u;
+  }
+
+  if (totalUnits === 0) {
+    showMessage("No units to compute.", true);
+    return;
+  }
+  showMessage(`Calculated GWA: ${(totalWeighted / totalUnits).toFixed(2)}`, false);
+}
+
 
     function uploadData() {
-      const subjects = document.querySelectorAll(".subject");
-      const units = document.querySelectorAll(".unit");
-      const grades = document.querySelectorAll(".grade");
-
-      const schoolYear = document.getElementById("schoolYear").value.trim();
-      const semester = document.getElementById("semester").value.trim();
-      if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
-      if (!gradePicture.files[0]) { showMessage("Please attach the grade picture.", true); return; }
-
-      let hasData = false;
-      for (let i = 0; i < subjects.length; i++) {
-        const s = subjects[i].value.trim();
-        const u = units[i].value.trim();
-        const g = grades[i].value.trim();
-        if (s || u || g) hasData = true;
-        if (!s || !u || !g) { showMessage("No specific data was added to the required fields.", true); return; }
-        if (!/^\d+$/.test(u)) { showMessage("Units must be integer without decimals.", true); return; }
-        if (isNaN(g)) { showMessage("Grade must be valid number.", true); return; }
-      }
-      if (!hasData) { showMessage("No specific data was added to the required fields.", true); return; }
-
-      // Populate modal
-      const modalNotice = document.getElementById("modalNotice");
-      modalNotice.textContent = "Review all subjects and attached grade picture before submitting.";
-
-      const modalTermText = document.getElementById("modalTermText");
-      modalTermText.textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
-
-      const tbody = document.getElementById("modalTableBody");
-      tbody.innerHTML = "";
-      const picURL = URL.createObjectURL(gradePicture.files[0]);
-
-      for (let i = 0; i < subjects.length; i++) {
-        const row = document.createElement("tr");
-
-        if (i === 0) {
-          row.innerHTML = `
-        <td rowspan="${subjects.length}"><img src="${picURL}" alt="Grade Picture"></td>
-        <td>${subjects[i].value.trim()}</td>
-        <td>${units[i].value.trim()}</td>
-        <td>${grades[i].value.trim()}</td>
-      `;
-        } else {
-          row.innerHTML = `
-        <td>${subjects[i].value.trim()}</td>
-        <td>${units[i].value.trim()}</td>
-        <td>${grades[i].value.trim()}</td>
-      `;
-        }
-        tbody.appendChild(row);
-      }
-
-      const modal = document.getElementById("confirmationModal");
-      modal.style.display = "flex";
-
-      document.getElementById("cancelBtn").onclick = function () {
-        modal.style.display = "none";
-        showMessage("Upload cancelled. Please review your data.", true);
-      }
-      document.getElementById("confirmBtn").addEventListener("click", async () => {
   const schoolYear = document.getElementById("schoolYear").value.trim();
   const semester = document.getElementById("semester").value.trim();
+  if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
 
+  const file = gradePicture.files[0];
+  if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
+
+  const rows = document.querySelectorAll(".gradeCompute");
   const subjects = [];
-  document.querySelectorAll(".gradeCompute").forEach(row => {
-    subjects.push({
-      subjectCode: row.querySelector(".subject").value.trim(),
-      units: parseInt(row.querySelector(".unit").value.trim()),
-      grade: parseFloat(row.querySelector(".grade").value.trim())
-    });
+  for (const row of rows) {
+    const s = row.querySelector(".subject").value.trim();
+    const u = row.querySelector(".unit").value.trim();
+    const g = row.querySelector(".grade").value.trim();
+    if (!s || !u || !g) { showMessage("Please complete all subject rows.", true); return; }
+    if (!/^\d+$/.test(u) || isNaN(parseFloat(g))) {
+      showMessage("Units must be integer; Grade must be a number.", true);
+      return;
+    }
+    subjects.push({ s, u, g });
+  }
+
+  // Fill modal table
+  document.getElementById("modalTermText").textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
+  const tbody = document.getElementById("modalTableBody");
+  tbody.innerHTML = "";
+
+  const isImage = file.type.startsWith("image/");
+  const imgUrl  = isImage ? (previewImage.dataset.url || "") : "";
+  const pdfUrl  = !isImage ? (previewPdf.dataset.url || "") : "";
+
+  subjects.forEach((item, i) => {
+    const tr = document.createElement("tr");
+    if (i === 0) {
+      tr.innerHTML = `
+        <td rowspan="${subjects.length}">
+          ${isImage ? `<img src="${imgUrl}" alt="Grade Image">`
+                    : `<span style="display:inline-block;padding:6px 10px;border:1px solid #ccc;border-radius:6px;">PDF attached</span>`}
+        </td>
+        <td>${item.s}</td>
+        <td>${item.u}</td>
+        <td>${item.g}</td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${item.s}</td>
+        <td>${item.u}</td>
+        <td>${item.g}</td>
+      `;
+    }
+    tbody.appendChild(tr);
   });
+
+  // Show modal
+  document.getElementById("confirmationModal").style.display = "flex";
+}
+
+
+    const confirmationModal = document.getElementById("confirmationModal");
+const cancelBtn = document.getElementById("cancelBtn");
+const confirmBtn = document.getElementById("confirmBtn");
+
+cancelBtn.onclick = function () {
+  confirmationModal.style.display = "none";
+  showMessage("Upload cancelled. Please review your data.", true);
+};
+
+confirmBtn.onclick = submitGrade; // one-time binding
+
+async function submitGrade() {
+  const schoolYear = document.getElementById("schoolYear").value.trim();
+  const semester = document.getElementById("semester").value.trim();
+  const file = gradePicture.files[0];
+
+  if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
+  if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
+
+  // Rebuild subjects fresh at submit time
+  const rows = document.querySelectorAll(".gradeCompute");
+  const subjects = [];
+  for (const row of rows) {
+    const s = row.querySelector(".subject").value.trim();
+    const u = parseInt(row.querySelector(".unit").value.trim(), 10);
+    const g = parseFloat(row.querySelector(".grade").value.trim());
+    if (!s || Number.isNaN(u) || Number.isNaN(g)) {
+      showMessage("Please complete all subject rows.", true);
+      return;
+    }
+    subjects.push({ subjectCode: s, units: u, grade: g });
+  }
 
   const formData = new FormData();
   formData.append("schoolYear", schoolYear);
   formData.append("semester", semester);
   formData.append("subjects", JSON.stringify(subjects));
-  formData.append("attachment", gradePicture.files[0]); // <-- match backend field name
+  formData.append("attachment", file); // matches backend field name
 
   try {
     const res = await fetch("/api/grades/me", {
       method: "POST",
       body: formData
+      // same-origin cookies are sent by default; add credentials if you prefer:
+      // credentials: "include"
     });
 
     const data = await res.json();
     if (res.ok) {
-      showMessage("✅ " + data.msg, false);
-      document.getElementById("confirmationModal").style.display = "none";
+      showMessage("✅ " + (data.msg || "Grade uploaded successfully."), false);
+      confirmationModal.style.display = "none";
+      // Optionally clear the form here
     } else {
-      showMessage("❌ " + data.msg, true);
+      showMessage("❌ " + (data.msg || "Upload failed."), true);
     }
   } catch (err) {
     showMessage("❌ Upload failed: " + err.message, true);
   }
-});
+}
 
-    }
 
     window.onclick = function (event) {
       const modal = document.getElementById("confirmationModal");

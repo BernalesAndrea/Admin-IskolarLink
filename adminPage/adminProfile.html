@@ -78,6 +78,8 @@
     button:hover {
       background: #a00000;
     }
+
+    .hint { color:#555; font-size: 12px; margin-top:6px; text-align:center; }
   </style>
 </head>
 <body>
@@ -87,16 +89,17 @@
     <form id="profileForm" enctype="multipart/form-data">
       <div class="profile-pic">
         <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
-        <input type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+        <input id="picInput" type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+        <div class="hint">Max ~5–10MB is typical; PNG/JPG recommended.</div>
       </div>
 
       <div class="form-group">
-        <label>Full Name</label>
+        <label for="fullname">Full Name</label>
         <input type="text" name="fullname" id="fullname" required>
       </div>
 
       <div class="form-group">
-        <label>Email</label>
+        <label for="email">Email</label>
         <input type="email" name="email" id="email" required>
       </div>
 
@@ -105,40 +108,116 @@
   </div>
 
   <script>
-    // Show image preview
+    // Util: build a GridFS URL if API didn't send a ready-made profilePicUrl
+    function fileUrl(bucket, id, { download = false } = {}) {
+      if (!bucket || !id) return null;
+      return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
+    }
+
+    // Show image preview immediately after choosing a file
     function previewImage(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // Guard: basic client-side size/type check (optional)
+      const allowed = ['image/png','image/jpeg','image/webp','image/gif'];
+      if (!allowed.includes(file.type)) {
+        alert('Please select a PNG/JPG/WEBP/GIF image.');
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = function() {
         document.getElementById('preview').src = reader.result;
-      }
-      reader.readAsDataURL(event.target.files[0]);
+      };
+      reader.readAsDataURL(file);
     }
 
-    // Load current admin profile
     async function loadProfile() {
-      const res = await fetch('/api/users/me');
-      if (!res.ok) return;
-      const user = await res.json();
-      document.getElementById('fullname').value = user.fullname || '';
-      document.getElementById('email').value = user.email || '';
-      if (user.profilePic) {
-        document.getElementById('preview').src = user.profilePic;
+      try {
+        const res = await fetch('/api/users/me');
+        if (res.status === 401) {
+          // Not logged-in or token expired → go to login
+          window.location.href = '/';
+          return;
+        }
+        if (!res.ok) throw new Error('Failed to load profile');
+
+        const user = await res.json();
+
+        // Fill text fields
+        document.getElementById('fullname').value = user.fullname || '';
+        document.getElementById('email').value = user.email || '';
+
+        // Determine profile picture URL
+        // Prefer server-computed URL if provided
+        let src = user.profilePicUrl || null;
+
+        // Otherwise construct from bucket + id (GridFS)
+        if (!src && user.profilePicBucket && user.profilePicId) {
+          src = fileUrl(user.profilePicBucket, user.profilePicId);
+        }
+
+        // Fallback to legacy string path if you still have old records
+        if (!src && user.profilePic) {
+          src = user.profilePic;
+        }
+
+        // Apply with cache-buster so new uploads reflect immediately
+        const img = document.getElementById('preview');
+        img.src = src ? `${src}?v=${Date.now()}` : '/assets/default-avatar.png';
+      } catch (err) {
+        console.error(err);
+        alert('Unable to load profile right now.');
       }
     }
 
     loadProfile();
 
-    // Handle form submit
+    // Submit handler (PUT /api/users/me)
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const res = await fetch('/api/users/me', {
-        method: 'PUT',
-        body: formData
-      });
-      const data = await res.json();
-      alert(data.msg || 'Profile updated!');
-      loadProfile();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('/api/users/me', {
+          method: 'PUT',
+          body: formData
+        });
+
+        if (res.status === 401) {
+          window.location.href = '/';
+          return;
+        }
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.msg || 'Failed to update profile');
+        }
+
+        alert(data.msg || 'Profile updated!');
+
+        // Update preview with returned URL (if provided)
+        const nextSrc =
+          data.profilePicUrl ||
+          (data.user?.profilePicBucket && data.user?.profilePicId
+            ? fileUrl(data.user.profilePicBucket, data.user.profilePicId)
+            : null);
+
+        if (nextSrc) {
+          // cache-buster to ensure we see the fresh file
+          document.getElementById('preview').src = `${nextSrc}?v=${Date.now()}`;
+        }
+
+        // Clear the file input so accidental re-submit won't re-upload
+        document.getElementById('picInput').value = '';
+
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Update failed.');
+      }
     });
   </script>
 </body>

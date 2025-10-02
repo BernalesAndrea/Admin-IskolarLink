@@ -1,343 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scholar Tasks</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            outline: none;
-            border: none;
-            text-decoration: none;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            margin: 0;
-            background-image: url('/assets/iskolarbg.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #333;
-            overflow: hidden;
-        }
-
-        .task-container {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            width: 100%;
-            max-width: 1200px;
-            margin: auto;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow-y: auto;
-        }
-
-        /* Left Task List */
-        .task-list {
-            background: rgba(255, 255, 255, 0.9);
-            border-right: 1px solid #ddd;
-            overflow-y: auto;
-            padding: 40px;
-        }
-
-        .task-list::before {
-            content: "📝 Task List";
-            display: block;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #800000;
-        }
-
-        .task-card {
-            background: #fdfdfd;
-            border-left: 5px solid #800000;
-            border-radius: 10px;
-            padding: 15px 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-
-        .task-card:hover {
-            transform: translateY(-4px);
-        }
-
-        .task-card.active {
-            background: #f0f0f0;
-        }
-
-        .task-title {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #800000;
-            margin-bottom: 5px;
-        }
-
-        .task-dates {
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
-        .task-description {
-            font-size: 0.95em;
-            color: #333;
-            line-height: 1.4em;
-        }
-
-        /* Right Task Details */
-        .task-details {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        /* Task Detail Card Layout */
-        .task-detail-card {
-            background: #fdfdfd;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
-            /* responsive width */
-        }
-
-        .task-detail-title {
-            margin-bottom: 15px;
-            color: #800000;
-            font-size: 1.4rem;
-            font-weight: bold;
-        }
-
-        .task-meta p {
-            margin: 5px 0;
-            font-size: 0.95em;
-            color: #444;
-        }
-
-        .task-description-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fafafa;
-            border-left: 4px solid #800000;
-            border-radius: 8px;
-        }
-
-        .task-description-box h3 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            color: #800000;
-        }
-
-        .upload-box {
-            margin-top: 25px;
-        }
-
-        .upload-box h3 {
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #800000;
-        }
-
-        .upload-box input {
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .file-preview {
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            color: #555;
-        }
-
-        .submit-btn {
-            background: #800000;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .submit-btn:hover {
-            background: #5e0000;
-        }
-
-        /* Hide default file input */
-        .upload-box input[type="file"] {
-            display: none;
-        }
-
-        /* Custom styled label as button */
-        .custom-file-label {
-            display: inline-block;
-            background: #800000;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.95em;
-            margin-bottom: 10px;
-            transition: background 0.2s ease;
-        }
-
-        .custom-file-label:hover {
-            background: #5e0000;
-        }
-
-        /* Show selected file name */
-        .file-preview {
-            margin-top: 8px;
-            font-size: 0.9em;
-            color: #555;
-            font-style: italic;
-        }
-
-        .upload-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            /* space between buttons */
-        }
-
-        .upload-actions .custom-file-label,
-        .upload-actions .submit-btn {
-            margin-bottom: 0;
-            /* remove extra spacing */
-        }
-    </style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scholar Tasks</title>
+  <style>
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{
+      margin:0;background-image:url('/assets/iskolarbg.png');background-size:cover;background-position:center;background-repeat:no-repeat;
+      display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;color:#333;overflow:hidden
+    }
+    .task-container{
+      display:grid;grid-template-columns:1fr 2fr;width:100%;max-width:1200px;margin:auto;height:500px;
+      background:rgba(255,255,255,.9);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);overflow:hidden
+    }
+    .task-list{background:rgba(255,255,255,.9);border-right:1px solid #ddd;overflow-y:auto;padding:40px}
+    .task-list::before{content:"📝 Task List";display:block;font-size:1.1rem;font-weight:bold;margin-bottom:15px;color:#800000}
+    .task-card{
+      background:#fdfdfd;border-left:5px solid #800000;border-radius:10px;padding:15px 20px;box-shadow:0 2px 6px rgba(0,0,0,.1);
+      transition:transform .2s ease;margin-bottom:12px;cursor:pointer
+    }
+    .task-card:hover{transform:translateY(-4px)}
+    .task-card.active{background:#f0f0f0}
+    .task-title{font-weight:bold;font-size:1.1em;color:#800000;margin-bottom:5px}
+    .task-dates{font-size:.9em;color:#555;margin-bottom:8px}
+    .task-description{font-size:.95em;color:#333;line-height:1.4em}
+    .task-details{display:flex;justify-content:center;align-items:center;height:100%;overflow-y:auto;padding:24px}
+    .task-detail-card{background:#fdfdfd;padding:20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);max-width:600px;width:100%}
+    .task-detail-title{margin-bottom:15px;color:#800000;font-size:1.4rem;font-weight:bold}
+    .task-meta p{margin:5px 0;font-size:.95em;color:#444}
+    .task-description-box{margin-top:20px;padding:15px;background:#fafafa;border-left:4px solid #800000;border-radius:8px}
+    .task-description-box h3{margin:0 0 10px 0;font-size:1rem;color:#800000}
+    .upload-box{margin-top:25px}
+    .upload-box h3{margin-bottom:10px;font-size:1rem;color:#800000}
+    .upload-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .upload-box input[type="file"]{display:none}
+    .custom-file-label{display:inline-block;background:#800000;color:#fff;padding:10px 15px;border-radius:6px;cursor:pointer;font-size:.95em;transition:background .2s ease}
+    .custom-file-label:hover{background:#5e0000}
+    .file-preview{margin-top:8px;font-size:.9em;color:#555;font-style:italic}
+    .submit-btn{background:#800000;color:#fff;padding:10px 15px;border:none;border-radius:6px;cursor:pointer}
+    .submit-btn:hover{background:#5e0000}
+    .submit-btn[disabled]{opacity:.6;cursor:not-allowed}
+    .status-line{margin-top:8px;font-size:.9em;color:#555}
+    .empty-state{color:#666;font-style:italic}
+  </style>
 </head>
-
 <body>
-    <div class="task-container">
-        <!-- Task List -->
-        <div class="task-list" id="taskList">
-            <!-- JS will load tasks here -->
-        </div>
+  <div class="task-container">
+    <!-- Task List -->
+    <div class="task-list" id="taskList"></div>
 
-        <!-- Task Details -->
-        <div class="task-details" id="taskDetails">
-            <p>Select a task to view details</p>
-        </div>
+    <!-- Task Details -->
+    <div class="task-details" id="taskDetails">
+      <p class="empty-state">Select a task to view details</p>
     </div>
+  </div>
 
-    <script>
-        let tasks = [];
-        let currentTaskId = null;
+  <script>
+    let tasks = [];
+    let currentTaskId = null;
 
-        // Load tasks
-        async function loadTasks() {
-            const res = await fetch("/api/tasks");
-            tasks = await res.json();
+    // Load tasks (requires auth; your backend protects /api/tasks)
+    async function loadTasks() {
+      try {
+        const res = await fetch("/api/tasks", { credentials: "include" });
+        if (res.status === 401) {
+          // not logged in / token expired -> send to login
+          window.location.href = "/";
+          return;
+        }
+        if (!res.ok) throw new Error("Failed to load tasks");
+        tasks = await res.json();
 
-            const taskList = document.getElementById("taskList");
-            taskList.innerHTML = "";
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
 
-            tasks.forEach((task, index) => {
-                const div = document.createElement("div");
-                div.className = "task-card";
-                div.innerHTML = `
-          <div class="task-title">${task.title}</div>
-          <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
-          <div class="task-description">${task.description}</div>
-        `;
-                div.onclick = () => showTaskDetails(task, div);
-                if (index === 0) { div.click(); } // auto-select first task
-                taskList.appendChild(div);
-            });
+        if (!Array.isArray(tasks) || tasks.length === 0) {
+          taskList.innerHTML = "<p class='empty-state'>No tasks available.</p>";
+          document.getElementById("taskDetails").innerHTML = "<p class='empty-state'>No task selected.</p>";
+          return;
         }
 
-        // Show details
-        function showTaskDetails(task, element) {
-            currentTaskId = task._id;
+        tasks.forEach((task, index) => {
+          const div = document.createElement("div");
+          div.className = "task-card";
+          div.innerHTML = `
+            <div class="task-title">${escapeHtml(task.title || "")}</div>
+            <div class="task-dates">${escapeHtml(task.startDate || "")} → ${escapeHtml(task.dueDate || "")}</div>
+            <div class="task-description">${escapeHtml(task.description || "")}</div>
+          `;
+          div.onclick = () => showTaskDetails(task, div);
+          taskList.appendChild(div);
+          if (index === 0) div.click(); // auto-select first
+        });
+      } catch (e) {
+        console.error(e);
+        alert("Could not load tasks.");
+      }
+    }
 
-            // Highlight selected task
-            document.querySelectorAll(".task-card").forEach(el => el.classList.remove("active"));
-            element.classList.add("active");
+    // Detail panel
+    function showTaskDetails(task, element) {
+      currentTaskId = task._id;
 
-            const details = document.getElementById("taskDetails");
-            details.innerHTML = `
-            <div class="task-detail-card">
-                <h2 class="task-detail-title">${task.title}</h2>
+      document.querySelectorAll(".task-card").forEach(el => el.classList.remove("active"));
+      element.classList.add("active");
 
-                <div class="task-meta">
-                <p><strong>📅 Start Date:</strong> ${task.startDate}</p>
-                <p><strong>⏳ Due Date:</strong> ${task.dueDate}</p>
-                </div>
+      const details = document.getElementById("taskDetails");
+      const fileInputId = "fileInput"; // stable because we re-render details each time
+      details.innerHTML = `
+        <div class="task-detail-card">
+          <h2 class="task-detail-title">${escapeHtml(task.title || "")}</h2>
 
-                <div class="task-description-box">
-                <h3>Description</h3>
-                <p>${task.description}</p>
-                </div>
+          <div class="task-meta">
+            <p><strong>📅 Start Date:</strong> ${escapeHtml(task.startDate || "")}</p>
+            <p><strong>⏳ Due Date:</strong> ${escapeHtml(task.dueDate || "")}</p>
+          </div>
 
-                <div class="upload-box">
+          <div class="task-description-box">
+            <h3>Description</h3>
+            <p>${escapeHtml(task.description || "")}</p>
+          </div>
+
+          <div class="upload-box">
             <h3>Submit Your File</h3>
             <div class="upload-actions">
-                <label for="fileInput" class="custom-file-label">📂 Choose File</label>
-                <input type="file" id="fileInput" onchange="showFileName()" />
-                <button class="submit-btn" onclick="submitTask()">📤 Submit</button>
+              <label for="${fileInputId}" class="custom-file-label">📂 Choose File</label>
+              <input type="file" id="${fileInputId}" name="file" accept=".pdf,image/*" />
+              <button class="submit-btn" id="submitBtn">📤 Submit</button>
             </div>
             <div id="filePreview" class="file-preview"></div>
-            </div>
+            <div id="statusLine" class="status-line"></div>
+          </div>
+        </div>
+      `;
 
-            </div>
-            `;
+      // Wire up handlers for the rendered elements
+      const fileInput = document.getElementById(fileInputId);
+      const filePreview = document.getElementById("filePreview");
+      const submitBtn = document.getElementById("submitBtn");
+      const statusLine = document.getElementById("statusLine");
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+          filePreview.textContent = `Selected: ${fileInput.files[0].name}`;
+          statusLine.textContent = "";
+        } else {
+          filePreview.textContent = "";
+        }
+      });
+
+      submitBtn.addEventListener("click", async () => {
+        if (!fileInput.files.length) {
+          alert("Please select a file before submitting.");
+          return;
         }
 
-        function showFileName() {
-            const fileInput = document.getElementById("fileInput");
-            const filePreview = document.getElementById("filePreview");
-            if (fileInput.files.length > 0) {
-                filePreview.textContent = `Selected: ${fileInput.files[0].name}`;
-            } else {
-                filePreview.textContent = "";
-            }
+        const file = fileInput.files[0];
+
+        // Optional client-side checks
+        const MAX = 20 * 1024 * 1024; // 20MB
+        if (file.size > MAX) {
+          alert("File too large (max 20MB).");
+          return;
         }
 
+        // Build form data; backend expects field name "file"
+        const formData = new FormData();
+        formData.append("file", file);
 
-        // Submit task file
-        async function submitTask() {
-            const fileInput = document.getElementById("fileInput");
-            if (!fileInput.files.length) {
-                alert("Please select a file before submitting.");
-                return;
-            }
+        submitBtn.disabled = true;
+        statusLine.textContent = "Uploading…";
 
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
+        try {
+          const res = await fetch(`/api/tasks/${currentTaskId}/submit`, {
+            method: "POST",
+            credentials: "include", // cookie auth (scholarToken)
+            body: formData
+          });
 
-            await fetch(`/api/tasks/${currentTaskId}/submit`, {
-  method: "POST",
-  body: formData,
-  credentials: "include"  // important if using cookies for auth
-});
+          // Try to parse JSON, but guard in case of non-JSON error
+          let data = {};
+          try { data = await res.json(); } catch (_) {}
 
+          if (res.status === 401) {
+            window.location.href = "/";
+            return;
+          }
 
-            alert("Task submitted successfully!");
+          if (!res.ok) {
+            const msg = data?.msg || "Upload failed.";
+            throw new Error(msg);
+          }
+
+          // Success
+          statusLine.textContent = "✅ Task submitted successfully!";
+          fileInput.value = "";
+          filePreview.textContent = "";
+
+          // If your API returns a fileUrl (GridFS link), you could show it:
+          // if (data.submission?.fileId && data.submission?.bucket) {
+          //   const url = `/files/${data.submission.bucket}/${data.submission.fileId}`;
+          //   statusLine.innerHTML = `✅ Uploaded. <a href="${url}" target="_blank" rel="noopener">View file</a>`;
+          // }
+
+        } catch (err) {
+          console.error(err);
+          statusLine.textContent = `❌ ${err.message}`;
+        } finally {
+          submitBtn.disabled = false;
         }
+      });
+    }
 
-        // Init
-        window.onload = loadTasks;
-    </script>
+    // Escape tiny helper to prevent accidental HTML injection in text fields
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // Init
+    window.onload = loadTasks;
+  </script>
 </body>
-
 </html>

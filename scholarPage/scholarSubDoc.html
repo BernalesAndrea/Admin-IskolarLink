@@ -1,253 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Submit Document</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+    body{
+      margin:0;background-image:url('/assets/iskolarbg.png');background-size:cover;background-position:center;background-repeat:no-repeat;
+      display:flex;justify-content:center;align-items:center;min-height:100vh;padding:40px;gap:30px;
     }
-
-    body {
-      margin: 0;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 40px;
-      gap: 30px;
+    .main{
+      background-color:rgba(255,255,255,0.95);padding:30px;border-radius:40px;width:350px;box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      display:flex;flex-direction:column;gap:20px;
     }
-
-    .main {
-      background-color: rgba(255, 255, 255, 0.95);
-      padding: 30px;
-      border-radius: 40px;
-      width: 350px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    .main h2{text-align:center;color:black;margin-bottom:10px}
+    .category select{width:100%;padding:10px 12px;border:2px solid #800000;border-radius:6px;font-size:14px;color:#800000;background:#fff;cursor:pointer}
+    .file input[type="file"]{width:100%;padding:10px;border:2px dashed #800000;border-radius:6px;background:#fff;color:#800000}
+    .file input[type="file"]::file-selector-button{
+      background:#800000;color:#fff;border:none;padding:8px 15px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;transition:background .3s ease
     }
-
-    .main h2 {
-      text-align: center;
-      color: black;
-      margin-bottom: 10px;
+    .file input[type="file"]::file-selector-button:hover{background:#a00000}
+    button{background:#800000;color:#fff;padding:10px;border-radius:40px;border:none;width:100%;cursor:pointer;font-size:14px}
+    button:hover{background:#a00000}
+    .viewDocs{
+      background:rgba(255,255,255,0.95);padding:20px;border-radius:40px;width:400px;height:500px;box-shadow:0 4px 10px rgba(0,0,0,0.2);overflow:auto
     }
-
-    .category select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #800000;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #800000;
-      background-color: white;
-      cursor: pointer;
-    }
-
-    .file input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      border: 2px dashed #800000;
-      border-radius: 6px;
-      background-color: white;
-      color: #800000;
-    }
-
-    .file input[type="file"]::file-selector-button {
-      background-color: #800000;
-      color: #fff;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-    }
-
-    .file input[type="file"]::file-selector-button:hover {
-      background-color: #a00000;
-    }
-
-    button {
-      background-color: #800000;
-      color: white;
-      padding: 10px;
-      border-radius: 40px;
-      border: none;
-      width: 100%;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    button:hover {
-      background-color: #a00000;
-    }
-
-    .viewDocs {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 20px;
-      border-radius: 40px;
-      width: 400px;
-      height: 500px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .viewDocs h3 {
-      margin-bottom: 15px;
-      text-align: center;
-      color: #800000;
-    }
-
-    /* Folder styling */
-    .folder {
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .folder-header {
-      border: 2px dotted #800000;
-      color: #800000;
-      padding: 10px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .folder-content {
-      display: none;
-      padding: 10px;
-      background: #f9f9f9;
-    }
-
-    .folder-content.open {
-      display: block;
-    }
-
-    .docItem {
-      padding: 8px 0;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .docItem:last-child {
-      border-bottom: none;
-    }
-
-    .docCategory {
-      font-weight: bold;
-      color: #800000;
-    }
-
-    .main p {
-      font-size: 13px;
-      line-height: 1.5;
-      color: #333;
-      background: #f9f9f9;
-      border-left: 4px solid #800000;
-      padding: 8px 12px;
-      margin: 5px 0;
-      border-radius: 6px;
-    }
-
-    /* Modal backdrop */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      /*overflow: auto;*/
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    /* Modal box */
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 12px;
-      width: 500px;
-      height: 500px;
-      overflow-y: auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Close button */
-    .close {
-      color: #800000;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover {
-      color: #a00000;
-    }
-
-
-    .close:hover {
-      color: #a00000;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .status {
-      display: inline-block;
-      margin-top: 5px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .status.pending {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-    }
-
-    .status.accepted {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .status.rejected {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
+    .viewDocs h3{margin-bottom:15px;text-align:center;color:#800000}
+    .folder{margin-bottom:10px;border:1px solid #ccc;border-radius:8px;overflow:hidden}
+    .folder-header{border:2px dotted #800000;color:#800000;padding:10px;cursor:pointer;font-weight:bold}
+    .folder-content{display:none;padding:10px;background:#f9f9f9}
+    .docItem{padding:8px 0;border-bottom:1px solid #ddd}
+    .docItem:last-child{border-bottom:none}
+    .docCategory{font-weight:bold;color:#800000}
+    .main p{font-size:13px;line-height:1.5;color:#333;background:#f9f9f9;border-left:4px solid #800000;padding:8px 12px;margin:5px 0;border-radius:6px}
+    .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.5)}
+    .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:12px;width:500px;height:500px;overflow-y:auto;box-shadow:0 4px 10px rgba(0,0,0,.3)}
+    .close{color:#800000;float:right;font-size:28px;font-weight:bold;cursor:pointer}
+    .close:hover{color:#a00000}
+    .status{display:inline-block;margin-top:5px;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
+    .status.pending{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
+    .status.accepted{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+    .status.rejected{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
   </style>
 </head>
-
 <body>
   <!-- Form Section -->
   <div class="main">
@@ -264,7 +60,8 @@
     </div>
 
     <div class="file">
-      <input type="file" id="docFile" name="document" required>
+      <!-- accept PDF + images -->
+      <input type="file" id="docFile" name="document" accept="application/pdf,image/*" required>
     </div>
 
     <p>When submitting documents, please ensure that the file type is <strong>.pdf ONLY</strong>, and the file name
@@ -273,7 +70,7 @@
       <strong>LastNameFirstName</strong>.
     </p>
 
-    <button type="button" onclick="submitDocument()">Submit</button>
+    <button type="button" id="submitBtn">Submit</button>
   </div>
 
   <!-- Submitted Documents Section -->
@@ -291,27 +88,47 @@
     </div>
   </div>
 
-
   <script>
+    // ---- Helpers: build GridFS URL and handle legacy filePath fallback
+    function fileUrl(bucket, id, opts = { download: false }) {
+      if (!bucket || !id) return null;
+      return opts.download
+        ? `/files/${bucket}/${id}/download`
+        : `/files/${bucket}/${id}`;
+    }
+    function resolveDocUrl(doc) {
+      // Prefer GridFS (bucket + fileId); fallback to legacy filePath
+      return fileUrl(doc.bucket, doc.fileId) || doc.filePath || null;
+    }
+
+    // ---- Submit document
+    document.getElementById('submitBtn').addEventListener('click', submitDocument);
+
     async function submitDocument() {
       const type = document.getElementById("docType").value;
       const fileInput = document.getElementById("docFile");
+      const file = fileInput.files[0];
 
-      if (!type || fileInput.files.length === 0) {
+      if (!type || !file) {
         alert("Please select a document type and upload a file.");
+        return;
+      }
+
+      // Optional client-side size check (10 MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File too large (max 10MB).");
         return;
       }
 
       const formData = new FormData();
       formData.append("docType", type);
-      formData.append("document", fileInput.files[0]);
+      formData.append("document", file);
 
       try {
         const res = await fetch("/api/documents/me", {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
+          // Use cookies (your auth middleware reads scholarToken/adminToken)
+          credentials: "include",
           body: formData
         });
 
@@ -322,7 +139,7 @@
           document.getElementById("docType").value = "";
           fetchDocuments(); // refresh list
         } else {
-          alert("❌ " + data.msg);
+          alert("❌ " + (data.msg || "Submission failed."));
         }
       } catch (err) {
         alert("Error submitting document");
@@ -330,24 +147,27 @@
       }
     }
 
+    // ---- Fetch and render user's documents grouped by category
     async function fetchDocuments() {
       try {
         const res = await fetch("/api/documents/me", {
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          }
+          credentials: "include"
         });
+        if (res.status === 401) {
+          // not logged in / expired → go to login
+          window.location.href = "/";
+          return;
+        }
         const docs = await res.json();
 
         const list = document.getElementById("docList");
         list.innerHTML = "";
 
-        if (docs.length === 0) {
+        if (!Array.isArray(docs) || docs.length === 0) {
           list.innerHTML = "<p style='text-align:center; color:#555;'>No documents found.</p>";
           return;
         }
 
-        // Define folders
         const categories = [
           "Statement of Account",
           "Certificate of Registration",
@@ -363,36 +183,10 @@
           header.className = "folder-header";
           header.textContent = category;
 
-          // 🔹 Changed this part: open modal instead of toggling content
-          header.onclick = () => {
-            document.getElementById("modalTitle").textContent = category;
-            const modalBody = document.getElementById("modalBody");
-            modalBody.innerHTML = "";
-
-            const categoryDocs = docs.filter(doc => doc.docType === category);
-            if (categoryDocs.length > 0) {
-              categoryDocs.forEach(doc => {
-                const item = document.createElement("div");
-                item.className = "docItem";
-                item.innerHTML = `
-                <p>
-                  <a href="${doc.filePath}" target="_blank"> ${doc.scholar.fullname} (${doc.scholar.batchYear})</a>
-                  <br><small>Submitted: ${new Date(doc.dateSubmitted).toLocaleString()}</small>
-                  <br><span class="status ${doc.status?.toLowerCase() || 'pending'}">Status: ${doc.status || "Pending"}</span>
-                </p>
-              `;
-                modalBody.appendChild(item);
-              });
-            } else {
-              modalBody.innerHTML = "<p style='color:#555; font-size:13px;'>No documents in this folder.</p>";
-            }
-
-            // Show modal
-            document.getElementById("docModal").style.display = "block";
-          };
+          header.onclick = () => openCategoryModal(category, docs);
 
           const content = document.createElement("div");
-          content.className = "folder-content"; // not used anymore for dropdown
+          content.className = "folder-content"; // not used (we use modal)
 
           folder.appendChild(header);
           folder.appendChild(content);
@@ -403,28 +197,51 @@
       }
     }
 
-    // Modal close functionality
+    function openCategoryModal(category, docs) {
+      document.getElementById("modalTitle").textContent = category;
+      const modalBody = document.getElementById("modalBody");
+      modalBody.innerHTML = "";
+
+      const categoryDocs = docs.filter(doc => doc.docType === category);
+      if (categoryDocs.length > 0) {
+        categoryDocs.forEach(doc => {
+          const url = resolveDocUrl(doc);
+          const fullName = (doc.scholar && doc.scholar.fullname) ? doc.scholar.fullname : (doc.fullname || "Unknown");
+          const batch = (doc.scholar && doc.scholar.batchYear) ? doc.scholar.batchYear : (doc.batchYear || "N/A");
+          const date = doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleString() : "";
+          const status = (doc.status || "Pending");
+          const statusCls = status.toLowerCase();
+
+          const item = document.createElement("div");
+          item.className = "docItem";
+          item.innerHTML = `
+            <p>
+              ${url ? `<a href="${url}" target="_blank" rel="noopener">${fullName} (${batch})</a>`
+                     : `${fullName} (${batch})`}
+              <br><small>Submitted: ${date}</small>
+              <br><span class="status ${statusCls}">Status: ${status}</span>
+            </p>
+          `;
+          modalBody.appendChild(item);
+        });
+      } else {
+        modalBody.innerHTML = "<p style='color:#555; font-size:13px;'>No documents in this folder.</p>";
+      }
+
+      document.getElementById("docModal").style.display = "block";
+    }
+
+    // ---- Modal close
     document.addEventListener("DOMContentLoaded", () => {
       const modal = document.getElementById("docModal");
       const closeBtn = document.querySelector(".close");
 
-      // Close when clicking X
-      closeBtn.onclick = () => {
-        modal.style.display = "none";
-      };
-
-      // Close when clicking outside modal
-      window.onclick = (event) => {
-        if (event.target === modal) {
-          modal.style.display = "none";
-        }
-      };
+      closeBtn.onclick = () => { modal.style.display = "none"; };
+      window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
     });
 
-
+    // Initial fetch
     window.onload = fetchDocuments;
   </script>
-
 </body>
-
 </html>
