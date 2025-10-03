@@ -242,7 +242,7 @@
         } else {
           submissions.forEach(sub => {
             const url = resolveSubmissionUrl(sub); // ✅ GridFS or legacy
-            const submittedDate = sub.dateSubmitted ? new Date(sub.dateSubmitted).toLocaleString() : "N/A";
+            const submittedDate = (sub.submittedAt || sub.createdAt || (sub._id && objectIdToDate(sub._id)))  ? new Date(sub.submittedAt || sub.createdAt || objectIdToDate(sub._id)).toLocaleString() : "N/A";
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td>${esc(sub.scholar?.fullname || sub.fullname || "N/A")}</td>

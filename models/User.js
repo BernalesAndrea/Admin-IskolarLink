@@ -10,11 +10,25 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, default: "scholar" },
   verified: { type: Boolean, default: false }, // for admin verification later
   profilePic: { type: String, default: "/assets/default-avatar.png" },
+  profilePicId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  profilePicBucket: { type: String, default: null },
   course: { type: String, default: "" },
   schoolName: { type: String, default: "" }
 
 
 });
+
+UserSchema.virtual("profilePicUrl").get(function () {
+  if (this.profilePicBucket && this.profilePicId) {
+    return `/files/${this.profilePicBucket}/${this.profilePicId}`;
+  }
+  return this.profilePic || "/assets/default-avatar.png";
+});
+
+// Make sure virtuals show up in JSON responses
+UserSchema.set("toJSON", { virtuals: true });
+UserSchema.set("toObject", { virtuals: true });
+
 
 // Automatically create expense record when a scholar is verified
 UserSchema.post("findOneAndUpdate", async function (doc) {

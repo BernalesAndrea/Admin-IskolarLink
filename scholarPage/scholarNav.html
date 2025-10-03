@@ -297,25 +297,38 @@
   <iframe id="page-frame" src="/scholarPage/scholarHome.html"></iframe>
 
   <script>
+    function fileUrl(bucket, id, { download = false } = {}) {
+    if (!bucket || !id) return null;
+    return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
+  }
+
     function loadIframe(page) {
       document.getElementById("page-frame").src = page;
     }
 
     async function loadProfile() {
       try {
-        const res = await fetch("/api/users/me");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const user = await res.json();
+        const res = await fetch("/api/users/me", { credentials: "include" }); // be explicit
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      const user = await res.json();  
 
         document.getElementById("profile-name").innerText = user.fullname || "Scholar";
         document.getElementById("profile-role").innerText = "Scholar";
-        document.getElementById("profile-pic").src = user.profilePic || "/assets/default-avatar.png";
-      } catch (err) {
-        console.error("Profile load error:", err);
-      }
-    }
-    loadProfile();
+        let src =
+        user.profilePicUrl || // from API (recommended)
+        (user.profilePicBucket && user.profilePicId
+          ? fileUrl(user.profilePicBucket, user.profilePicId)
+          : null) ||
+        user.profilePic || // legacy string path
+        "/assets/default-avatar.png";
 
+      // cache-buster so a fresh upload shows immediately
+      document.getElementById("profile-pic").src = `${src}?v=${Date.now()}`;
+    } catch (err) {
+      console.error("Profile load error:", err);
+    }
+  }
+  loadProfile();
     document.querySelectorAll(".has-submenu > a").forEach(menu => {
       menu.addEventListener("click", function (e) {
         e.preventDefault();

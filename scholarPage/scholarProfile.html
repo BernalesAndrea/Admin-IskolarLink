@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +20,7 @@
       max-width: 600px;
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       padding: 30px;
     }
 
@@ -85,6 +86,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="profileContainer">
     <h2>Edit Scholar Profile</h2>
@@ -133,7 +135,7 @@
     // Preview uploaded image
     function previewImage(event) {
       const reader = new FileReader();
-      reader.onload = function() {
+      reader.onload = function () {
         document.getElementById('preview').src = reader.result;
       }
       reader.readAsDataURL(event.target.files[0]);
@@ -148,7 +150,7 @@
       document.getElementById('fullname').value = user.fullname || '';
       document.getElementById('email').value = user.email || '';
       document.getElementById('barangay').value = user.barangay || '';
-      
+
       // ✅ Batch year from DB (readonly)
       document.getElementById('batchNumber').value = user.batchYear || 'Not Assigned';
 
@@ -158,6 +160,11 @@
       if (user.profilePic) {
         document.getElementById('preview').src = user.profilePic;
       }
+      const bucketUrl =
+        (user.profilePicBucket && user.profilePicId)
+          ? `/files/${user.profilePicBucket}/${user.profilePicId}`
+          : (user.profilePicUrl || user.profilePic || '/assets/default-avatar.png');
+      document.getElementById('preview').src = `${bucketUrl}?v=${Date.now()}`;
     }
 
     loadProfile();
@@ -181,4 +188,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -319,11 +319,22 @@ app.get("/api/users/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ msg: "User not found" });
-    res.json(user);
+
+    const profilePicUrl =
+      (user.profilePicBucket && user.profilePicId)
+        ? `/files/${user.profilePicBucket}/${user.profilePicId}`
+        : (user.profilePic || "/assets/default-avatar.png");
+
+    const payload = { ...user.toObject({ virtuals: true }), profilePicUrl };
+    return res.json(payload); // ✅ exactly one response
   } catch (err) {
-    res.status(500).json({ msg: "Error fetching profile", error: err.message });
+    console.error("GET /api/users/me error:", err);
+    if (!res.headersSent) {
+      return res.status(500).json({ msg: "Error fetching profile", error: err.message });
+    }
   }
 });
+
 
 // Update logged-in user profile
 app.put("/api/users/me", authMiddleware, upload.single("profilePic"), async (req, res) => {
@@ -693,7 +704,8 @@ app.get("/api/admin/submitted-tasks", authMiddleware, async (req, res) => {
   try {
     const submissions = await SubmittedTask.find()
       .populate("scholar", "fullname batchYear email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean({ virtuals: true });
 
     res.json(submissions);
   } catch (err) {
@@ -709,7 +721,8 @@ app.get("/api/admin/submitted-tasks/:taskId", authMiddleware, async (req, res) =
   try {
     const submissions = await SubmittedTask.find({ task: req.params.taskId })
       .populate("scholar", "fullname batchYear email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean({ virtuals: true });
 
     res.json(submissions);
   } catch (err) {

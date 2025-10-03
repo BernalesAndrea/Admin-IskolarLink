@@ -321,16 +321,17 @@
 
   async function loadProfile() {
     try {
-      const res = await fetch("/api/users/me"); // ✅ correct endpoint
+      const res = await fetch("/api/users/me", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch profile");
       const user = await res.json();
 
-      // ✅ Update profile section in nav
       document.getElementById("profile-name").innerText = user.fullname || "Admin";
       document.getElementById("profile-role").innerText =
         user.role === "admin" ? "Admin" : (user.role || "User");
-      document.getElementById("profile-pic").src =
-        user.profilePic || "/assets/default-avatar.png";
+
+      // ✅ prefer profilePicUrl; fallback to legacy string; add cache-buster
+      const src = user.profilePicUrl || user.profilePic || "/assets/default-avatar.png";
+      document.getElementById("profile-pic").src = `${src}?v=${Date.now()}`;
     } catch (err) {
       console.error("Profile load error:", err);
     }
