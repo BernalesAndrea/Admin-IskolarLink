@@ -31,6 +31,7 @@
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      overflow-y: hidden;
     }
 
     .container {
@@ -98,10 +99,8 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2 id="modalTitle"></h2>
-      <p><strong>Date:</strong> <span id="modalDate"></span></p>
-      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
-      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
-      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+      <!-- sentence-style details -->
+      <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
     </div>
   </div>
 
@@ -116,6 +115,23 @@
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 600,
+
+        // 🔵 Force AM/PM in the grid (fixes "5a" -> "5 AM")
+        eventTimeFormat: {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          meridiem: 'long' // 'AM' / 'PM' (use 'short' for 'am/pm')
+        },
+
+        // (Only used in timeGrid views; safe to keep for future)
+        slotLabelFormat: {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          meridiem: 'long'
+        },
+
         events: async function (fetchInfo, successCallback, failureCallback) {
           try {
             const res = await fetch('/api/events');
@@ -138,27 +154,48 @@
             failureCallback(err);
           }
         },
+
         eventClick: function (info) {
-          // Open modal with event details
-          document.getElementById("modalTitle").textContent = info.event.title;
-          document.getElementById("modalDate").textContent = new Date(info.event.start).toLocaleString();
-          document.getElementById("modalLocation").textContent = info.event.extendedProps.location || "N/A";
-          document.getElementById("modalDuration").textContent = info.event.extendedProps.duration || "N/A";
-          document.getElementById("modalDescription").textContent = info.event.extendedProps.description || "No details";
-          document.getElementById("eventModal").style.display = "block";
+          // Build friendly date/time for modal (with AM/PM)
+          const dateNice = new Date(info.event.start).toLocaleString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          const loc = info.event.extendedProps.location || 'N/A';
+          const dur = info.event.extendedProps.duration || 'N/A';
+          const desc = (info.event.extendedProps.description || '').trim();
+
+          // Compose sentence with bold key details + line breaks
+          const sentence =
+            `<strong>${info.event.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${loc}</strong> ` +
+            `with a duration of <strong>${dur}</strong>.\n\n` +
+            (desc ? `<strong>Description:</strong>\n${desc}` : '');
+
+          // Populate modal
+          document.getElementById('modalTitle').textContent = info.event.title;
+          document.getElementById('modalSentence').innerHTML = sentence;
+
+          // Show modal
+          document.getElementById('eventModal').style.display = 'block';
         }
       });
 
       calendar.render();
 
       // ✅ Modal close logic
-      document.querySelector(".close").onclick = () => {
-        document.getElementById("eventModal").style.display = "none";
+      document.querySelector('.close').onclick = () => {
+        document.getElementById('eventModal').style.display = 'none';
       };
 
       window.onclick = (e) => {
-        const modal = document.getElementById("eventModal");
-        if (e.target === modal) modal.style.display = "none";
+        const modal = document.getElementById('eventModal');
+        if (e.target === modal) modal.style.display = 'none';
       };
     });
   </script>

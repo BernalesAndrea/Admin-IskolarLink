@@ -85,7 +85,7 @@ app.use(express.static(path.join(__dirname)));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB connection
-mongoose.connect('mongodb+srv://hondrea321:bernalesandrea09112003@iskolarlinkcluster.k5dvw5y.mongodb.net/?retryWrites=true&w=majority&appName=IskolarLinkCluster')
+mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
@@ -650,6 +650,64 @@ app.get("/api/documents/me", authMiddleware, async (req, res) => {
   }
 });
 
+// DELETE a submitted document (scholar can delete only if Pending and owner)
+app.delete("/api/documents/:id", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "scholar") {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+
+    const doc = await SubmittedDocument.findById(req.params.id);
+    if (!doc) return res.status(404).json({ msg: "Document not found" });
+
+    // Robust owner check
+    const isOwner =
+      doc.scholar && typeof doc.scholar.equals === "function"
+        ? doc.scholar.equals(req.user.id)
+        : String(doc.scholar) === String(req.user.id);
+
+    if (!isOwner) return res.status(403).json({ msg: "Forbidden" });
+
+    // Normalize status: treat null/undefined/empty/whitespace as "Pending"
+    const raw = doc.status;
+    const statusStr =
+      raw == null || String(raw).trim() === "" ? "Pending" : String(raw);
+    const normalizedStatus = statusStr.trim().toLowerCase();
+
+    // helpful debug
+    console.log("DELETE /api/documents/:id", {
+      docId: String(doc._id),
+      scholar: String(doc.scholar),
+      user: String(req.user.id),
+      rawStatus: raw,
+      statusStr,
+      normalizedStatus
+    });
+
+    if (normalizedStatus !== "pending") {
+      return res
+        .status(400)
+        .json({ msg: "Only pending documents can be deleted", statusSeen: statusStr });
+    }
+
+    // Delete GridFS file if present
+    if (doc.fileId && doc.bucket) {
+      try {
+        const db = mongoose.connection.db;
+        const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: doc.bucket });
+        await bucket.delete(new mongoose.Types.ObjectId(doc.fileId));
+      } catch (e) {
+        console.warn("GridFS delete warning:", e?.message || e);
+      }
+    }
+
+    await SubmittedDocument.findByIdAndDelete(doc._id);
+    return res.json({ msg: "Deleted" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    return res.status(500).json({ msg: "Server error", error: err.message });
+  }
+});
 
 
 // ✅ Admin fetches all documents
@@ -673,19 +731,37 @@ app.get("/api/admin/documents", authMiddleware, async (req, res) => {
 
 
 
-// Admin updates document status
+// with changes
+// Admin updates document status (now supports optional rejection reason)
 app.put("/api/admin/documents/:id/status", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
   try {
-    let { status } = req.body; // "accepted" or "rejected"
+    let { status, reason } = req.body; // accept optional reason
 
-    if (status === "accepted") status = "Accepted";
-    if (status === "rejected") status = "Rejected";
+    if (!status) return res.status(400).json({ msg: "Missing status" });
+
+    // normalize status
+    const norm = String(status).trim().toLowerCase();
+    const mappedStatus = norm === "accepted" ? "Accepted"
+                     : norm === "rejected" ? "Rejected"
+                     : status; // fallback (if you add more later)
+
+    // build update payload
+    const update = { status: mappedStatus };
+
+    // store reason only when rejected (and a non-empty reason was provided)
+    if (mappedStatus === "Rejected" && typeof reason === "string" && reason.trim()) {
+      update.rejectionReason = reason.trim();
+      update.rejectedAt = new Date(); // optional timestamp
+    }
+
+    // (optional) clear any old rejection reason if now accepted
+    // if (mappedStatus === "Accepted") update.rejectionReason = undefined;
 
     const updated = await SubmittedDocument.findByIdAndUpdate(
       req.params.id,
-      { status },
+      update,
       { new: true, runValidators: true }
     );
 
@@ -696,6 +772,7 @@ app.put("/api/admin/documents/:id/status", authMiddleware, async (req, res) => {
     res.status(500).json({ msg: "Error updating status", error: err.message });
   }
 });
+
 
 // Admin: Get all submitted tasks
 app.get("/api/admin/submitted-tasks", authMiddleware, async (req, res) => {

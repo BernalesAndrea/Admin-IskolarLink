@@ -1,49 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submit Document</title>
   <style>
-    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-    body{
-      margin:0;background-image:url('/assets/iskolarbg.png');background-size:cover;background-position:center;background-repeat:no-repeat;
-      display:flex;justify-content:center;align-items:center;min-height:100vh;padding:40px;gap:30px;
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif
     }
-    .main{
-      background-color:rgba(255,255,255,0.95);padding:30px;border-radius:40px;width:350px;box-shadow:0 4px 10px rgba(0,0,0,0.2);
-      display:flex;flex-direction:column;gap:20px;
+
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px;
+      gap: 30px;
     }
-    .main h2{text-align:center;color:black;margin-bottom:10px}
-    .category select{width:100%;padding:10px 12px;border:2px solid #800000;border-radius:6px;font-size:14px;color:#800000;background:#fff;cursor:pointer}
-    .file input[type="file"]{width:100%;padding:10px;border:2px dashed #800000;border-radius:6px;background:#fff;color:#800000}
-    .file input[type="file"]::file-selector-button{
-      background:#800000;color:#fff;border:none;padding:8px 15px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;transition:background .3s ease
+
+    .main {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 40px;
+      width: 350px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    .file input[type="file"]::file-selector-button:hover{background:#a00000}
-    button{background:#800000;color:#fff;padding:10px;border-radius:40px;border:none;width:100%;cursor:pointer;font-size:14px}
-    button:hover{background:#a00000}
-    .viewDocs{
-      background:rgba(255,255,255,0.95);padding:20px;border-radius:40px;width:400px;height:500px;box-shadow:0 4px 10px rgba(0,0,0,0.2);overflow:auto
+
+    .main h2 {
+      text-align: center;
+      color: black;
+      margin-bottom: 10px
     }
-    .viewDocs h3{margin-bottom:15px;text-align:center;color:#800000}
-    .folder{margin-bottom:10px;border:1px solid #ccc;border-radius:8px;overflow:hidden}
-    .folder-header{border:2px dotted #800000;color:#800000;padding:10px;cursor:pointer;font-weight:bold}
-    .folder-content{display:none;padding:10px;background:#f9f9f9}
-    .docItem{padding:8px 0;border-bottom:1px solid #ddd}
-    .docItem:last-child{border-bottom:none}
-    .docCategory{font-weight:bold;color:#800000}
-    .main p{font-size:13px;line-height:1.5;color:#333;background:#f9f9f9;border-left:4px solid #800000;padding:8px 12px;margin:5px 0;border-radius:6px}
-    .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.5)}
-    .modal-content{background:#fff;margin:10% auto;padding:20px;border-radius:12px;width:500px;height:500px;overflow-y:auto;box-shadow:0 4px 10px rgba(0,0,0,.3)}
-    .close{color:#800000;float:right;font-size:28px;font-weight:bold;cursor:pointer}
-    .close:hover{color:#a00000}
-    .status{display:inline-block;margin-top:5px;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:bold}
-    .status.pending{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
-    .status.accepted{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
-    .status.rejected{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+
+    .category select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #800000;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #800000;
+      background: #fff;
+      cursor: pointer
+    }
+
+    .file input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px dashed #800000;
+      border-radius: 6px;
+      background: #fff;
+      color: #800000
+    }
+
+    .file input[type="file"]::file-selector-button {
+      background: #800000;
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background .3s ease
+    }
+
+    .file input[type="file"]::file-selector-button:hover {
+      background: #a00000
+    }
+
+    button {
+      background: #800000;
+      color: #fff;
+      padding: 10px;
+      border-radius: 40px;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      font-size: 14px
+    }
+
+    button:hover {
+      background: #a00000
+    }
+
+    .viewDocs {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 40px;
+      width: 400px;
+      height: 500px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      overflow: auto
+    }
+
+    .viewDocs h3 {
+      margin-bottom: 15px;
+      text-align: center;
+      color: #800000
+    }
+
+    .folder {
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .folder-header {
+      border: 2px dotted #800000;
+      color: #800000;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold
+    }
+
+    .folder-content {
+      display: none;
+      padding: 10px;
+      background: #f9f9f9
+    }
+
+    /* --- File rows --- */
+    .docItem {
+      position: relative;
+      /* so the delete button can be placed absolutely */
+      padding: 10px 40px 10px 0;
+      /* right padding so text never overlaps the icon */
+      border-bottom: 1px solid #ddd;
+    }
+
+    .docItem:last-child {
+      border-bottom: none
+    }
+
+    .docText {
+      margin: 0
+    }
+
+    .docCategory {
+      font-weight: bold;
+      color: #800000
+    }
+
+    .main p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #333;
+      background: #f9f9f9;
+      border-left: 4px solid #800000;
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 6px
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, .5)
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 500px;
+      height: 500px;
+      overflow-y: auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .3)
+    }
+
+    .close {
+      color: #800000;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer
+    }
+
+    .close:hover {
+      color: #a00000
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold
+    }
+
+    .status.pending {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba
+    }
+
+    .status.accepted {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb
+    }
+
+    .status.rejected {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb
+    }
+
+    /* --- Delete icon: compact, out of flow, subtle --- */
+    /* File rows: give more right space for bigger icon */
+    .docItem {
+      position: relative;
+      padding: 10px 56px 10px 0;
+      /* was 10px 40px 10px 0 */
+      border-bottom: 1px solid #ddd;
+    }
+
+    /* Delete icon button (bigger hit area) */
+    .deleteBtn {
+      position: absolute;
+      top: 6px;
+      /* was 8px */
+      right: 8px;
+      /* was 6px */
+      width: 36px;
+      /* was 28px */
+      height: 36px;
+      /* was 28px */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border-radius: 8px;
+      /* slightly larger radius looks nicer at this size */
+      color: #b00020;
+      opacity: .75;
+      cursor: pointer;
+      transition: .15s ease-in-out;
+    }
+
+    .deleteBtn:hover {
+      background: #fdecec;
+      opacity: 1
+    }
+
+    .deleteBtn:focus-visible {
+      outline: 2px solid #b00020;
+      outline-offset: 2px
+    }
+
+    /* Actual icon size */
+    .deleteBtn svg {
+      width: 24px;
+      /* was 28px; set the icon itself */
+      height: 24px;
+      /* was 28px */
+      display: block;
+    }
+
+    .deleteBtn[disabled] {
+      opacity: .35;
+      cursor: not-allowed;
+      background: transparent
+    }
+
+    /* --- ADDED: rejection reason styling --- */
+    .rejectNote {
+      margin-top: 6px;
+      background: transparent;
+      color: #7a0916;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .rejectNote strong {
+      color: #b00020;
+    }
   </style>
 </head>
+
 <body>
   <!-- Form Section -->
   <div class="main">
@@ -99,6 +356,19 @@
     function resolveDocUrl(doc) {
       // Prefer GridFS (bucket + fileId); fallback to legacy filePath
       return fileUrl(doc.bucket, doc.fileId) || doc.filePath || null;
+    }
+
+    // --- ADDED: helper to read a rejection message from any likely field
+    function getRejectReason(doc) {
+      const r =
+        (doc && (
+          doc.rejectionReason ??
+          doc.reason ??
+          doc.rejectReason ??
+          doc.rejection_note ??
+          doc.rejectionMessage
+        )) || '';
+      return (typeof r === 'string') ? r.trim() : '';
     }
 
     // ---- Submit document
@@ -212,15 +482,38 @@
           const status = (doc.status || "Pending");
           const statusCls = status.toLowerCase();
 
+          // Only show delete button if status is Pending
+          const showDelete = status.toLowerCase() === "pending";
+
+          // --- ADDED: show reason if rejected + reason exists
+          const reasonText = getRejectReason(doc);
+          const reasonMarkup = (status.toLowerCase() === "rejected" && reasonText)
+            ? `<div class="rejectNote"><strong>Reason:</strong> ${reasonText}</div>`
+            : ``;
+
           const item = document.createElement("div");
           item.className = "docItem";
           item.innerHTML = `
-            <p>
+            <p class="docText">
               ${url ? `<a href="${url}" target="_blank" rel="noopener">${fullName} (${batch})</a>`
-                     : `${fullName} (${batch})`}
+              : `${fullName} (${batch})`}
               <br><small>Submitted: ${date}</small>
               <br><span class="status ${statusCls}">Status: ${status}</span>
             </p>
+            ${reasonMarkup}
+            ${showDelete
+              ? `<button class="deleteBtn" data-docid="${doc._id}" title="Delete this file (Pending only)">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                       <polyline points="3 6 5 6 21 6"></polyline>
+                       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                       <path d="M10 11v6"></path>
+                       <path d="M14 11v6"></path>
+                       <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                     </svg>
+                   </button>`
+              : ``
+            }
           `;
           modalBody.appendChild(item);
         });
@@ -230,6 +523,38 @@
 
       document.getElementById("docModal").style.display = "block";
     }
+
+    // Delegate delete clicks inside modal body
+    document.getElementById("modalBody").addEventListener("click", async (e) => {
+      const btn = e.target.closest(".deleteBtn");
+      if (!btn) return;
+
+      const docId = btn.getAttribute("data-docid");
+      if (!docId) return;
+
+      const ok = confirm("Delete this pending document? This cannot be undone.");
+      if (!ok) return;
+
+      try {
+        const res = await fetch(`/api/documents/${docId}`, {
+          method: "DELETE",
+          credentials: "include"
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          alert(data.msg || "Delete failed. Only Pending documents can be deleted.");
+          return;
+        }
+
+        alert("Deleted.");
+        document.getElementById("docModal").style.display = "none";
+        fetchDocuments();
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Delete error. Please try again.");
+      }
+    });
 
     // ---- Modal close
     document.addEventListener("DOMContentLoaded", () => {
@@ -244,4 +569,5 @@
     window.onload = fetchDocuments;
   </script>
 </body>
+
 </html>

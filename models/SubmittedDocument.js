@@ -15,6 +15,9 @@ const submittedDocumentSchema = new mongoose.Schema(
     bucket: { type: String, enum: ["submittedDocs"], required: true },
 
     status: { type: String, enum: ["Pending", "Accepted", "Rejected"], default: "Pending" },
+    // in models/SubmittedDocument.js
+    rejectionReason: { type: String, default: '' }
+
   },
   { timestamps: true } // gives createdAt for sorting
 );

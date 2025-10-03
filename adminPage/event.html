@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.css">
   <style>
     * {
       margin: 0;
@@ -36,7 +35,6 @@
       background: #fff;
       border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
       display: flex;
       flex-direction: column;
     }
@@ -51,10 +49,7 @@
 
     .sectionBox h2 {
       margin-bottom: 15px;
-      /* space under all section titles */
     }
-
-
 
     /* Tabs */
     .tabs {
@@ -88,7 +83,8 @@
     .content {
       padding: 20px;
       flex: 1;
-      overflow-y: auto;
+      max-height: 500px;
+      overflow-y: hidden;
     }
 
     .content-section {
@@ -99,7 +95,6 @@
       display: block;
     }
 
-    /* Reuse your existing event styles */
     .inputBox {
       display: flex;
       flex-direction: column;
@@ -189,11 +184,10 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
-      max-height: 500px;/* control how tall the event list can grow */
-      overflow-y: auto;/* adds vertical scroll when overflowing */
+      height: 500px;
+      overflow-y: auto;
       padding-right: 10px;
     }
-
 
     .eventDate {
       text-align: center;
@@ -226,7 +220,7 @@
     /* Modal overlay */
     .modal {
       display: none;
-      /* hidden by default */
+      /* will be set to flex in JS when opened */
       position: fixed;
       z-index: 1000;
       left: 0;
@@ -234,23 +228,24 @@
       width: 100%;
       height: 100%;
       overflow: auto;
-      /* enable scroll if content is long */
       background-color: rgba(0, 0, 0, 0.5);
-      /* dark overlay */
       justify-content: center;
+      /* center horizontally */
       align-items: center;
+      /* center vertically */
+      padding: 16px;
+      /* small padding for tiny screens */
     }
 
     /* Centered modal box */
     .modal-content {
       background: #fff;
-      margin: auto;
       padding: 20px;
       border-radius: 12px;
-      max-width: 500px;
+      max-width: 600px;
       width: 90%;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.25s ease;
     }
 
     /* Close button */
@@ -266,17 +261,21 @@
       color: #000;
     }
 
-    /* Small animation */
     @keyframes fadeIn {
       from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(-6px);
       }
 
       to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    #modalSentence {
+      white-space: pre-line;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -306,8 +305,8 @@
                 <input type="text" id="pikadayDate" name="date" placeholder="Select a date" required>
               </div>
               <div class="inputGroup">
-                <label for="timepicker">Time</label>
-                <input type="text" id="timepicker" name="time" placeholder="Select time" required>
+                <label for="time">Time</label>
+                <input type="time" id="time" name="time" required>
               </div>
               <div class="inputGroup">
                 <label>Duration</label>
@@ -343,25 +342,18 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="eventModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
+  <!-- Modal (single-sentence details) -->
+  <div id="eventModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <span class="close" aria-label="Close">&times;</span>
       <h2 id="modalTitle"></h2>
-      <p><strong>Date:</strong> <span id="modalDate"></span></p>
-      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
-      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
-      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
-      <p><strong>Will Attend:</strong> <span id="modalAttendCount"></span></p>
-      <p><strong>Not Attend:</strong> <span id="modalNotAttendCount"></span></p>
+      <p id="modalSentence" style="line-height:1.6;"></p>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.3.5/air-datepicker.js"></script>
 
   <script>
-
     // Tab switching
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
@@ -374,8 +366,7 @@
       });
     });
 
-
-
+    // Pikaday for date
     new Pikaday({
       field: document.getElementById('pikadayDate'),
       format: 'YYYY-MM-DD',
@@ -386,14 +377,6 @@
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       }
-    });
-
-    new AirDatepicker('#timepicker', {
-      timepicker: true,
-      onlyTimepicker: true,
-      minutesStep: 1,
-      hours12: true,
-      dateFormat: 'hh:mm AA'
     });
 
     const API_URL = 'http://localhost:3000';
@@ -420,7 +403,7 @@
         if (res.ok) {
           alert('Event created successfully!');
           this.reset();
-          loadEvents(); // refresh list
+          loadEvents();
         } else {
           alert('Error creating event');
         }
@@ -456,40 +439,54 @@
             </div>
           `;
 
-          // View more pop up container contents (async fixed)
+          // View More -> open modal centered with one-sentence details
           div.querySelector('.viewMoreBtn').addEventListener('click', async function () {
-            // basic info
+            // Title
             document.getElementById('modalTitle').textContent = ev.title;
-            document.getElementById('modalDate').textContent = dateObj.toLocaleString();
-            document.getElementById('modalLocation').textContent = ev.location;
-            document.getElementById('modalDuration').textContent = ev.duration;
-            document.getElementById('modalDescription').textContent = ev.description;
 
-            // placeholders while fetching
-            document.getElementById('modalAttendCount').textContent = '...';
-            document.getElementById('modalNotAttendCount').textContent = '...';
+            // Nice human-readable date/time
+            const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit'
+            });
 
+            // Fetch attendance counts
+            let attend = 0;
+            let notAttend = 0;
             try {
               const eventId = ev._id || ev.id;
               if (!eventId) throw new Error('Event id missing on event object');
 
               const res = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
-              if (!res.ok) {
-                console.warn('Attendance API returned', res.status);
-                document.getElementById('modalAttendCount').textContent = '0';
-                document.getElementById('modalNotAttendCount').textContent = '0';
-              } else {
+              if (res.ok) {
                 const data = await res.json();
-                document.getElementById('modalAttendCount').textContent = data.attendCount ?? 0;
-                document.getElementById('modalNotAttendCount').textContent = data.notAttendCount ?? 0;
+                attend = data.attendCount ?? 0;
+                notAttend = data.notAttendCount ?? 0;
               }
             } catch (err) {
-              console.error("Error fetching attendance:", err);
-              document.getElementById('modalAttendCount').textContent = '0';
-              document.getElementById('modalNotAttendCount').textContent = '0';
+              console.warn('Attendance API error:', err);
             }
 
-            document.getElementById('eventModal').style.display = 'block';
+            // Build one sentence
+            const desc = (ev.description || '').trim();
+            const extra = desc ? ` ${desc}` : '';
+            const sentence =
+              `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
+              `with a duration of <strong>${ev.duration}</strong>.\n\n` +
+              `<strong>Description:</strong>\n${extra ? extra + '\n\n' : ''}` +
+              `<strong>Attendance so far:</strong> ${attend} will attend, ${notAttend} will not attend.`;
+
+            document.getElementById('modalSentence').innerHTML = sentence;
+
+
+            // Show modal centered
+            const modal = document.getElementById('eventModal');
+            modal.style.display = 'flex';         // IMPORTANT: use flex (not block) so it's centered
+            modal.setAttribute('aria-hidden', 'false');
           });
 
           container.appendChild(div);
@@ -499,16 +496,26 @@
       }
     }
 
-    // Close modal
-    document.querySelector('.close').addEventListener('click', function () {
-      document.getElementById('eventModal').style.display = 'none';
-    });
+    // Close modal helpers
+    function closeModal() {
+      const modal = document.getElementById('eventModal');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelector('.close').addEventListener('click', closeModal);
+
     window.addEventListener('click', function (e) {
       if (e.target.id === 'eventModal') {
-        document.getElementById('eventModal').style.display = 'none';
+        closeModal();
       }
     });
-    // Load events when page starts
+
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Load events on page load
     window.onload = loadEvents;
   </script>
 </body>

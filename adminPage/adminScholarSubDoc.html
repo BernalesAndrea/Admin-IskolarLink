@@ -335,47 +335,71 @@
     </div>
   </div>
 
+  <!-- Reject Reason Modal (ADD) -->
+  <div id="rejectReasonModal" class="modal">
+    <div class="modal-content" style="width: 420px; max-width: 95%;">
+      <span class="close-btn" id="closeReject">&times;</span>
+      <h3>Reject Document</h3>
+      <p style="margin:8px 0 6px;">Provide a reason for rejection:</p>
+      <textarea id="rejectReasonInput"
+        style="width:100%; min-height:110px; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical;"
+        placeholder="e.g., File is incomplete / incorrect document type / unreadable scan..."></textarea>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+        <button id="rejectCancelBtn"
+          style="background:#6c757d; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">
+          Cancel
+        </button>
+        <button id="rejectSubmitBtn"
+          style="background:#dc3545; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+
+
   <script>
 
     // Build a GridFS URL (inline preview by default)
-  function fileUrl(bucket, id, opts = { download: false }) {
-    if (!bucket || !id) return null;
-    return opts.download
-      ? `/files/${bucket}/${id}/download`
-      : `/files/${bucket}/${id}`;
-  }
+    function fileUrl(bucket, id, opts = { download: false }) {
+      if (!bucket || !id) return null;
+      return opts.download
+        ? `/files/${bucket}/${id}/download`
+        : `/files/${bucket}/${id}`;
+    }
 
-  // Prefer GridFS fields; fallback to legacy disk path if present
-  function resolveDocUrl(row, legacyField = 'filePath') {
-    const grid = fileUrl(row.bucket, row.fileId);
-    return grid || row[legacyField] || null;
-  }
+    // Prefer GridFS fields; fallback to legacy disk path if present
+    function resolveDocUrl(row, legacyField = 'filePath') {
+      const grid = fileUrl(row.bucket, row.fileId);
+      return grid || row[legacyField] || null;
+    }
 
-  function resolveGradeAttachmentUrl(grade) {
-    const grid = fileUrl(grade.attachmentBucket, grade.attachmentId);
-    return grid || grade.attachment || null; // legacy fallback
-  }
-     async function fetchDocuments() {
-    try {
-      const res = await fetch("/api/admin/documents", { method: "GET", credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch documents");
+    function resolveGradeAttachmentUrl(grade) {
+      const grid = fileUrl(grade.attachmentBucket, grade.attachmentId);
+      return grid || grade.attachment || null; // legacy fallback
+    }
+    async function fetchDocuments() {
+      try {
+        const res = await fetch("/api/admin/documents", { method: "GET", credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch documents");
 
-      const docs = await res.json();
-      const tbody = document.getElementById("docs-table-body");
-      tbody.innerHTML = "";
+        const docs = await res.json();
+        const tbody = document.getElementById("docs-table-body");
+        tbody.innerHTML = "";
 
-      docs.forEach(doc => {
-  // ✅ compute the submitted date using createdAt (from schema timestamps) with fallback
-  const submittedDate =
-    doc.createdAt
-      ? new Date(doc.createdAt).toLocaleDateString()
-      : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : '');
+        docs.forEach(doc => {
+          // ✅ compute the submitted date using createdAt (from schema timestamps) with fallback
+          const submittedDate =
+            doc.createdAt
+              ? new Date(doc.createdAt).toLocaleDateString()
+              : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : '');
 
-  // ✅ prefer server-shaped fileUrl if you added it; otherwise fall back to GridFS/legacy resolver
-  const url = doc.fileUrl || resolveDocUrl(doc);
+          // ✅ prefer server-shaped fileUrl if you added it; otherwise fall back to GridFS/legacy resolver
+          const url = doc.fileUrl || resolveDocUrl(doc);
 
-  const row = document.createElement("tr");
-  row.innerHTML = `
+          const row = document.createElement("tr");
+          row.innerHTML = `
     <td>${doc.scholar ? doc.scholar.fullname : (doc.fullname || '')}</td>
     <td>${doc.docType || ''}</td>
     <td>${submittedDate}</td>
@@ -397,32 +421,32 @@
       </div>
     </td>
   `;
-  tbody.appendChild(row);
-});
+          tbody.appendChild(row);
+        });
 
-    } catch (err) {
-      console.error("Error fetching documents:", err);
+      } catch (err) {
+        console.error("Error fetching documents:", err);
+      }
     }
-  }
 
     async function fetchGrades() {
-    try {
-      const res = await fetch("/api/admin/grades", { method: "GET", credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch grades");
+      try {
+        const res = await fetch("/api/admin/grades", { method: "GET", credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch grades");
 
-      const grades = await res.json();
-      const tbody = document.getElementById("grades-table-body");
-      tbody.innerHTML = "";
+        const grades = await res.json();
+        const tbody = document.getElementById("grades-table-body");
+        tbody.innerHTML = "";
 
-      grades.forEach(grade => {
-        const avg = grade.subjects?.length
-          ? (grade.subjects.reduce((sum, s) => sum + parseFloat(s.grade || 0), 0) / grade.subjects.length).toFixed(2)
-          : "N/A";
+        grades.forEach(grade => {
+          const avg = grade.subjects?.length
+            ? (grade.subjects.reduce((sum, s) => sum + parseFloat(s.grade || 0), 0) / grade.subjects.length).toFixed(2)
+            : "N/A";
 
-        const attachmentUrl = resolveGradeAttachmentUrl(grade); // ✅ GridFS or legacy
+          const attachmentUrl = resolveGradeAttachmentUrl(grade); // ✅ GridFS or legacy
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
+          const row = document.createElement("tr");
+          row.innerHTML = `
           <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
           <td>${grade.scholar ? grade.scholar.batchYear : grade.batchYear}</td>
           <td>
@@ -452,14 +476,14 @@
             </div>
           </td>
         `;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error("Error fetching grades:", err);
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+      }
     }
-  }
 
-     // Fetch verified scholars and populate Scholar Folders table
+    // Fetch verified scholars and populate Scholar Folders table
     async function fetchScholarFolders() {
       try {
         const res = await fetch("/api/verified-scholars", {
@@ -540,65 +564,65 @@
       document.getElementById("gradesModal").style.display = "block";
     }
 
-     const previewModal = document.getElementById("docPreviewModal");
-  const docFrame = document.getElementById("docFrame");
-  const closePreview = document.getElementById("closePreview");
+    const previewModal = document.getElementById("docPreviewModal");
+    const docFrame = document.getElementById("docFrame");
+    const closePreview = document.getElementById("closePreview");
 
-  // We'll dynamically add/remove an <img> for images
-  let docImg = null;
+    // We'll dynamically add/remove an <img> for images
+    let docImg = null;
 
-  async function previewDoc(fileUrl) {
-    try {
-      // Build meta URL
-      const metaUrl = fileUrl + "/meta".replace("//meta", "/meta"); // guard against double slash
-      const res = await fetch(metaUrl, { credentials: "include" });
-      // If meta route not found (old server), just fallback to iframe
-      let contentType = "";
-      if (res.ok) {
-        const meta = await res.json();
-        contentType = (meta && meta.contentType) || "";
-      }
+    async function previewDoc(fileUrl) {
+      try {
+        // Build meta URL
+        const metaUrl = fileUrl + "/meta".replace("//meta", "/meta"); // guard against double slash
+        const res = await fetch(metaUrl, { credentials: "include" });
+        // If meta route not found (old server), just fallback to iframe
+        let contentType = "";
+        if (res.ok) {
+          const meta = await res.json();
+          contentType = (meta && meta.contentType) || "";
+        }
 
-      // If contentType says it's an image, render an <img>. Otherwise, iframe.
-      const isImage = contentType.startsWith("image/");
-      const isPdf   = contentType === "application/pdf";
+        // If contentType says it's an image, render an <img>. Otherwise, iframe.
+        const isImage = contentType.startsWith("image/");
+        const isPdf = contentType === "application/pdf";
 
-      // Clean up any previous image
-      if (docImg) {
-        docImg.remove();
-        docImg = null;
-      }
+        // Clean up any previous image
+        if (docImg) {
+          docImg.remove();
+          docImg = null;
+        }
 
-      if (isImage) {
-        docFrame.style.display = "none";
-        docImg = document.createElement("img");
-        docImg.style.cssText = "width:100%;height:90%;object-fit:contain;border:none;";
-        docImg.src = fileUrl;
-        // insert after H3
-        const wrapper = docFrame.parentElement;
-        wrapper.appendChild(docImg);
-      } else {
-        // iframe handles PDF and most other types
-        if (docImg) { docImg.remove(); docImg = null; }
+        if (isImage) {
+          docFrame.style.display = "none";
+          docImg = document.createElement("img");
+          docImg.style.cssText = "width:100%;height:90%;object-fit:contain;border:none;";
+          docImg.src = fileUrl;
+          // insert after H3
+          const wrapper = docFrame.parentElement;
+          wrapper.appendChild(docImg);
+        } else {
+          // iframe handles PDF and most other types
+          if (docImg) { docImg.remove(); docImg = null; }
+          docFrame.src = fileUrl;
+          docFrame.style.display = "block";
+        }
+
+        previewModal.style.display = "block";
+      } catch (e) {
+        console.error("Preview failed:", e);
+        // fallback: use iframe
         docFrame.src = fileUrl;
         docFrame.style.display = "block";
+        previewModal.style.display = "block";
       }
-
-      previewModal.style.display = "block";
-    } catch (e) {
-      console.error("Preview failed:", e);
-      // fallback: use iframe
-      docFrame.src = fileUrl;
-      docFrame.style.display = "block";
-      previewModal.style.display = "block";
     }
-  }
 
-  closePreview.onclick = () => {
-    previewModal.style.display = "none";
-    docFrame.src = "";
-    if (docImg) { docImg.remove(); docImg = null; }
-  };
+    closePreview.onclick = () => {
+      previewModal.style.display = "none";
+      docFrame.src = "";
+      if (docImg) { docImg.remove(); docImg = null; }
+    };
 
     document.querySelectorAll(".tab").forEach(tab => {
       tab.addEventListener("click", () => {
@@ -640,6 +664,81 @@
     setInterval(fetchGrades, 5000);
     setInterval(fetchScholarFolders, 5000);
   </script>
+  <script>
+    // ---- keep a stable reference to the original global function ----
+    (function () {
+      const originalUpdateStatus = window.updateStatus; // defined in the earlier script block
+      let pendingRejectDocId = null;
+
+      // Expose a wrapper on window so inline onclick always hits this
+      window.updateStatus = function (id, status) {
+        if (String(status).toLowerCase() === 'rejected') {
+          pendingRejectDocId = id;
+          document.getElementById('rejectReasonInput').value = '';
+          document.getElementById('rejectReasonModal').style.display = 'block';
+          return; // don't hit the server yet
+        }
+        // Forward everything else (e.g., 'accepted') to the original
+        if (typeof originalUpdateStatus === 'function') {
+          return originalUpdateStatus(id, status);
+        }
+      };
+
+      // --- Modal wiring (unchanged behavior) ---
+      const rejectModal = document.getElementById('rejectReasonModal');
+      const rejectClose = document.getElementById('closeReject');
+      const rejectCancelBtn = document.getElementById('rejectCancelBtn');
+      const rejectSubmitBtn = document.getElementById('rejectSubmitBtn');
+      const rejectReasonInput = document.getElementById('rejectReasonInput');
+
+      function closeRejectModal() {
+        rejectModal.style.display = 'none';
+        pendingRejectDocId = null;
+        rejectSubmitBtn.disabled = false;
+      }
+
+      rejectClose.onclick = closeRejectModal;
+      rejectCancelBtn.onclick = closeRejectModal;
+      window.addEventListener('click', (e) => {
+        if (e.target === rejectModal) closeRejectModal();
+      });
+
+      // Submit rejection with reason → same /status endpoint
+      rejectSubmitBtn.addEventListener('click', async () => {
+        if (!pendingRejectDocId) return;
+
+        const reason = (rejectReasonInput.value || '').trim();
+        if (!reason) {
+          alert('Please provide a reason for rejection.');
+          return;
+        }
+
+        try {
+          rejectSubmitBtn.disabled = true;
+
+          const res = await fetch(`/api/admin/documents/${pendingRejectDocId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status: 'rejected', reason })
+          });
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.msg || 'Failed to reject document');
+          }
+
+          closeRejectModal();
+          if (typeof fetchDocuments === 'function') fetchDocuments();
+        } catch (err) {
+          alert(err.message || 'Error submitting rejection');
+          rejectSubmitBtn.disabled = false;
+        }
+      });
+    })();
+  </script>
+
+
 </body>
 
 </html>

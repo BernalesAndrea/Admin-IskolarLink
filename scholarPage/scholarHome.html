@@ -144,8 +144,10 @@
       text-align: left;
       transition: transform 0.2s ease;
       margin-bottom: 15px;
-      box-sizing: border-box;/* ✅ makes padding included in width */
-      word-wrap: break-word;/* ✅ prevents text from overflowing */
+      box-sizing: border-box;
+      /* ✅ makes padding included in width */
+      word-wrap: break-word;
+      /* ✅ prevents text from overflowing */
     }
 
     .announcement-card:hover {
@@ -179,38 +181,38 @@
     }
 
     /* Task Card (adapted from admin) */
-.task-card {
-  background: #fdfdfd;
-  border-left: 5px solid #800000;
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-  margin-bottom: 12px;
-}
+    .task-card {
+      background: #fdfdfd;
+      border-left: 5px solid #800000;
+      border-radius: 10px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+      margin-bottom: 12px;
+    }
 
-.task-card:hover {
-  transform: translateY(-4px);
-}
+    .task-card:hover {
+      transform: translateY(-4px);
+    }
 
-.task-title {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #800000;
-  margin-bottom: 5px;
-}
+    .task-title {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #800000;
+      margin-bottom: 5px;
+    }
 
-.task-dates {
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 8px;
-}
+    .task-dates {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 8px;
+    }
 
-.task-description {
-  font-size: 0.95em;
-  color: #333;
-  line-height: 1.4em;
-}
+    .task-description {
+      font-size: 0.95em;
+      color: #333;
+      line-height: 1.4em;
+    }
 
 
 
@@ -277,10 +279,8 @@
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2 id="modalTitle"></h2>
-      <p><strong>Date:</strong> <span id="modalDate"></span></p>
-      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
-      <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
-      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+      <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
+
 
       <!-- Attendance buttons -->
       <div style="margin-top: 15px; display:flex; gap:10px;">
@@ -323,16 +323,39 @@
         </div>
       `;
 
-        // Open modal
         div.querySelector(".viewMoreBtn").addEventListener("click", () => {
           currentEventId = ev._id;
+
+          // Keep the title as is
           document.getElementById("modalTitle").textContent = ev.title;
-          document.getElementById("modalDate").textContent = dateObj.toLocaleString();
-          document.getElementById("modalLocation").textContent = ev.location;
-          document.getElementById("modalDuration").textContent = ev.duration;
-          document.getElementById("modalDescription").textContent = ev.description;
+
+          // Friendly date/time for readability
+          const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+
+          // Description (optional)
+          const desc = (ev.description || '').trim();
+          const extra = desc ? `${desc}` : '';
+
+          // One sentence with bold highlights + line breaks
+          const sentence =
+            `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
+            `with a duration of <strong>${ev.duration}</strong>.\n\n` +
+            (extra ? `<strong>Description:</strong>\n${extra}` : '');
+
+          // Inject as HTML so <strong> renders; \n\n respected via white-space: pre-line
+          document.getElementById("modalSentence").innerHTML = sentence;
+
+          // Show modal (unchanged)
           document.getElementById("eventModal").style.display = "block";
         });
+
 
         container.appendChild(div);
       });
@@ -340,27 +363,27 @@
 
     /* ----------------- Load Tasks ----------------- */
     async function loadTasks() {
-  const res = await fetch("/api/tasks");
-  const tasks = await res.json();
-  const container = document.querySelector(".Task");
-  container.innerHTML = "";
+      const res = await fetch("/api/tasks");
+      const tasks = await res.json();
+      const container = document.querySelector(".Task");
+      container.innerHTML = "";
 
-  if (!tasks.length) {
-    container.innerHTML = "<p>No tasks assigned yet.</p>";
-    return;
-  }
+      if (!tasks.length) {
+        container.innerHTML = "<p>No tasks assigned yet.</p>";
+        return;
+      }
 
-  tasks.forEach(task => {
-    const div = document.createElement("div");
-    div.className = "task-card";
-    div.innerHTML = `
+      tasks.forEach(task => {
+        const div = document.createElement("div");
+        div.className = "task-card";
+        div.innerHTML = `
       <div class="task-title">${task.title}</div>
       <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
       <div class="task-description">${task.description}</div>
     `;
-    container.appendChild(div);
-  });
-}
+        container.appendChild(div);
+      });
+    }
 
 
     /* ----------------- Load Announcements ----------------- */
@@ -413,24 +436,24 @@
 
     /* ----------------- Attendance ----------------- */
     document.getElementById("attendBtn").onclick = async () => {
-  await fetch(`/events/${currentEventId}/attendance`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "attend" }),
-    credentials: "include"   // ✅ send cookies!
-  });
-  alert("Attendance saved!");
-};
+      await fetch(`/events/${currentEventId}/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "attend" }),
+        credentials: "include"   // ✅ send cookies!
+      });
+      alert("Attendance saved!");
+    };
 
-document.getElementById("notAttendBtn").onclick = async () => {
-  await fetch(`/events/${currentEventId}/attendance`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "not_attend" }),
-    credentials: "include"   // ✅ send cookies!
-  });
-  alert("Attendance saved!");
-};
+    document.getElementById("notAttendBtn").onclick = async () => {
+      await fetch(`/events/${currentEventId}/attendance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "not_attend" }),
+        credentials: "include"   // ✅ send cookies!
+      });
+      alert("Attendance saved!");
+    };
 
 
     // ✅ Close modal when X is clicked
