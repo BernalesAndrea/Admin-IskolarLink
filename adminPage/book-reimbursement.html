@@ -149,23 +149,26 @@
         populateBatchFilter(allRows);
         renderTable(allRows);
 
-        // OPTIONAL: when you add a GET /api/book endpoint, you can merge real numbers here.
-        // try {
-        //   const tRes = await fetch("/api/book");
-        //   if (tRes.ok) {
-        //     const trackers = await tRes.json(); // [{ userId, allottedBudget, total }]
-        //     const map = new Map(trackers.map(t => [String(t.userId), t]));
-        //     allRows = allRows.map(r => {
-        //       const t = map.get(String(r._id));
-        //       if (t) {
-        //         const remaining = (t.allottedBudget || 0) - (t.total || 0);
-        //         return { ...r, allottedBudget: t.allottedBudget || 0, total: t.total || 0, remaining };
-        //       }
-        //       return r;
-        //     });
-        //     renderTable(allRows);
-        //   }
-        // } catch (_) {}
+        try {
+      const tRes = await fetch("/api/book", { credentials: "same-origin" });
+      if (tRes.ok) {
+        const trackers = await tRes.json(); // [{ _id, allottedBudget, totalReimbursed, remaining }]
+        const map = new Map(trackers.map(t => [String(t._id), t]));
+        allRows = allRows.map(r => {
+          const t = map.get(String(r._id));
+          if (!t) return r;
+          return {
+            ...r,
+            allottedBudget: t.allottedBudget || 0,
+            total: t.totalReimbursed || 0,
+            remaining: t.remaining ?? ((t.allottedBudget||0) - (t.totalReimbursed||0))
+          };
+        });
+      }
+    } catch (_) {}
+
+    populateBatchFilter(allRows);
+    renderTable(allRows);
       } catch (err) {
         console.error("Failed to load scholars:", err);
         alert("Failed to load scholars. Are you logged in?");
@@ -184,26 +187,36 @@
     }
 
     function renderTable(rows) {
-      expenseTable.innerHTML = "";
-      if (!rows.length) {
-        expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
-        return;
-      }
+  expenseTable.innerHTML = "";
+  if (!rows.length) {
+    expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+    return;
+  }
 
-      rows.forEach(s => {
-        const remaining = (s.allottedBudget || 0) - (s.total || 0);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${s.fullname}</td>
-          <td>${s.batchYear || '-'}</td>
-          <td><button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
-          <td><button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button></td>
-          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
-          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-        `;
-        expenseTable.appendChild(tr);
-      });
-    }
+  rows.forEach(s => {
+    const remaining = (s.allottedBudget || 0) - (s.total || 0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.fullname}</td>
+      <td>${s.batchYear || '-'}</td>
+
+      <td>
+        <div>₱ ${Number(s.allottedBudget || 0).toFixed(2)}</div>
+        <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
+      </td>
+
+      <td>
+        <div>₱ ${Number(s.total || 0).toFixed(2)}</div>
+        <button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button>
+      </td>
+
+      <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
+      <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+    `;
+    expenseTable.appendChild(tr);
+  });
+}
+
 
     function applyFilters() {
       const q = (searchInput.value || "").toLowerCase();
@@ -258,36 +271,80 @@
 
     // Modal actions
     saveBudgetBtn.addEventListener("click", async () => {
-      const amount = parseFloat(budgetInput.value) || 0;
-      if (!currentScholarId) return;
-      try {
-        const r = await fetch(`/api/book/${currentScholarId}/budget`, {
-          method: "PUT", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ allottedBudget: amount })
-        });
-        if (r.ok) {
-          alert("Budget updated!");
-          budgetModal.style.display = "none";
-          loadScholars();
-        } else alert("Failed to update budget.");
-      } catch (err) { console.error(err); }
+  const amount = Number(budgetInput.value);
+  if (!currentScholarId || !Number.isFinite(amount) || amount < 0) {
+    alert("Enter a non-negative number.");
+    return;
+  }
+  try {
+    const r = await fetch(`/api/book/${currentScholarId}/budget`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ allottedBudget: amount })
     });
+    if (!r.ok) {
+      const msg = await r.text().catch(()=> "");
+      alert(`Failed to update budget. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
+      return;
+    }
+    const { tracker } = await r.json();
+    // Optimistically update row so UI reflects immediately
+    allRows = allRows.map(row =>
+      row._id === currentScholarId
+        ? {
+            ...row,
+            allottedBudget: tracker.allottedBudget || amount,
+            total: tracker.totalReimbursed || row.total || 0,
+            remaining: (tracker.allottedBudget || amount) - (tracker.totalReimbursed || row.total || 0)
+          }
+        : row
+    );
+    renderTable(allRows);
+    budgetModal.style.display = "none";
+  } catch (err) {
+    console.error(err);
+    alert(`Budget update failed: ${err.message}`);
+  }
+});
 
-    saveReimbBtn.addEventListener("click", async () => {
-      const v = parseFloat(reimbInput.value) || 0;
-      if (!currentScholarId || v <= 0) return;
-      try {
-        const r = await fetch(`/api/book/${currentScholarId}/reimburse`, {
-          method: "PUT", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ addAmount: v })
-        });
-        if (r.ok) {
-          alert("Reimbursed!");
-          reimbModal.style.display = "none";
-          loadScholars();
-        } else alert("Failed to reimburse.");
-      } catch (err) { console.error(err); }
+saveReimbBtn.addEventListener("click", async () => {
+  const v = Number(reimbInput.value);
+  if (!currentScholarId || !Number.isFinite(v) || v <= 0) {
+    alert("Enter a positive number.");
+    return;
+  }
+  try {
+    const r = await fetch(`/api/book/${currentScholarId}/reimburse`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ addAmount: v })
     });
+    if (!r.ok) {
+      const msg = await r.text().catch(()=> "");
+      alert(`Failed to reimburse. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
+      return;
+    }
+    const { tracker } = await r.json();
+    allRows = allRows.map(row =>
+      row._id === currentScholarId
+        ? {
+            ...row,
+            allottedBudget: tracker.allottedBudget ?? row.allottedBudget ?? 0,
+            total: tracker.totalReimbursed ?? (row.total || 0),
+            remaining: tracker.remaining ?? ((tracker.allottedBudget ?? row.allottedBudget ?? 0) - (tracker.totalReimbursed ?? row.total ?? 0))
+          }
+        : row
+    );
+    renderTable(allRows);
+    reimbModal.style.display = "none";
+  } catch (err) {
+    console.error(err);
+    alert(`Reimburse failed: ${err.message}`);
+  }
+});
+
 
     // Close modals
     cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");

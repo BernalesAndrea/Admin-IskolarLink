@@ -202,147 +202,204 @@
     </div>
 
     <script>
-        const expenseTable = document.getElementById("expenseTable");
-        const searchInput = document.getElementById("searchInput");
-        const batchFilter = document.getElementById("batchFilter");
+const expenseTable = document.getElementById("expenseTable");
+const searchInput = document.getElementById("searchInput");
+const batchFilter = document.getElementById("batchFilter");
 
-        const budgetModal = document.getElementById("budgetModal");
-        const payModal = document.getElementById("payModal");
+const budgetModal = document.getElementById("budgetModal");
+const payModal    = document.getElementById("payModal");
 
-        const budgetInput = document.getElementById("budgetInput");
-        const payInput = document.getElementById("payInput");
+const budgetInput = document.getElementById("budgetInput");
+const payInput    = document.getElementById("payInput");
 
-        const saveBudgetBtn = document.getElementById("saveBudgetBtn");
-        const savePayBtn = document.getElementById("savePayBtn");
+const saveBudgetBtn = document.getElementById("saveBudgetBtn");
+const savePayBtn    = document.getElementById("savePayBtn");
 
-        const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
-        const cancelPayBtn = document.getElementById("cancelPayBtn");
+const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
+const cancelPayBtn    = document.getElementById("cancelPayBtn");
 
-        let currentScholarId = null;
-        let allRows = [];
+let currentScholarId = null;
+let allRows = [];
 
-        async function loadScholars() {
-            try {
-                const res = await fetch("/api/verified-scholars");
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const users = await res.json();
-                allRows = users.map(u => ({
-                    _id: u._id, fullname: u.fullname, batchYear: u.batchYear || "-",
-                    allottedBudget: 0, total: 0, remaining: 0
-                }));
-                populateBatchFilter(allRows);
-                renderTable(allRows);
-                // Optional later: merge /api/tuition snapshot here
-            } catch (err) {
-                console.error("Failed to load scholars:", err);
-                alert("Failed to load scholars.");
-            }
-        }
+async function loadScholars() {
+  try {
+    // pull merged snapshot from backend (admin-only)
+    const r = await fetch("/api/tuition", { credentials: "same-origin" });
+    if (!r.ok) {
+      const t = await r.text().catch(()=> "");
+      throw new Error(`GET /api/tuition HTTP ${r.status}${t ? `: ${t}` : ""}`);
+    }
+    allRows = await r.json();
+    populateBatchFilter(allRows);
+    renderTable(allRows);
+  } catch (err) {
+    console.error("Failed to load tuition tracker:", err);
+    alert("Failed to load tuition tracker. Make sure you're logged in as admin.");
+  }
+}
 
-        function populateBatchFilter(data) {
-            const years = [...new Set(data.map(s => s.batchYear).filter(Boolean))].sort();
-            batchFilter.innerHTML = '<option value="">All Batches</option>';
-            years.forEach(y => {
-                const opt = document.createElement("option");
-                opt.value = y; opt.textContent = "Batch " + y; batchFilter.appendChild(opt);
-            });
-        }
+function populateBatchFilter(data) {
+  const years = [...new Set(data.map(s => s.batchYear).filter(Boolean))].sort();
+  batchFilter.innerHTML = '<option value="">All Batches</option>';
+  years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y; opt.textContent = "Batch " + y; batchFilter.appendChild(opt);
+  });
+}
 
-        function renderTable(rows) {
-            expenseTable.innerHTML = "";
-            if (!rows.length) {
-                expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
-                return;
-            }
-            rows.forEach(s => {
-                const remaining = (s.allottedBudget || 0) - (s.total || 0);
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-          <td>${s.fullname}</td>
-          <td>${s.batchYear || '-'}</td>
-          <td><button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
-          <td><button class="btn pay-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Pay</button></td>
-          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
-          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-        `;
-                expenseTable.appendChild(tr);
-            });
-        }
+function renderTable(rows) {
+  expenseTable.innerHTML = "";
+  if (!rows.length) {
+    expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+    return;
+  }
 
-        function applyFilters() {
-            const q = (searchInput.value || "").toLowerCase();
-            const by = batchFilter.value;
-            const filtered = allRows.filter(s => {
-                const okQ = s.fullname.toLowerCase().includes(q);
-                const okB = by === "" || String(s.batchYear) === by;
-                return okQ && okB;
-            });
-            renderTable(filtered);
-        }
+  rows.forEach(s => {
+    const remaining = (s.allottedBudget || 0) - (s.totalPaid || 0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.fullname}</td>
+      <td>${s.batchYear || '-'}</td>
 
-        expenseTable.addEventListener("click", async (e) => {
-            const btn = e.target.closest("button"); if (!btn) return;
+      <td>
+        <div>₱ ${Number(s.allottedBudget || 0).toFixed(2)}</div>
+        <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
+      </td>
 
-            if (btn.classList.contains("set-budget-btn")) {
-                currentScholarId = btn.dataset.id;
-                budgetInput.value = btn.dataset.budget || 0;
-                budgetModal.style.display = "flex"; return;
-            }
+      <td>
+        <div>₱ ${Number(s.totalPaid || 0).toFixed(2)}</div>
+        <button class="btn pay-btn" data-id="${s._id}" data-total="${s.totalPaid || 0}" data-budget="${s.allottedBudget || 0}">Pay</button>
+      </td>
 
-            if (btn.classList.contains("pay-btn")) {
-                currentScholarId = btn.dataset.id;
-                payInput.value = "";
-                payModal.style.display = "flex"; return;
-            }
+      <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
+      <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+    `;
+    expenseTable.appendChild(tr);
+  });
+}
 
-            if (btn.classList.contains("reset-btn")) {
-                const userId = btn.dataset.id;
-                if (!confirm("Reset this scholar's Tuition tracker to zero?")) return;
-                try {
-                    const r = await fetch(`/api/tuition/${userId}/reset`, { method: "PUT", headers: { "Content-Type": "application/json" } });
-                    if (r.ok) { alert("Reset successful."); loadScholars(); }
-                    else alert("Failed to reset.");
-                } catch (err) { console.error(err); alert("Reset failed."); }
-            }
-        });
+function applyFilters() {
+  const q = (searchInput.value || "").toLowerCase();
+  const by = batchFilter.value;
+  const filtered = allRows.filter(s => {
+    const okQ = s.fullname.toLowerCase().includes(q);
+    const okB = by === "" || String(s.batchYear) === by;
+    return okQ && okB;
+  });
+  renderTable(filtered);
+}
 
-        saveBudgetBtn.addEventListener("click", async () => {
-            const amount = parseFloat(budgetInput.value) || 0;
-            if (!currentScholarId) return;
-            try {
-                const r = await fetch(`/api/tuition/${currentScholarId}/budget`, {
-                    method: "PUT", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ allottedBudget: amount })
-                });
-                if (r.ok) { alert("Budget updated!"); budgetModal.style.display = "none"; loadScholars(); }
-                else alert("Failed to update budget.");
-            } catch (err) { console.error(err); }
-        });
+expenseTable.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button"); if (!btn) return;
 
-        savePayBtn.addEventListener("click", async () => {
-            const v = parseFloat(payInput.value) || 0;
-            if (!currentScholarId || v <= 0) return;
-            try {
-                const r = await fetch(`/api/tuition/${currentScholarId}/pay`, {
-                    method: "PUT", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ addAmount: v })
-                });
-                if (r.ok) { alert("Payment recorded!"); payModal.style.display = "none"; loadScholars(); }
-                else alert("Failed to record payment.");
-            } catch (err) { console.error(err); }
-        });
+  if (btn.classList.contains("set-budget-btn")) {
+    currentScholarId = btn.dataset.id;
+    budgetInput.value = btn.dataset.budget || 0;
+    budgetModal.style.display = "flex"; return;
+  }
 
-        cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");
-        cancelPayBtn.addEventListener("click", () => payModal.style.display = "none");
-        window.addEventListener("click", (e) => {
-            if (e.target === budgetModal) budgetModal.style.display = "none";
-            if (e.target === payModal) payModal.style.display = "none";
-        });
+  if (btn.classList.contains("pay-btn")) {
+    currentScholarId = btn.dataset.id;
+    payInput.value = "";
+    payModal.style.display = "flex"; return;
+  }
 
-        searchInput.addEventListener("input", applyFilters);
-        batchFilter.addEventListener("change", applyFilters);
-        window.addEventListener("DOMContentLoaded", loadScholars);
-    </script>
+  if (btn.classList.contains("reset-btn")) {
+    const userId = btn.dataset.id;
+    if (!confirm("Reset this scholar's Tuition tracker to zero?")) return;
+    try {
+      const r = await fetch(`/api/tuition/${userId}/reset`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin"
+      });
+      if (r.ok) { alert("Reset successful."); loadScholars(); }
+      else {
+        const t = await r.text().catch(()=> "");
+        alert(`Failed to reset. HTTP ${r.status}${t ? `: ${t}` : ""}`);
+      }
+    } catch (err) { console.error(err); alert("Reset failed."); }
+  }
+});
+
+saveBudgetBtn.addEventListener("click", async () => {
+  const amount = Number(budgetInput.value);
+  if (!currentScholarId || !Number.isFinite(amount) || amount < 0) {
+    alert("Enter a non-negative number."); return;
+  }
+  try {
+    const r = await fetch(`/api/tuition/${currentScholarId}/budget`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ allottedBudget: amount })
+    });
+    if (!r.ok) {
+      const msg = await r.text().catch(()=> "");
+      alert(`Failed to update budget. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
+      return;
+    }
+    const { tracker } = await r.json();
+    // update locally without full reload
+    allRows = allRows.map(row =>
+      row._id === currentScholarId
+        ? {
+            ...row,
+            allottedBudget: tracker.allottedBudget ?? amount,
+            totalPaid: tracker.totalPaid ?? row.totalPaid ?? 0,
+            remaining: (tracker.allottedBudget ?? amount) - (tracker.totalPaid ?? row.totalPaid ?? 0)
+          }
+        : row
+    );
+    renderTable(allRows);
+    budgetModal.style.display = "none";
+  } catch (err) { console.error(err); alert(`Budget update failed: ${err.message}`); }
+});
+
+savePayBtn.addEventListener("click", async () => {
+  const v = Number(payInput.value);
+  if (!currentScholarId || !Number.isFinite(v) || v <= 0) {
+    alert("Enter a positive number."); return;
+  }
+  try {
+    const r = await fetch(`/api/tuition/${currentScholarId}/pay`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ addAmount: v })
+    });
+    if (!r.ok) {
+      const msg = await r.text().catch(()=> "");
+      alert(`Failed to record payment. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
+      return;
+    }
+    const { tracker } = await r.json();
+    allRows = allRows.map(row =>
+      row._id === currentScholarId
+        ? {
+            ...row,
+            allottedBudget: tracker.allottedBudget ?? row.allottedBudget ?? 0,
+            totalPaid: tracker.totalPaid ?? (row.totalPaid || 0),
+            remaining: tracker.remaining ?? ((tracker.allottedBudget ?? row.allottedBudget ?? 0) - (tracker.totalPaid ?? row.totalPaid ?? 0))
+          }
+        : row
+    );
+    renderTable(allRows);
+    payModal.style.display = "none";
+  } catch (err) { console.error(err); alert(`Payment failed: ${err.message}`); }
+});
+
+cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");
+cancelPayBtn.addEventListener("click", () => payModal.style.display = "none");
+window.addEventListener("click", (e) => {
+  if (e.target === budgetModal) budgetModal.style.display = "none";
+  if (e.target === payModal)    payModal.style.display    = "none";
+});
+
+searchInput.addEventListener("input", applyFilters);
+batchFilter.addEventListener("change", applyFilters);
+window.addEventListener("DOMContentLoaded", loadScholars);
+</script>
 </body>
 
 </html>
