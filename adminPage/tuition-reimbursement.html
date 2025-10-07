@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tuition Reimbursement Tracker</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: url('/assets/iskolarbg.png') center/cover no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, .9);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-y: auto;
+            max-height: 90vh;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .2)
+        }
+
+        h2 {
+            color: #800000;
+            margin-bottom: 10px
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px
+        }
+
+        input,
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left
+        }
+
+        thead {
+            background: #800000;
+            color: #fff
+        }
+
+        tr:hover {
+            background: rgba(128, 0, 0, .1)
+        }
+
+        .btn {
+            background: #800000;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer
+        }
+
+        .btn:hover {
+            background: #a00000
+        }
+
+        .reset-btn {
+            background: #800000;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(211, 47, 47, .25);
+            transition: transform .08s ease, box-shadow .2s ease, background .2s ease
+        }
+
+        .reset-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(183, 28, 28, .35)
+        }
+
+        .reset-btn::before {
+            content: "↺";
+            margin-right: 8px;
+            font-weight: 700
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            justify-content: center;
+            align-items: center
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .3)
+        }
+
+        .modal-content input {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around
+        }
+
+        .cancel-btn {
+            background: #ccc;
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .cancel-btn:hover {
+            background: #bbb
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Tuition Reimbursement Tracker</h2>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search scholar...">
+            <select id="batchFilter"></select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Scholar</th>
+                    <th>Batch</th>
+                    <th>Allotted Budget (₱)</th>
+                    <th>Total Reimbursed (₱)</th>
+                    <th>Remaining Balance (₱)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+        </table>
+    </div>
+
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <h3>Set Allotted Budget</h3>
+            <input type="number" id="budgetInput" placeholder="Enter amount" />
+            <div class="modal-buttons">
+                <button id="saveBudgetBtn" class="btn">Save</button>
+                <button id="cancelBudgetBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reimbModal" class="modal">
+        <div class="modal-content">
+            <h3>Reimburse Amount</h3>
+            <input type="number" id="reimbInput" placeholder="Enter reimbursement amount" />
+            <div class="modal-buttons">
+                <button id="saveReimbBtn" class="btn">Save</button>
+                <button id="cancelReimbBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const expenseTable = document.getElementById("expenseTable");
+        const searchInput = document.getElementById("searchInput");
+        const batchFilter = document.getElementById("batchFilter");
+
+        const budgetModal = document.getElementById("budgetModal");
+        const reimbModal = document.getElementById("reimbModal");
+
+        const budgetInput = document.getElementById("budgetInput");
+        const reimbInput = document.getElementById("reimbInput");
+
+        const saveBudgetBtn = document.getElementById("saveBudgetBtn");
+        const saveReimbBtn = document.getElementById("saveReimbBtn");
+
+        const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
+        const cancelReimbBtn = document.getElementById("cancelReimbBtn");
+
+        let currentScholarId = null;
+        let allRows = [];
+
+        async function loadScholars() {
+            try {
+                const res = await fetch("/api/verified-scholars");
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const users = await res.json();
+                allRows = users.map(u => ({
+                    _id: u._id, fullname: u.fullname, batchYear: u.batchYear || "-",
+                    allottedBudget: 0, total: 0, remaining: 0
+                }));
+                populateBatchFilter(allRows);
+                renderTable(allRows);
+                // Optional later: merge /api/tuition-reimb snapshot here
+            } catch (err) {
+                console.error("Failed to load scholars:", err);
+                alert("Failed to load scholars.");
+            }
+        }
+
+        function populateBatchFilter(data) {
+            const years = [...new Set(data.map(s => s.batchYear).filter(Boolean))].sort();
+            batchFilter.innerHTML = '<option value="">All Batches</option>';
+            years.forEach(y => {
+                const opt = document.createElement("option");
+                opt.value = y; opt.textContent = "Batch " + y; batchFilter.appendChild(opt);
+            });
+        }
+
+        function renderTable(rows) {
+            expenseTable.innerHTML = "";
+            if (!rows.length) {
+                expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+                return;
+            }
+            rows.forEach(s => {
+                const remaining = (s.allottedBudget || 0) - (s.total || 0);
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+          <td>${s.fullname}</td>
+          <td>${s.batchYear || '-'}</td>
+          <td><button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
+          <td><button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button></td>
+          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
+          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+        `;
+                expenseTable.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const q = (searchInput.value || "").toLowerCase();
+            const by = batchFilter.value;
+            const filtered = allRows.filter(s => {
+                const okQ = s.fullname.toLowerCase().includes(q);
+                const okB = by === "" || String(s.batchYear) === by;
+                return okQ && okB;
+            });
+            renderTable(filtered);
+        }
+
+        expenseTable.addEventListener("click", async (e) => {
+            const btn = e.target.closest("button"); if (!btn) return;
+
+            if (btn.classList.contains("set-budget-btn")) {
+                currentScholarId = btn.dataset.id;
+                budgetInput.value = btn.dataset.budget || 0;
+                budgetModal.style.display = "flex"; return;
+            }
+
+            if (btn.classList.contains("reimb-btn")) {
+                currentScholarId = btn.dataset.id;
+                reimbInput.value = "";
+                reimbModal.style.display = "flex"; return;
+            }
+
+            if (btn.classList.contains("reset-btn")) {
+                const userId = btn.dataset.id;
+                if (!confirm("Reset this scholar's Tuition Reimbursement tracker to zero?")) return;
+                try {
+                    const r = await fetch(`/api/tuition-reimb/${userId}/reset`, { method: "PUT", headers: { "Content-Type": "application/json" } });
+                    if (r.ok) { alert("Reset successful."); loadScholars(); }
+                    else alert("Failed to reset.");
+                } catch (err) { console.error(err); alert("Reset failed."); }
+            }
+        });
+
+        saveBudgetBtn.addEventListener("click", async () => {
+            const amount = parseFloat(budgetInput.value) || 0;
+            if (!currentScholarId) return;
+            try {
+                const r = await fetch(`/api/tuition-reimb/${currentScholarId}/budget`, {
+                    method: "PUT", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ allottedBudget: amount })
+                });
+                if (r.ok) { alert("Budget updated!"); budgetModal.style.display = "none"; loadScholars(); }
+                else alert("Failed to update budget.");
+            } catch (err) { console.error(err); }
+        });
+
+        saveReimbBtn.addEventListener("click", async () => {
+            const v = parseFloat(reimbInput.value) || 0;
+            if (!currentScholarId || v <= 0) return;
+            try {
+                const r = await fetch(`/api/tuition-reimb/${currentScholarId}/reimburse`, {
+                    method: "PUT", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ addAmount: v })
+                });
+                if (r.ok) { alert("Reimbursed!"); reimbModal.style.display = "none"; loadScholars(); }
+                else alert("Failed to reimburse.");
+            } catch (err) { console.error(err); }
+        });
+
+        cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");
+        cancelReimbBtn.addEventListener("click", () => reimbModal.style.display = "none");
+        window.addEventListener("click", (e) => {
+            if (e.target === budgetModal) budgetModal.style.display = "none";
+            if (e.target === reimbModal) reimbModal.style.display = "none";
+        });
+
+        searchInput.addEventListener("input", applyFilters);
+        batchFilter.addEventListener("change", applyFilters);
+        window.addEventListener("DOMContentLoaded", loadScholars);
+    </script>
+</body>
+
+</html>

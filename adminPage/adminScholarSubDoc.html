@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submitted Documents</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -223,6 +226,81 @@
     .close-btn:hover {
       color: #800000;
     }
+
+    /* Upload Form Styles */
+    .upload-form {
+      margin-top: 15px;
+    }
+
+    .upload-form label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .upload-form select,
+    .upload-form input[type="file"],
+    .upload-form input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #800000;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .upload-form select:focus,
+    .upload-form input[type="file"]:focus,
+    .upload-form input[type="text"]:focus {
+      border-color: #800000;
+      box-shadow: 0 0 5px rgba(128, 0, 0, 0.3);
+      outline: none;
+    }
+
+    .upload-form button {
+      background: #800000;
+      color: #fff;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .upload-form button:hover {
+      background: #a00000;
+    }
+
+    #uploadStatus {
+      margin-top: 15px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    /* Style only file input */
+    .upload-form input[type="file"] {
+      padding: 10px;
+      border: 2px solid #800000;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    /* Custom "Choose File" button */
+    .upload-form input[type="file"]::-webkit-file-upload-button {
+      background: #800000;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s ease;
+      margin-right: 10px;
+    }
   </style>
 </head>
 
@@ -281,8 +359,40 @@
       </div>
 
       <div class="content-section" id="uploads">
-        <h2>Upload Documents</h2>
-        <p>upload docs here</p>
+        <h2>Upload Existing Documents</h2>
+        <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+
+          <!-- Scholar Search -->
+          <label for="scholarSearch">Search Scholar:</label>
+          <input type="text" id="scholarSearch" name="scholarName" list="scholarList" placeholder="Type to search..."
+            required>
+          <datalist id="scholarList"></datalist>
+          <!-- hidden field to store scholar ID -->
+          <input type="hidden" id="scholarId" name="scholarId" required>
+
+          <!-- Document Type -->
+          <label for="docType">Document Type:</label>
+          <select id="docType" name="docType" required>
+            <option value="">-- Select Document Type --</option>
+            <option value="Grades">Grades</option>
+            <option value="SOA">SOA</option>
+            <option value="Certificate of Enrollment">Certificate of Enrollment</option>
+            <option value="Book Reimbursement">Book Reimbursement</option>
+            <option value="Others">Others</option>
+          </select>
+
+          <!-- File Input -->
+          <label for="docFile">Choose File (PDF, DOCX, JPG, PNG):</label>
+          <input type="file" id="docFile" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required>
+
+          <!-- Upload Button -->
+          <button type="submit">
+            <i class="fa fa-upload"></i> Upload Document
+          </button>
+        </form>
+
+        <!-- Upload Status -->
+        <div id="uploadStatus"></div>
       </div>
 
       <div class="content-section" id="folders">
@@ -737,8 +847,76 @@
       });
     })();
   </script>
+  <script>
+    let scholarMap = {}; // store {fullname: id}
 
+    async function fetchScholarsForUpload() {
+      try {
+        const res = await fetch("/api/verified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to load scholars");
 
+        const scholars = await res.json();
+        const dataList = document.getElementById("scholarList");
+        dataList.innerHTML = "";
+        scholarMap = {};
+
+        scholars.forEach(s => {
+          const option = document.createElement("option");
+          option.value = s.fullname;
+          dataList.appendChild(option);
+          scholarMap[s.fullname] = s._id;
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // when user picks a scholar name, fill hidden ID field
+    document.getElementById("scholarSearch").addEventListener("change", function () {
+      const name = this.value;
+      const scholarId = scholarMap[name];
+      document.getElementById("scholarId").value = scholarId || "";
+    });
+
+    // handle upload
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      const scholarId = formData.get("scholarId");
+      if (!scholarId) {
+        alert("Please select a valid scholar from the list.");
+        return;
+      }
+
+      const statusDiv = document.getElementById("uploadStatus");
+      statusDiv.textContent = "Uploading...";
+
+      try {
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+          credentials: "include"
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.msg || "Upload failed");
+        }
+
+        statusDiv.style.color = "green";
+        statusDiv.textContent = "✅ Document uploaded successfully!";
+        form.reset();
+        fetchDocuments(); // refresh submitted docs
+      } catch (err) {
+        statusDiv.style.color = "red";
+        statusDiv.textContent = "❌ " + err.message;
+      }
+    });
+
+    // load scholars when opening uploads tab
+    document.querySelector("[data-target='uploads']").addEventListener("click", fetchScholarsForUpload);
+  </script>
 </body>
-
 </html>

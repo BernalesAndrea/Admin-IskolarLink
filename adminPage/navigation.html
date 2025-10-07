@@ -290,8 +290,22 @@
             <li><a href="#" onclick="loadIframe('/adminPage/task.html')"><i class="fas fa-tasks"></i>Tasks</a></li>
           </ul>
         </li>
-        <li><a href="#" onclick="loadIframe('/adminPage/track_expenses.html')"><i class="fas fa-wallet"></i>Track
-            Expenses</a></li>
+        <li class="has-submenu">
+          <a href="#">
+            <i class="fas fa-file"></i>Track Expenses
+            <i class="fas fa-chevron-down dropdown-icon"></i>
+          </a>
+          <ul class="submenu">
+            <li><a href="#" onclick="loadIframe('adminPage/allowance-expenses.html')"><i
+                  class="fas fa-file-upload"></i>Allowance</a></li>
+            <li><a href="#" onclick="loadIframe('adminPage/book-reimbursement.html')"><i
+                  class="fas fa-file-upload"></i>Book Reimbursements</a></li>
+            <li><a href="#" onclick="loadIframe('adminPage/tuition-reimbursement.html')"><i
+                  class="fas fa-file-upload"></i>Tuition Reimbursements</a></li>
+            <li><a href="#" onclick="loadIframe('adminPage/tuition.html')"><i
+                  class="fas fa-file-upload"></i>Tuition</a></li>
+          </ul>
+        </li>
         <li><a href="#" onclick="loadIframe('/adminPage/messages.html')"><i class="fas fa-message"></i>Messages</a></li>
       </ul>
 
@@ -312,60 +326,60 @@
   </label>
 
   <!-- Iframe where admin pages will load -->
-  <iframe id="page-frame" src="/adminPage/home.html"></iframe>
+  <iframe id="page-frame" src="/adminPage/allowance-expenses.html"></iframe>
 
- <script>
-  function loadIframe(page) {
-    document.getElementById("page-frame").src = page;
-  }
-
-  async function loadProfile() {
-    try {
-      const res = await fetch("/api/users/me", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch profile");
-      const user = await res.json();
-
-      document.getElementById("profile-name").innerText = user.fullname || "Admin";
-      document.getElementById("profile-role").innerText =
-        user.role === "admin" ? "Admin" : (user.role || "User");
-
-      // ✅ prefer profilePicUrl; fallback to legacy string; add cache-buster
-      const src = user.profilePicUrl || user.profilePic || "/assets/default-avatar.png";
-      document.getElementById("profile-pic").src = `${src}?v=${Date.now()}`;
-    } catch (err) {
-      console.error("Profile load error:", err);
+  <script>
+    function loadIframe(page) {
+      document.getElementById("page-frame").src = page;
     }
-  }
-  loadProfile();
 
-  // ✅ Sidebar submenu toggle
-  document.querySelectorAll(".has-submenu > a").forEach(menu => {
-    menu.addEventListener("click", function (e) {
-      e.preventDefault();
-      let parent = this.parentElement;
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/users/me", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const user = await res.json();
 
-      document.querySelectorAll(".has-submenu").forEach(item => {
-        if (item !== parent) {
-          item.classList.remove("open");
-        }
+        document.getElementById("profile-name").innerText = user.fullname || "Admin";
+        document.getElementById("profile-role").innerText =
+          user.role === "admin" ? "Admin" : (user.role || "User");
+
+        // ✅ prefer profilePicUrl; fallback to legacy string; add cache-buster
+        const src = user.profilePicUrl || user.profilePic || "/assets/default-avatar.png";
+        document.getElementById("profile-pic").src = `${src}?v=${Date.now()}`;
+      } catch (err) {
+        console.error("Profile load error:", err);
+      }
+    }
+    loadProfile();
+
+    // ✅ Sidebar submenu toggle
+    document.querySelectorAll(".has-submenu > a").forEach(menu => {
+      menu.addEventListener("click", function (e) {
+        e.preventDefault();
+        let parent = this.parentElement;
+
+        document.querySelectorAll(".has-submenu").forEach(item => {
+          if (item !== parent) {
+            item.classList.remove("open");
+          }
+        });
+
+        parent.classList.toggle("open");
       });
-
-      parent.classList.toggle("open");
     });
-  });
 
-  // ✅ Logout button
-  document.getElementById("logoutBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    fetch("/auth/logout", { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.msg);
-        window.location.href = data.redirect;
-      })
-      .catch(err => console.error("Logout failed", err));
-  });
-</script>
+    // ✅ Logout button
+    document.getElementById("logoutBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      fetch("/auth/logout", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.msg);
+          window.location.href = data.redirect;
+        })
+        .catch(err => console.error("Logout failed", err));
+    });
+  </script>
 
 </body>
 

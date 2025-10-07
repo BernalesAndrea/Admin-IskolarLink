@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Allowance Expenses Tracker</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: url('/assets/iskolarbg.png') center/cover no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-y: auto;
+            max-height: 90vh;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #800000;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input,
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        thead {
+            background: #800000;
+            color: white;
+        }
+
+        tr:hover {
+            background: rgba(128, 0, 0, 0.1);
+        }
+
+        .update-btn,
+        .set-budget-btn,
+        .give-btn {
+            background-color: #800000;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .update-btn:hover,
+        .set-budget-btn:hover,
+        .give-btn:hover {
+            background-color: #a00000;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content input {
+            width: 80%;
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .cancel-btn {
+            background-color: #ccc;
+            color: black;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background-color: #bbb;
+        }
+
+        /* Reset (danger) button */
+        .reset-btn {
+            background: #800000;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(211, 47, 47, .25);
+            transition: transform .08s ease, box-shadow .2s ease, filter .2s ease, background .2s ease;
+        }
+
+        .reset-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(183, 28, 28, .35);
+        }
+
+        .reset-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--danger-soft), 0 4px 10px rgba(183, 28, 28, .3);
+        }
+
+        /* Optional: add a small icon look without external assets */
+        .reset-btn::before {
+            content: "↺";
+            margin-right: 8px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Allowance Expenses Tracker</h2>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search scholar...">
+            <select id="batchFilter"></select>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scholar</th>
+                    <th>Batch</th>
+                    <th>Allotted Budget (₱)</th>
+                    <th>Total Given (₱)</th>
+                    <th>Remaining Balance (₱)</th>
+                    <th>Update</th>
+                </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+        </table>
+    </div>
+
+    <!-- Budget Modal -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <h3>Set Allotted Budget</h3>
+            <input type="number" id="budgetInput" placeholder="Enter amount" />
+            <div class="modal-buttons">
+                <button id="saveBudgetBtn" class="update-btn">Save</button>
+                <button id="cancelBudgetBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Give Amount Modal -->
+    <div id="giveModal" class="modal">
+        <div class="modal-content">
+            <h3>Give Amount</h3>
+            <input type="number" id="giveInput" placeholder="Enter amount to give" />
+            <div class="modal-buttons">
+                <button id="saveGiveBtn" class="update-btn">Save</button>
+                <button id="cancelGiveBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const expenseTable = document.getElementById("expenseTable");
+        const searchInput = document.getElementById("searchInput");
+        const batchFilter = document.getElementById("batchFilter");
+
+        const budgetModal = document.getElementById("budgetModal");
+        const giveModal = document.getElementById("giveModal");
+
+        const budgetInput = document.getElementById("budgetInput");
+        const giveInput = document.getElementById("giveInput");
+
+        const saveBudgetBtn = document.getElementById("saveBudgetBtn");
+        const saveGiveBtn = document.getElementById("saveGiveBtn");
+
+        const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
+        const cancelGiveBtn = document.getElementById("cancelGiveBtn");
+
+        let currentScholarId = null;
+        let allScholars = [];
+
+        async function loadScholars() {
+            try {
+                const res = await fetch("/api/allowances");  // ← NEW
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                allScholars = data;
+                renderTable(allScholars);
+                populateBatchFilter(allScholars);
+            } catch (err) {
+                console.error("Failed to fetch scholars:", err);
+                alert("Failed to load allowance data. Are you logged in as admin?");
+            }
+        }
+
+
+        function populateBatchFilter(data) {
+            const years = [...new Set(data.map(s => s.batchYear))].filter(Boolean).sort();
+            batchFilter.innerHTML = '<option value="">All Batches</option>';
+            years.forEach(y => {
+                const opt = document.createElement("option");
+                opt.value = y;
+                opt.textContent = "Batch " + y;
+                batchFilter.appendChild(opt);
+            });
+        }
+
+        function renderTable(data) {
+            expenseTable.innerHTML = "";
+            if (!data.length) {
+                expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+                return;
+            }
+
+            data.forEach(s => {
+                const remaining = (s.allottedBudget || 0) - (s.totalGiven || 0);
+                const row = document.createElement("tr");
+                row.innerHTML = `
+          <td>${s.fullname}</td>
+          <td>${s.batchYear || '-'}</td>
+          <td><button class="set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
+          <td><button class="give-btn" data-id="${s._id}" data-total="${s.totalGiven || 0}" data-budget="${s.allottedBudget || 0}">Give Amount</button></td>
+          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
+          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+        `;
+                expenseTable.appendChild(row);
+            });
+        }
+
+        // Save Allotted Budget
+        saveBudgetBtn.addEventListener("click", async () => {
+            const newBudget = parseFloat(budgetInput.value) || 0;
+            if (!currentScholarId) return;
+            try {
+                const res = await fetch(`/api/allowances/${currentScholarId}/budget`, {  // ← NEW
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ allottedBudget: newBudget })
+                });
+                if (res.ok) {
+                    alert("Budget updated successfully!");
+                    budgetModal.style.display = "none";
+                    loadScholars();
+                } else {
+                    alert("Failed to update budget.");
+                }
+            } catch (err) {
+                console.error("Update failed:", err);
+            }
+        });
+
+        // Save Given Amount (deduct from remaining)
+        saveGiveBtn.addEventListener("click", async () => {
+            const givenAmount = parseFloat(giveInput.value) || 0;
+            if (!currentScholarId || givenAmount <= 0) return;
+
+            try {
+                const res = await fetch(`/api/allowances/${currentScholarId}/given`, {  // ← NEW
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ addAmount: givenAmount })                     // ← NEW
+                });
+                if (res.ok) {
+                    alert("Amount given successfully!");
+                    giveModal.style.display = "none";
+                    loadScholars();
+                } else {
+                    alert(`Failed to update total given. (${res.status})`);
+                }
+            } catch (err) { console.error("Update failed:", err); }
+
+        });
+        // Cancel modals
+        cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");
+        cancelGiveBtn.addEventListener("click", () => giveModal.style.display = "none");
+        window.addEventListener("click", e => {
+            if (e.target === budgetModal) budgetModal.style.display = "none";
+            if (e.target === giveModal) giveModal.style.display = "none";
+        });
+
+        // Filters  
+        function applyFilters() {
+            const search = searchInput.value.toLowerCase();
+            const batch = batchFilter.value;
+            const filtered = allScholars.filter(s => {
+                const matchSearch = s.fullname.toLowerCase().includes(search);
+                const matchBatch = batch === "" || String(s.batchYear) === batch;
+                return matchSearch && matchBatch;
+            });
+            renderTable(filtered);
+        }
+
+        // Delegated click handling for all buttons in the table
+        expenseTable.addEventListener("click", async (e) => {
+            const btn = e.target.closest("button");
+            if (!btn) return;
+
+            // --- Set Budget
+            if (btn.classList.contains("set-budget-btn")) {
+                currentScholarId = btn.dataset.id;
+                budgetInput.value = btn.dataset.budget || 0;
+                budgetModal.style.display = "flex";
+                return;
+            }
+
+            // --- Give Amount
+            if (btn.classList.contains("give-btn")) {
+                currentScholarId = btn.dataset.id;
+                giveInput.value = "";
+                giveModal.style.display = "flex";
+                return;
+            }
+
+            // --- Reset Both
+            if (btn.classList.contains("reset-btn")) {
+                const userId = btn.dataset.id;
+                if (!userId) return;
+                if (!confirm("Reset this scholar's Allotted Budget and Total Given to 0?")) return;
+
+                try {
+                    const res = await fetch(`/api/allowances/${userId}/reset`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" }
+                    });
+                    if (res.ok) {
+                        alert("Allowance reset successfully.");
+                        loadScholars();
+                    } else {
+                        const text = await res.text().catch(() => "");
+                        alert(`Failed to reset. HTTP ${res.status}${text ? `: ${text}` : ""}`);
+                    }
+                } catch (err) {
+                    console.error("Reset failed:", err);
+                    alert("Reset failed. Check console for details.");
+                }
+            }
+        });
+
+
+        searchInput.addEventListener("input", applyFilters);
+        batchFilter.addEventListener("change", applyFilters);
+        window.addEventListener("DOMContentLoaded", loadScholars);
+    </script>
+</body>
+
+</html>
