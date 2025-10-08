@@ -1116,6 +1116,79 @@ app.put("/api/admin/documents/:id/status", authMiddleware, async (req, res) => {
   }
 });
 
+// Admin: upload a document for a scholar
+// Admin: upload a document for a scholar
+app.post("/api/admin/upload",
+  authMiddleware,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (req.user.role !== "admin") {
+        return res.status(403).json({ msg: "Access denied" });
+      }
+
+      const { scholarId, docType, initialStatus, backdateISO } = req.body;
+
+      // ✅ Validate inputs early
+      if (!scholarId) return res.status(400).json({ msg: "Missing scholarId" });
+      if (!mongoose.Types.ObjectId.isValid(scholarId)) {
+        return res.status(400).json({ msg: "Invalid scholarId" });
+      }
+      if (!docType) return res.status(400).json({ msg: "Missing docType" });
+      if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+
+      console.log("[ADMIN UPLOAD] scholarId=%s docType=%s file=%s (%s bytes)",
+        scholarId, docType, req.file.originalname, req.file.size);
+
+      const user = await User.findOne({ _id: scholarId, role: "scholar", verified: true });
+      if (!user) return res.status(404).json({ msg: "Scholar not found or not verified" });
+
+      const file = await putToGridFS({
+        buffer: req.file.buffer,
+        filename: `${Date.now()}-${req.file.originalname}`,
+        bucketName: "submittedDocs",
+        contentType: req.file.mimetype,
+        metadata: { userId: String(user._id), uploadedBy: "admin", field: "document", docType }
+      });
+
+      let status = "Pending";
+      if (typeof initialStatus === "string") {
+        const s = initialStatus.trim().toLowerCase();
+        status = s === "accepted" ? "Accepted" : s === "rejected" ? "Rejected" : "Pending";
+      }
+
+      const doc = new SubmittedDocument({
+        scholar: user._id,
+        fullname: user.fullname,
+        batchYear: user.batchYear,
+        docType,
+        fileId: file._id,
+        bucket: "submittedDocs",
+        status
+      });
+
+      if (backdateISO) {
+        const d = new Date(backdateISO);
+        if (!Number.isNaN(d.getTime())) doc.createdAt = d;
+      }
+
+      await doc.save();
+      return res.json({
+        msg: "Document uploaded for scholar",
+        document: doc,
+        fileUrl: `/files/submittedDocs/${file._id}`
+      });
+
+    } catch (err) {
+      console.error("Admin upload error:", err?.message, err?.stack);
+      // ✅ surface a clearer error string to the frontend
+      return res.status(500).json({ msg: "Server error during admin upload", error: err.message });
+    }
+  }
+);
+
+
+
 
 // Admin: Get all submitted tasks
 app.get("/api/admin/submitted-tasks", authMiddleware, async (req, res) => {
@@ -1183,6 +1256,110 @@ app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), asy
     res.status(500).json({ msg: "Error submitting task", error: err.message });
   }
 });
+
+// ================= MY SUBMISSIONS (SCHOLAR) =================
+
+// Return this scholar's task submissions (minimal payload for left tabs)
+app.get("/api/my-submissions", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "scholar") return res.status(403).json({ msg: "Access denied" });
+
+    const subs = await SubmittedTask.find({ scholar: req.user.id })
+      .select("task status createdAt fileId bucket")
+      .populate("task", "title startDate dueDate description") // optional but nice
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const shaped = subs.map(s => ({
+      _id: String(s._id),
+      task: s.task?._id ? String(s.task._id) : String(s.task),
+      taskInfo: s.task && s.task.title ? {
+        title: s.task.title,
+        startDate: s.task.startDate,
+        dueDate: s.task.dueDate,
+        description: s.task.description
+      } : null,
+      status: s.status || "Pending",
+      submittedAt: s.createdAt,
+      fileUrl: (s.fileId && s.bucket) ? `/files/${s.bucket}/${s.fileId}` : null
+    }));
+
+    res.json(shaped);
+  } catch (err) {
+    console.error("GET /api/my-submissions error:", err);
+    res.status(500).json({ msg: "Error fetching submissions", error: err.message });
+  }
+});
+
+// Alias to match your front-end's fallback probe
+app.get("/api/submissions/me", authMiddleware, async (req, res) => {
+  // simply delegate to the same logic
+  req.url = "/api/my-submissions";
+  return app._router.handle(req, res);
+});
+
+
+// ================= SUBMIT TASK (SCHOLAR) =================
+app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), async (req, res) => {
+  if (req.user.role !== "scholar") return res.status(403).json({ msg: "Access denied" });
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || !user.verified) return res.status(400).json({ msg: "Scholar not verified or not found" });
+    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
+
+    // Ensure task exists (optional but good)
+    const task = await mongoose.model("Task").findById(req.params.taskId).lean();
+    if (!task) return res.status(404).json({ msg: "Task not found" });
+
+    // Upload file to GridFS
+    const file = await putToGridFS({
+      buffer: req.file.buffer,
+      filename: `${Date.now()}-${req.file.originalname}`,
+      bucketName: 'tasks',
+      contentType: req.file.mimetype,
+      metadata: { userId: req.user.id, taskId: req.params.taskId, field: 'file' }
+    });
+
+    // Upsert one submission per (task, scholar)
+    const submission = await SubmittedTask.findOneAndUpdate(
+      { task: req.params.taskId, scholar: user._id },
+      {
+        $setOnInsert: {
+          task: req.params.taskId,
+          scholar: user._id,
+          fullname: user.fullname,
+          batchYear: user.batchYear,
+          fileId: file._id,
+          bucket: 'tasks',
+          status: 'Pending'
+        }
+      },
+      { upsert: true, new: true, runValidators: true }
+    );
+
+    // If a prior submission exists, optionally update the file to the latest upload:
+    if (submission && String(submission.fileId) !== String(file._id)) {
+      submission.fileId = file._id;
+      await submission.save();
+    }
+
+    res.json({
+      msg: "Task submitted successfully",
+      submission,
+      fileUrl: `/files/tasks/${file._id}`
+    });
+  } catch (err) {
+    // surface duplicate key error clearly
+    if (err && err.code === 11000) {
+      return res.status(409).json({ msg: "You already submitted this task" });
+    }
+    console.error("Error submitting task:", err);
+    res.status(500).json({ msg: "Error submitting task", error: err.message });
+  }
+});
+
+
 
 
 const ALLOWED_BUCKETS = new Set(['grades','submittedDocs','tasks','profilePics']);

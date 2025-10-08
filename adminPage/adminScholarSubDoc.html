@@ -179,16 +179,16 @@
             <datalist id="scholarList"></datalist>
             <input type="hidden" id="scholarId" name="scholarId" required>
 
-            <!-- Document Type -->
-            <label for="docType">Document Type:</label>
-            <select id="docType" name="docType" required>
-              <option value="">-- Select Document Type --</option>
-              <option value="Grades">Grades</option>
-              <option value="SOA">SOA</option>
-              <option value="Certificate of Enrollment">Certificate of Enrollment</option>
-              <option value="Book Reimbursement">Book Reimbursement</option>
-              <option value="Others">Others</option>
-            </select>
+          <!-- Document Type -->
+          <label for="docType">Document Type:</label>
+          <select id="docType" name="docType" required>
+            <option value="">-- Select Document Type --</option>
+            <option value="Grades">Grades</option>
+            <option value="SOA">SOA</option>
+            <option value="Certificate of Registration">Certificate of Registration</option>
+            <option value="Book Reimbursement">Book Reimbursement</option>
+            <option value="Others">Others</option>
+          </select>
 
             <!-- File Input -->
             <label for="docFile">Choose File (PDF, DOCX, JPG, PNG):</label>
@@ -242,7 +242,7 @@
       <ul>
         <li><a href="#">📄 Scanned Grades</a></li>
         <li><a href="#">📄 SOA</a></li>
-        <li><a href="#">📄 Certificate of Enrollment</a></li>
+        <li><a href="#">📄 Certificate of Registration</a></li>
         <li><a href="#">📄 Book Reimbursement</a></li>
         <li><a href="#">📄 Others</a></li>
       </ul>
@@ -564,15 +564,29 @@
     document.getElementById("uploadForm").addEventListener("submit", async (e)=>{
       e.preventDefault();
       const form = e.target;
-      const fd = new FormData(form);
-      if(!fd.get("scholarId")){ alert("Please select a valid scholar from the list."); return; }
-      const status = document.getElementById("uploadStatus");
-      status.style.color = "#333";
-      status.textContent = "Uploading...";
-      try{
-        const res = await fetch("/api/admin/upload",{ method:"POST", body:fd, credentials:"include" });
-        if(!res.ok){
-          const data = await res.json().catch(()=>({}));
+      const formData = new FormData(form);
+
+      const scholarName = formData.get("scholarName");
+      const scholarId = formData.get("scholarId");
+
+      // ensure name → id mapping is valid
+      if (!scholarName || !scholarMap[scholarName] || scholarMap[scholarName] !== scholarId) {
+        alert("Please pick a scholar from the list.");
+        return;
+      }
+
+      const statusDiv = document.getElementById("uploadStatus");
+      statusDiv.textContent = "Uploading...";
+
+      try {
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+          credentials: "include"
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
           throw new Error(data.msg || "Upload failed");
         }
         status.style.color = "green";
@@ -595,4 +609,5 @@
     setInterval(fetchScholarFolders, 5000);
   </script>
 </body>
+
 </html>

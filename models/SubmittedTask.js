@@ -29,4 +29,7 @@ submittedTaskSchema.virtual("submittedAt").get(function () {
 submittedTaskSchema.set("toObject", { virtuals: true });
 submittedTaskSchema.set("toJSON",   { virtuals: true });
 
+// ⛑️ Ensure a scholar can submit a given task only once
+submittedTaskSchema.index({ task: 1, scholar: 1 }, { unique: true });
+
 module.exports = mongoose.model("SubmittedTask", submittedTaskSchema);
