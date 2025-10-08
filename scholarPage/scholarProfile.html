@@ -2,134 +2,200 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scholar Profile</title>
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: url('/assets/iskolarbg.png') center/cover no-repeat;
-      font-family: Arial, sans-serif;
+    :root{
+      --gold:#D4A017;   /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
     }
 
-    .profileContainer {
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body{
+      min-height:100vh;
+      margin:0;
+      display:flex;
+      flex-direction:column; /* header / main / footer */
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+      font-family: Arial, Helvetica, sans-serif;
+      color:#333;
+    }
+
+    /* ========= HEADER ========= */
+    .site-header{
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff; user-select:none;
+    }
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px;
+      transition: color .25s ease;
+    }
+    .brand-block > a:hover{ color: var(--gold); }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition: color .25s ease; }
+    .brand-sub a:hover{ color: var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block > a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
+    }
+
+    /* ========= MAIN ========= */
+    main{
+      flex:1; /* push footer to bottom */
+      display:flex; justify-content:center; align-items:center;
+      padding:24px 16px;
+    }
+
+    .profileContainer{
       width: 90%;
       max-width: 600px;
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       padding: 30px;
     }
 
-    .profileContainer h2 {
+    .profileContainer h2{
       margin-bottom: 20px;
       text-align: center;
+      color:#000;
     }
 
-    .profile-pic {
+    .profile-pic{
       text-align: center;
       margin-bottom: 20px;
     }
-
-    .profile-pic img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #800000;
+    .profile-pic img{
+      width: 120px; height: 120px; border-radius: 50%;
+      object-fit: cover; border: 3px solid var(--maroon);
     }
+    .profile-pic input{ margin-top: 10px; }
 
-    .profile-pic input {
-      margin-top: 10px;
+    .form-group{ margin-bottom: 15px; }
+    .form-group label{
+      display:block; margin-bottom:5px; font-weight:bold;
     }
+    .form-group input{
+      width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;
+    }
+    .form-group input[readonly]{ background:#f5f5f5; cursor:not-allowed; }
 
-    .form-group {
-      margin-bottom: 15px;
+    button{
+      display:block; width:100%; padding:10px;
+      background: var(--maroon);
+      color:#fff; border:none; border-radius:6px;
+      font-size:16px; cursor:pointer; margin-top:15px;
+      transition: background .2s ease;
     }
+    button:hover{ background:#a00000; }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px; /* 1px stroke around footer */
     }
-
-    .form-group input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    .form-group input[readonly] {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-    }
-
-    button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      background: #800000;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-
-    button:hover {
-      background: #a00000;
-    }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
-  <div class="profileContainer">
-    <h2>Edit Scholar Profile</h2>
-
-    <form id="profileForm" enctype="multipart/form-data">
-      <div class="profile-pic">
-        <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
-        <input type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
+    </div>
+  </header>
 
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" name="fullname" id="fullname" required>
-      </div>
+  <!-- MAIN -->
+  <main>
+    <div class="profileContainer">
+      <h2>Edit Scholar Profile</h2>
 
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" id="email" required>
-      </div>
+      <form id="profileForm" enctype="multipart/form-data">
+        <div class="profile-pic">
+          <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
+          <input type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+        </div>
 
-      <div class="form-group">
-        <label>Barangay</label>
-        <input type="text" name="barangay" id="barangay" required>
-      </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="fullname" id="fullname" required>
+        </div>
 
-      <div class="form-group">
-        <label>Batch Year</label>
-        <input type="text" name="batchNumber" id="batchNumber" readonly>
-      </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" id="email" required>
+        </div>
 
-      <div class="form-group">
-        <label>Course</label>
-        <input type="text" name="course" id="course" required>
-      </div>
+        <div class="form-group">
+          <label>Barangay</label>
+          <input type="text" name="barangay" id="barangay" required>
+        </div>
 
-      <div class="form-group">
-        <label>School Name</label>
-        <input type="text" name="schoolName" id="schoolName" required>
-      </div>
+        <div class="form-group">
+          <label>Batch Year</label>
+          <input type="text" name="batchNumber" id="batchNumber" readonly>
+        </div>
 
-      <button type="submit">Save Changes</button>
-    </form>
-  </div>
+        <div class="form-group">
+          <label>Course</label>
+          <input type="text" name="course" id="course" required>
+        </div>
+
+        <div class="form-group">
+          <label>School Name</label>
+          <input type="text" name="schoolName" id="schoolName" required>
+        </div>
+
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script>
     // Preview uploaded image
@@ -138,33 +204,37 @@
       reader.onload = function () {
         document.getElementById('preview').src = reader.result;
       }
-      reader.readAsDataURL(event.target.files[0]);
+      const file = event.target.files[0];
+      if (file) reader.readAsDataURL(file);
     }
 
     // Load scholar profile
     async function loadProfile() {
-      const res = await fetch('/api/users/me');
-      if (!res.ok) return;
-      const user = await res.json();
+      try{
+        const res = await fetch('/api/users/me', { credentials: 'include' });
+        if (!res.ok) return;
+        const user = await res.json();
 
-      document.getElementById('fullname').value = user.fullname || '';
-      document.getElementById('email').value = user.email || '';
-      document.getElementById('barangay').value = user.barangay || '';
+        document.getElementById('fullname').value = user.fullname || '';
+        document.getElementById('email').value = user.email || '';
+        document.getElementById('barangay').value = user.barangay || '';
 
-      // ✅ Batch year from DB (readonly)
-      document.getElementById('batchNumber').value = user.batchYear || 'Not Assigned';
+        // ✅ Batch year from DB (readonly)
+        document.getElementById('batchNumber').value = user.batchYear || 'Not Assigned';
 
-      document.getElementById('course').value = user.course || '';
-      document.getElementById('schoolName').value = user.schoolName || '';
+        document.getElementById('course').value = user.course || '';
+        document.getElementById('schoolName').value = user.schoolName || '';
 
-      if (user.profilePic) {
-        document.getElementById('preview').src = user.profilePic;
+        // Prefer GridFS URL if present
+        const bucketUrl =
+          (user.profilePicBucket && user.profilePicId)
+            ? `/files/${user.profilePicBucket}/${user.profilePicId}`
+            : (user.profilePicUrl || user.profilePic || '/assets/default-avatar.png');
+
+        document.getElementById('preview').src = `${bucketUrl}?v=${Date.now()}`;
+      } catch(e){
+        console.error('Profile load error:', e);
       }
-      const bucketUrl =
-        (user.profilePicBucket && user.profilePicId)
-          ? `/files/${user.profilePicBucket}/${user.profilePicId}`
-          : (user.profilePicUrl || user.profilePic || '/assets/default-avatar.png');
-      document.getElementById('preview').src = `${bucketUrl}?v=${Date.now()}`;
     }
 
     loadProfile();
@@ -177,14 +247,20 @@
       // ❌ remove batchNumber from update since it comes from DB
       formData.delete('batchNumber');
 
-      const res = await fetch('/api/users/me', {
-        method: 'PUT',
-        body: formData
-      });
+      try{
+        const res = await fetch('/api/users/me', {
+          method: 'PUT',
+          credentials: 'include',
+          body: formData
+        });
 
-      const data = await res.json();
-      alert(data.msg || 'Profile updated!');
-      loadProfile();
+        const data = await res.json().catch(()=>({}));
+        alert(data.msg || (res.ok ? 'Profile updated!' : 'Update failed.'));
+        loadProfile();
+      } catch (err){
+        alert('Update failed.');
+        console.error(err);
+      }
     });
   </script>
 </body>

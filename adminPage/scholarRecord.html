@@ -1,286 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scholar Records</title>
   <style>
-    body {
-      margin: 0; 
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --gold:#D4A017;
     }
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
 
-    .container {
-      width: 90%;
-      height: 80%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      overflow: hidden;
+    /* ===== LAYOUT ===== */
+    body{
+      display:flex; flex-direction:column; min-height:100vh;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    }
+    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    /* ===== HEADER ===== */
+    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+
+    /* ===== MAIN CARD ===== */
+    .container{
+      width:90%; height:80vh; max-width:1000px;
+      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
+      overflow:hidden; display:flex; flex-direction:column;
     }
 
     /* Tabs */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #eee;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 14px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      background: #f9f9f9;
-      transition: all 0.3s ease;
-    }
-
-    .tab:hover {
-      background: #eaeaea;
-    }
-
-    .tab.active {
-      background: #800000;
-      color: #fff;
-      font-weight: bold;
-    }
+    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
+    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease; user-select:none }
+    .tab:hover{ background:#eaeaea }
+    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
 
     /* Content */
-    .content {
-      padding: 20px;
-      min-height: 300px;
-      overflow-y: auto;
-    }
+    .content{ padding:20px; min-height:0; overflow-y:auto; flex:1 }
+    .content-section{ display:none }
+    .content-section.active{ display:block }
 
-    .content-section {
-      display: none;
-    }
+    /* Table */
+    table{ width:100%; border-collapse:collapse; margin-top:15px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.05); table-layout:fixed }
+    thead{ background:var(--maroon); color:#fff }
+    thead th{ padding:12px; font-size:14px; text-align:left; letter-spacing:.5px }
+    tbody td{ padding:12px; border-bottom:1px solid #ddd; font-size:14px; color:#333 }
+    tbody tr:hover{ background:rgba(128,0,0,.08); transition:.3s }
+    tbody tr:last-child td{ border-bottom:none }
 
-    .content-section.active {
-      display: block;
-    }
+    /* Buttons */
+    .btn{ border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; transition:background .3s ease; margin-right:6px }
+    .btn:last-child{ margin-right:0 }
+    .btn-verify{ background:var(--maroon); color:#fff }
+    .btn-verify:hover{ background:#4d0000 }
+    .btn-reject{ background:#333; color:#fff }
+    .btn-reject:hover{ background:#b30000 }
 
-    /* Modern Table */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      table-layout: fixed; /* FIX: prevent auto-expanding columns */
-    }
-
-    thead {
-      background: #800000;
-      color: #fff;
-    }
-
-    thead th {
-      padding: 12px;
-      font-size: 14px;
-      text-align: left;
-      letter-spacing: 0.5px;
-    }
-
-    tbody td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
-      font-size: 14px;
-      color: #333;
-    }
-
-    tbody tr:hover {
-      background: rgba(128, 0, 0, 0.08);
-      transition: 0.3s;
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-
-    /* Buttons inside table */
-    .btn {
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.3s ease;
-      margin-right: 6px;
-    }
-
-    .btn:last-child {
-      margin-right: 0; /* remove extra margin on Reject button */
-    }
-
-    .btn-verify {
-      background: #800000;
-      color: #fff;
-    }
-
-    .btn-verify:hover {
-      background: #4d0000;
-    }
-
-    .btn-reject {
-      background: #333;
-      color: #fff;
-    }
-
-    .btn-reject:hover {
-      background: #b30000;
-    }
+    /* ===== FOOTER ===== */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" data-target="verification">Account Verification</div>
-      <div class="tab" data-target="records">Regular Scholars</div>
-      <div class="tab" data-target="records">Special Scholars</div>
-      <div class="tab" data-target="records">Post-Graduate Scholars</div>
-    </div>
-
-    <!-- Content -->
-    <div class="content">
-      <div class="content-section active" id="verification">
-        <h2>Account Verification</h2>
-        <table id="verificationTable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Batch</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Rows will be inserted here by JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="content-section" id="records">
-        <h2>Regular Scholar Records</h2>
-        <table id="recordsTable">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Batch Year</th>
-              <th>Barangay</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Verified scholars will be inserted here by JS -->
-          </tbody>
-        </table>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
     </div>
-  </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-target="verification">Account Verification</div>
+        <div class="tab" data-target="records-regular">Regular Scholars</div>
+        <div class="tab" data-target="records-special">Special Scholars</div>
+        <div class="tab" data-target="records-postgrad">Post-Graduate Scholars</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Account Verification -->
+        <div class="content-section active" id="verification">
+          <h2>Account Verification</h2>
+          <table id="verificationTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Batch</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody><!-- rows via JS --></tbody>
+          </table>
+        </div>
+
+        <!-- Regular -->
+        <div class="content-section" id="records-regular">
+          <h2>Regular Scholar Records</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Batch Year</th>
+                <th>Barangay</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableRegular"><!-- rows via JS --></tbody>
+          </table>
+        </div>
+
+        <!-- Special -->
+        <div class="content-section" id="records-special">
+          <h2>Special Scholar Records</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Batch Year</th>
+                <th>Barangay</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableSpecial"><!-- rows via JS --></tbody>
+          </table>
+        </div>
+
+        <!-- Post-Grad -->
+        <div class="content-section" id="records-postgrad">
+          <h2>Post-Graduate Scholar Records</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Batch Year</th>
+                <th>Barangay</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTablePostgrad"><!-- rows via JS --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script>
+    /* ---------- Tab wiring ---------- */
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-
+    tabs.forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        sections.forEach(s=>s.classList.remove('active'));
         tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
+        const target = document.getElementById(tab.dataset.target);
+        if(target) target.classList.add('active');
+
+        // lazy load per section
+        if(tab.dataset.target==='verification') fetchUnverifiedScholars();
+        if(tab.dataset.target?.startsWith('records')) fetchAndRenderVerified();
       });
     });
 
-    async function fetchUnverifiedScholars() {
-      try {
-        const response = await fetch("/api/unverified-scholars");
-        const scholars = await response.json();
+    /* ---------- Helpers ---------- */
+    function escapeHtml(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'","&#039;");
+    }
+    function typeOfScholar(s){
+      // Try several fields; default "Regular"
+      return (s.type || s.category || s.scholarType || 'Regular').toString().toLowerCase();
+    }
+
+    /* ---------- Verification list ---------- */
+    async function fetchUnverifiedScholars(){
+      try{
+        const res = await fetch("/api/unverified-scholars",{credentials:"include"});
+        if(!res.ok) throw new Error("Failed to fetch unverified scholars");
+        const scholars = await res.json();
         const tbody = document.querySelector("#verificationTable tbody");
         tbody.innerHTML = "";
 
-        scholars.forEach(scholar => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${scholar.fullname}</td>
-            <td>${scholar.email}</td>
-            <td>${scholar.batchYear || "-"}</td>
-            <td>
-              <button class="btn btn-verify" onclick="verifyScholar('${scholar._id}')">Verify</button>
-              <button class="btn btn-reject" onclick="rejectScholar('${scholar._id}')">Reject</button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (error) {
-        console.error("Error fetching scholars:", error);
-      }
-    }
-
-    async function verifyScholar(id) {
-        try {
-          await fetch(`/api/verified-scholar/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ verified: true }) // ✅ only verification for now
-          });
-          fetchUnverifiedScholars(); // refresh list
-        } catch (err) {
-          console.error("Error verifying scholar:", err);
+        if(!Array.isArray(scholars) || !scholars.length){
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#666;">No accounts pending verification.</td></tr>`;
+          return;
         }
-      }
 
-    async function rejectScholar(id) {
-      try {
-        await fetch(`/api/reject-scholar/${id}`, { method: "DELETE" });
-        fetchUnverifiedScholars();
-      } catch (err) {
-        console.error("Error rejecting scholar:", err);
-      }
-    }
-
-    document.querySelector('[data-target="verification"]').addEventListener("click", fetchUnverifiedScholars);
-    fetchUnverifiedScholars();
-
-    async function fetchVerifiedScholars() {
-      try {
-        const response = await fetch("/api/verified-scholars");
-        const scholars = await response.json();
-        const tbody = document.querySelector("#recordsTable tbody");
-        tbody.innerHTML = "";
-
-        scholars.forEach(scholar => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${scholar.fullname}</td>
-            <td>${scholar.batchYear || "-"}</td>
-            <td>${scholar.barangay || "-"}</td>
-          `;
-          tbody.appendChild(row);
+        scholars.forEach(s=>{
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(s.fullname)}</td>
+            <td>${escapeHtml(s.email)}</td>
+            <td>${escapeHtml(s.batchYear ?? '-')}</td>
+            <td>
+              <button class="btn btn-verify" onclick="verifyScholar('${s._id}')">Verify</button>
+              <button class="btn btn-reject" onclick="rejectScholar('${s._id}')">Reject</button>
+            </td>`;
+          tbody.appendChild(tr);
         });
-      } catch (error) {
-        console.error("Error fetching verified scholars:", error);
-      }
+      }catch(err){ console.error(err); }
     }
 
-    document.querySelector('[data-target="records"]').addEventListener("click", fetchVerifiedScholars);
+    async function verifyScholar(id){
+      try{
+        const res = await fetch(`/api/verified-scholar/${id}`,{
+          method:"PUT",
+          headers:{ "Content-Type":"application/json" },
+          credentials:"include",
+          body:JSON.stringify({ verified:true })
+        });
+        if(!res.ok){ throw new Error("Verification failed"); }
+        fetchUnverifiedScholars();
+      }catch(err){ console.error("Error verifying scholar:",err); }
+    }
+
+    async function rejectScholar(id){
+      try{
+        const res = await fetch(`/api/reject-scholar/${id}`,{ method:"DELETE", credentials:"include" });
+        if(!res.ok){ throw new Error("Reject failed"); }
+        fetchUnverifiedScholars();
+      }catch(err){ console.error("Error rejecting scholar:",err); }
+    }
+
+    /* ---------- Verified records (all three lists) ---------- */
+    async function fetchAndRenderVerified(){
+      try{
+        const res = await fetch("/api/verified-scholars",{credentials:"include"});
+        if(!res.ok) throw new Error("Failed to fetch verified scholars");
+        const scholars = await res.json();
+
+        const byType = { regular:[], special:[], postgrad:[] };
+        (Array.isArray(scholars) ? scholars : []).forEach(s=>{
+          const t = typeOfScholar(s);
+          if(t.includes('post')) byType.postgrad.push(s);
+          else if(t.includes('special')) byType.special.push(s);
+          else byType.regular.push(s);
+        });
+
+        const buckets = [
+          { list: byType.regular, el: document.getElementById("recordsTableRegular") },
+          { list: byType.special, el: document.getElementById("recordsTableSpecial") },
+          { list: byType.postgrad, el: document.getElementById("recordsTablePostgrad") },
+        ];
+
+        buckets.forEach(({list, el})=>{
+          el.innerHTML = "";
+          if(!list.length){
+            el.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#666;">No records found.</td></tr>`;
+            return;
+          }
+          list.forEach(s=>{
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${escapeHtml(s.fullname)}</td>
+              <td>${escapeHtml(s.batchYear ?? '-')}</td>
+              <td>${escapeHtml(s.barangay ?? '-')}</td>`;
+            el.appendChild(tr);
+          });
+        });
+      }catch(err){ console.error("Error fetching verified scholars:",err); }
+    }
+
+    // Initial load
+    fetchUnverifiedScholars();
   </script>
 </body>
 </html>

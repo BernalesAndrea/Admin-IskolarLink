@@ -1,133 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Profile</title>
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: url('/assets/iskolarbg.png') center/cover no-repeat;
-      font-family: Arial, sans-serif;
+    :root{
+      --gold:#D4A017;
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
     }
 
-    .profileContainer {
-      width: 90%;
-      max-width: 600px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      padding: 30px;
+    *{box-sizing:border-box;}
+    html,body{height:100%; margin:0;}
+
+    body{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+      font-family:Arial, Helvetica, sans-serif;
+      color:#333;
     }
 
-    .profileContainer h2 {
-      margin-bottom: 20px;
-      text-align: center;
+    /* ===== HEADER ===== */
+    .site-header{
+      background:var(--maroon);
+      border-bottom:2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{ height:64px; width:auto; }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff;
+    }
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px;
+      transition:color .25s ease;
+    }
+    .brand-block > a:hover{color:var(--gold);}
+    .brand-sub{margin-top:4px; font-size:14px; font-weight:600;}
+    .brand-sub a{color:#fff; text-decoration:none; transition:color .25s ease;}
+    .brand-sub a:hover{color:var(--gold);}
+    @media(max-width:640px){
+      .header-logo{height:48px;}
+      .brand-block > a{font-size:20px;}
+      .brand-sub{font-size:12px;}
     }
 
-    .profile-pic {
-      text-align: center;
-      margin-bottom: 20px;
+    /* ===== MAIN ===== */
+    main{
+      flex:1;
+      display:flex; justify-content:center; align-items:center;
+      padding:24px 16px;
     }
 
-    .profile-pic img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #800000;
+    .profileContainer{
+      width:90%;
+      max-width:600px;
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      padding:30px;
+    }
+    .profileContainer h2{
+      margin-bottom:20px;
+      text-align:center;
+      color:#000;
     }
 
-    .profile-pic input {
-      margin-top: 10px;
+    .profile-pic{text-align:center; margin-bottom:20px;}
+    .profile-pic img{
+      width:120px; height:120px; border-radius:50%;
+      object-fit:cover; border:3px solid var(--maroon);
     }
-
-    .form-group {
-      margin-bottom: 15px;
+    .profile-pic input{margin-top:10px;}
+    .form-group{margin-bottom:15px;}
+    .form-group label{display:block; margin-bottom:5px; font-weight:bold;}
+    .form-group input{
+      width:100%; padding:8px; border:1px solid #ccc; border-radius:6px;
     }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+    button{
+      display:block; width:100%; padding:10px;
+      background:var(--maroon); color:#fff; border:none; border-radius:6px;
+      font-size:16px; cursor:pointer; margin-top:15px; transition:background .2s ease;
     }
+    button:hover{background:#a00000;}
+    .hint{color:#555; font-size:12px; margin-top:6px; text-align:center;}
 
-    .form-group input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+    /* ===== FOOTER ===== */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px;
     }
-
-    button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      background: #800000;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 15px;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    button:hover {
-      background: #a00000;
-    }
-
-    .hint { color:#555; font-size: 12px; margin-top:6px; text-align:center; }
+    .footer-wrap img{max-height:48px; width:auto;}
   </style>
 </head>
 <body>
-  <div class="profileContainer">
-    <h2>Edit Profile</h2>
 
-    <form id="profileForm" enctype="multipart/form-data">
-      <div class="profile-pic">
-        <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
-        <input id="picInput" type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
-        <div class="hint">Max ~5–10MB is typical; PNG/JPG recommended.</div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
+    </div>
+  </header>
 
-      <div class="form-group">
-        <label for="fullname">Full Name</label>
-        <input type="text" name="fullname" id="fullname" required>
-      </div>
+  <!-- MAIN -->
+  <main>
+    <div class="profileContainer">
+      <h2>Edit Profile</h2>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" required>
-      </div>
+      <form id="profileForm" enctype="multipart/form-data">
+        <div class="profile-pic">
+          <img id="preview" src="/assets/default-avatar.png" alt="Profile Picture">
+          <input id="picInput" type="file" name="profilePic" accept="image/*" onchange="previewImage(event)">
+          <div class="hint">Max ~5–10MB is typical; PNG/JPG recommended.</div>
+        </div>
 
-      <button type="submit">Save Changes</button>
-    </form>
-  </div>
+        <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input type="text" name="fullname" id="fullname" required>
+        </div>
 
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" name="email" id="email" required>
+        </div>
+
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <!-- JS -->
   <script>
-    // Util: build a GridFS URL if API didn't send a ready-made profilePicUrl
-    function fileUrl(bucket, id, { download = false } = {}) {
+    function fileUrl(bucket, id, opts) {
+      opts = opts || {};
       if (!bucket || !id) return null;
-      return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
+      return opts.download ? '/files/' + bucket + '/' + id + '/download'
+                           : '/files/' + bucket + '/' + id;
     }
 
-    // Show image preview immediately after choosing a file
     function previewImage(event) {
-      const file = event.target.files?.[0];
+      var input = event.target;
+      var file = input && input.files ? input.files[0] : null;
       if (!file) return;
-
-      // Guard: basic client-side size/type check (optional)
-      const allowed = ['image/png','image/jpeg','image/webp','image/gif'];
-      if (!allowed.includes(file.type)) {
+      var allowed = ['image/png','image/jpeg','image/webp','image/gif'];
+      if (allowed.indexOf(file.type) === -1) {
         alert('Please select a PNG/JPG/WEBP/GIF image.');
-        event.target.value = '';
+        input.value = '';
         return;
       }
-
-      const reader = new FileReader();
+      var reader = new FileReader();
       reader.onload = function() {
         document.getElementById('preview').src = reader.result;
       };
@@ -136,84 +187,50 @@
 
     async function loadProfile() {
       try {
-        const res = await fetch('/api/users/me');
-        if (res.status === 401) {
-          // Not logged-in or token expired → go to login
-          window.location.href = '/';
-          return;
-        }
+        const res = await fetch('/api/users/me', { credentials: 'include' });
+        if (res.status === 401) return (window.location.href = '/');
         if (!res.ok) throw new Error('Failed to load profile');
-
         const user = await res.json();
 
-        // Fill text fields
         document.getElementById('fullname').value = user.fullname || '';
         document.getElementById('email').value = user.email || '';
 
-        // Determine profile picture URL
-        // Prefer server-computed URL if provided
         let src = user.profilePicUrl || null;
-
-        // Otherwise construct from bucket + id (GridFS)
-        if (!src && user.profilePicBucket && user.profilePicId) {
+        if (!src && user.profilePicBucket && user.profilePicId)
           src = fileUrl(user.profilePicBucket, user.profilePicId);
-        }
+        if (!src && user.profilePic) src = user.profilePic;
 
-        // Fallback to legacy string path if you still have old records
-        if (!src && user.profilePic) {
-          src = user.profilePic;
-        }
-
-        // Apply with cache-buster so new uploads reflect immediately
-        const img = document.getElementById('preview');
-        img.src = src ? `${src}?v=${Date.now()}` : '/assets/default-avatar.png';
+        document.getElementById('preview').src = src
+          ? src + '?v=' + Date.now()
+          : '/assets/default-avatar.png';
       } catch (err) {
         console.error(err);
         alert('Unable to load profile right now.');
       }
     }
-
     loadProfile();
 
-    // Submit handler (PUT /api/users/me)
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-
+      const formData = new FormData(e.target);
       try {
         const res = await fetch('/api/users/me', {
           method: 'PUT',
+          credentials: 'include',
           body: formData
         });
-
-        if (res.status === 401) {
-          window.location.href = '/';
-          return;
-        }
-
+        if (res.status === 401) return (window.location.href = '/');
         const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data?.msg || 'Failed to update profile');
-        }
-
+        if (!res.ok) throw new Error(data.msg || 'Failed to update profile');
         alert(data.msg || 'Profile updated!');
 
-        // Update preview with returned URL (if provided)
-        const nextSrc =
-          data.profilePicUrl ||
-          (data.user?.profilePicBucket && data.user?.profilePicId
-            ? fileUrl(data.user.profilePicBucket, data.user.profilePicId)
-            : null);
+        let nextSrc = data.profilePicUrl || null;
+        if (!nextSrc && data.user && data.user.profilePicBucket && data.user.profilePicId)
+          nextSrc = fileUrl(data.user.profilePicBucket, data.user.profilePicId);
+        if (nextSrc)
+          document.getElementById('preview').src = nextSrc + '?v=' + Date.now();
 
-        if (nextSrc) {
-          // cache-buster to ensure we see the fresh file
-          document.getElementById('preview').src = `${nextSrc}?v=${Date.now()}`;
-        }
-
-        // Clear the file input so accidental re-submit won't re-upload
         document.getElementById('picInput').value = '';
-
       } catch (err) {
         console.error(err);
         alert(err.message || 'Update failed.');

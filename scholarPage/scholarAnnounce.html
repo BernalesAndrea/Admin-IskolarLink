@@ -6,117 +6,166 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scholar • Announcements</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --gold:#D4A017;   /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
     }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    *{
+      margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
     }
 
-    .container {
-      width: 90%;
-      height: 80%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    html, body { height:100%; }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column; /* header / main / footer */
+      background-image:url('/assets/iskolarbg.png');
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
     }
 
-    /* Match admin list look */
-    .content {
-      padding: 20px;
-      flex: 1;
-      height: 500px;
+    /* ========= HEADER ========= */
+    .site-header{
+      position:sticky; top:0; z-index:1000;
+      background:var(--maroon);
+      border-bottom:2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff; user-select:none;
+    }
+    /* Main title link */
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px;
+      transition:color .25s ease;
+    }
+    .brand-block > a:hover{ color:var(--gold); }
+    /* Subtext link */
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition:color .25s ease; }
+    .brand-sub a:hover{ color:var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block > a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
     }
 
-    .announcementsWrapper {
-      width: 100%;
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 500px;
-      padding-right: 10px;
+    /* ========= MAIN ========= */
+    main{
+      flex:1; /* push footer to bottom */
+      display:flex; justify-content:center; align-items:center;
+      padding:24px;
     }
 
-    .announcementsWrapper h2 {
-      color: black;
-      margin-bottom: 10px;
-      flex-shrink: 0;
-      text-align: center;
+    .container{
+      width:90%; max-width:1000px; height:auto;
+      background:#fff; border-radius:20px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.1);
+      overflow:hidden; display:flex; flex-direction:column;
     }
 
-    .announcementsList {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      padding-bottom: 40px;
+    .content{ padding:20px; flex:1; }
+
+    .announcementsWrapper{
+      width:100%; max-width:800px; margin:auto;
+      display:flex; flex-direction:column; gap:15px;
+      max-height:500px; padding-right:10px;
     }
 
-    .announcement-card {
-      width: 100%;
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: left;
-      transition: transform 0.2s ease;
+    .announcementsWrapper h2{
+      color:black; margin-bottom:10px; text-align:center; flex-shrink:0;
     }
 
-    .announcement-card:hover {
-      transform: translateY(-4px);
+    .announcementsList{
+      display:flex; flex-direction:column; gap:20px;
+      overflow-y:auto; padding-bottom:40px;
     }
 
-    /* Card rows (same ordering as admin: title, meta, content) */
-    .announcement-card div:nth-child(1) {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #800000;
-      margin-bottom: 6px;
+    .announcement-card{
+      width:100%; background:#fff; border-radius:12px; padding:15px 20px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:left; transition:transform .2s ease;
+    }
+    .announcement-card:hover{ transform:translateY(-4px); }
+
+    /* Card rows (title, meta, content) */
+    .announcement-card div:nth-child(1){
+      font-weight:bold; font-size:1.1em; color:var(--maroon); margin-bottom:6px;
+    }
+    .announcement-card div:nth-child(2){
+      font-size:.85em; color:black; font-weight:bold; margin-bottom:10px;
+    }
+    .announcement-card div:nth-child(3){
+      font-size:1em; line-height:1.4em;
     }
 
-    .announcement-card div:nth-child(2) {
-      font-size: 0.85em;
-      color: black;
-      font-weight: bold;
-      margin-bottom: 10px;
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px; /* 1px stroke around footer */
     }
-
-    .announcement-card div:nth-child(3) {
-      font-size: 1em;
-      line-height: 1.4em;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="content">
-      <div class="announcementsWrapper">
-        <h2>Announcements</h2>
-        <div class="announcementsList" id="announcements"></div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
     </div>
-  </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <div class="content">
+        <div class="announcementsWrapper">
+          <h2>Announcements</h2>
+          <div class="announcementsList" id="announcements"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script>
     async function loadAnnouncements() {

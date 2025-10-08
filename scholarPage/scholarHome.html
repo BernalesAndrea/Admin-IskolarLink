@@ -6,268 +6,249 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home</title>
   <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      padding: 40px 20px;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #333;
+    :root{
+      --gold:#D4A017; /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background-image:url('/assets/iskolarbg.png');
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-attachment:fixed;
+      font-family:Arial, Helvetica, sans-serif;
+      color:#333;
     }
 
-    .homeContainer {
-      width: 100%;
-      max-width: 1200px;
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
+    /* ========= HEADER ========= */
+    .site-header{
+      position:sticky; top:0; z-index:1000;
+      background:var(--maroon);
+      border-bottom:2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:10px 16px;
+      display:flex;
+      justify-content:center; /* keep the whole block centered */
+    }
+    .header-center{
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      line-height:1.1;
+      text-align:center;
+      color:#fff; /* base text color */
+      user-select:none;
+    }
+    /* Main title link */
+    .brand-block > a{
+      color:#fff; text-decoration:none; /* not blue, no underline */
+      font-weight:800;
+      font-size:24px;
+      letter-spacing:.5px;
+      transition:color .25s ease;
+    }
+    .brand-block > a:visited{ color:#fff; }
+    .brand-block > a:hover{ color:var(--gold); } /* hover turns golden yellow */
+
+    /* Subtext link */
+    .brand-sub{
+      margin-top:4px;
+      font-size:14px;
+      font-weight:600;
+    }
+    .brand-sub a{
+      color:#fff; text-decoration:none;
+      transition:color .25s ease;
+    }
+    .brand-sub a:hover{ color:var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{height:48px}
+      .brand-block > a{font-size:20px}
+      .brand-sub{font-size:12px}
     }
 
-    .announce {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      height: 600px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      word-wrap: break-word;
+    /* ========= MAIN ========= */
+    main{
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+      flex:1; /* pushes footer to bottom */
+    }
+    .homeContainer{
+      width:100%;
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:20px;
+    }
+    .announce{
+      background:rgba(255,255,255,.9);
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+      height:600px;
+      overflow-y:auto; overflow-x:hidden;
+      word-wrap:break-word;
+    }
+    .eventTask{ display:flex; flex-direction:column; gap:38px; }
+    .Task,.event{
+      background:rgba(255,255,255,.9);
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+      height:260px;
+      overflow-y:auto;
     }
 
-    .eventTask {
-      display: flex;
-      flex-direction: column;
-      gap: 38px;
+    .announce::before{
+      content:"📢 Announcements";
+      display:block; font-size:1.2rem; font-weight:bold; margin-bottom:10px;
+    }
+    .Task::before{
+      content:"📝 Tasks";
+      display:block; font-size:1.1rem; font-weight:bold; margin-bottom:10px;
+    }
+    .event::before{
+      content:"📅 Upcoming Events";
+      display:block; font-size:1.1rem; font-weight:bold; margin-bottom:10px;
     }
 
-    .Task,
-    .event {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      height: 260px;
-      overflow-y: auto;
+    /* Event Card */
+    .eventCard{
+      display:flex; align-items:center; gap:15px;
+      background:#fdfdfd; border-radius:10px; padding:10px; margin-bottom:12px;
+      box-shadow:0 2px 5px rgba(0,0,0,.1);
+      transition:transform .2s ease;
+    }
+    .eventCard:hover{ transform:translateY(-4px); }
+    .eventDate{
+      text-align:center; padding:10px; background:rgba(146,59,59,1); color:#fff;
+      border-radius:8px; width:60px;
+    }
+    .eventDate h2{ font-size:18px; margin:0; }
+    .eventDate h1{ font-size:28px; margin:0; }
+
+    .eventDetails h3{ margin:0; font-size:1rem; color:#000; }
+    .viewMoreBtn{
+      background:none; border:none; color:rgba(146,59,59,1);
+      cursor:pointer; font-weight:bold; font-size:14px; padding:0; margin-top:5px;
     }
 
-    .announce::before {
-      content: "📢 Announcements";
-      display: block;
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 10px;
+    /* Announcement Card */
+    .announcement-card{
+      width:100%; background:#fff; border-radius:12px; padding:15px 20px;
+      box-shadow:0 4px 10px rgba(0,0,0,.1); text-align:left; transition:transform .2s ease;
+      margin-bottom:15px; word-wrap:break-word;
     }
-
-    .Task::before {
-      content: "📝 Tasks";
-      display: block;
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 10px;
+    .announcement-card:hover{ transform:translateY(-4px); }
+    .announcement-card div:nth-child(1){
+      font-weight:bold; font-size:1.1em; color:var(--maroon); margin-bottom:6px;
     }
-
-    .event::before {
-      content: "📅 Upcoming Events";
-      display: block;
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin-bottom: 10px;
+    .announcement-card div:nth-child(2){
+      font-size:.85em; color:#000; font-weight:bold; margin-bottom:10px;
     }
+    .announcement-card div:nth-child(3){ font-size:1em; line-height:1.4em; }
 
-    /* Event Card (imitated from event.html) */
-    .eventCard {
-      display: flex;
-      align-items: center;
-      background: #fdfdfd;
-      border-radius: 10px;
-      padding: 10px;
-      gap: 15px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease;
+    /* Task Card */
+    .task-card{
+      background:#fdfdfd; border-left:5px solid var(--maroon);
+      border-radius:10px; padding:15px 20px; box-shadow:0 2px 6px rgba(0,0,0,.1);
+      transition:transform .2s ease; margin-bottom:12px;
     }
-
-    .eventCard:hover {
-      transform: translateY(-4px);
-    }
-
-    .eventDate {
-      text-align: center;
-      padding: 10px;
-      background: rgba(146, 59, 59);
-      color: white;
-      border-radius: 8px;
-      width: 60px;
-    }
-
-    .eventDate h2 {
-      font-size: 18px;
-      margin: 0;
-    }
-
-    .eventDate h1 {
-      font-size: 28px;
-      margin: 0;
-    }
-
-    .eventDetails h3 {
-      margin: 0;
-      font-size: 1rem;
-      color: black;
-    }
-
-    .viewMoreBtn {
-      background: none;
-      border: none;
-      color: rgba(146, 59, 59);
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      padding: 0;
-      margin-top: 5px;
-    }
-
-    /* Announcement Cards (match announcement page) */
-    .announcement-card {
-      width: 100%;
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: left;
-      transition: transform 0.2s ease;
-      margin-bottom: 15px;
-      box-sizing: border-box;
-      word-wrap: break-word;
-    }
-
-    .announcement-card:hover {
-      transform: translateY(-4px);
-    }
-
-    /* Card rows: title, meta, content */
-    .announcement-card div:nth-child(1) {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #800000;
-      /* maroon title */
-      margin-bottom: 6px;
-    }
-
-    .announcement-card div:nth-child(2) {
-      font-size: 0.85em;
-      color: black;
-      font-weight: bold;
-      /* bold meta line */
-      margin-bottom: 10px;
-    }
-
-    .announcement-card div:nth-child(3) {
-      font-size: 1em;
-      line-height: 1.4em;
-    }
-
-
-    /* Task Card (adapted from admin) */
-    .task-card {
-      background: #fdfdfd;
-      border-left: 5px solid #800000;
-      border-radius: 10px;
-      padding: 15px 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease;
-      margin-bottom: 12px;
-    }
-
-    .task-card:hover {
-      transform: translateY(-4px);
-    }
-
-    .task-title {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #800000;
-      margin-bottom: 5px;
-    }
-
-    .task-dates {
-      font-size: 0.9em;
-      color: #555;
-      margin-bottom: 8px;
-    }
-
-    .task-description {
-      font-size: 0.95em;
-      color: #333;
-      line-height: 1.4em;
-    }
-
-
+    .task-card:hover{ transform:translateY(-4px); }
+    .task-title{ font-weight:bold; font-size:1.1em; color:var(--maroon); margin-bottom:5px; }
+    .task-dates{ font-size:.9em; color:#555; margin-bottom:8px; }
+    .task-description{ font-size:.95em; color:#333; line-height:1.4em; }
 
     /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+    .modal{
+      display:none; position:fixed; z-index:2000; inset:0;
+      background:rgba(0,0,0,.5);
+    }
+    .modal-content{
+      background:#fff; padding:20px; border-radius:10px; width:400px; max-width:90%;
+      margin:100px auto;
+    }
+    .close{ float:right; font-size:20px; cursor:pointer; font-weight:bold; }
+
+    @media (max-width:900px){
+      .homeContainer{ grid-template-columns:1fr; }
+      .eventTask{ flex-direction:row; flex-wrap:wrap; }
+      .Task,.event{ flex:1; min-width:250px; }
     }
 
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 400px;
-      max-width: 90%;
-      margin: 100px auto;
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000; /* top border */
+      /* full stroke around footer element */
+      outline:1px solid #000; outline-offset:-1px;
     }
-
-    .close {
-      float: right;
-      font-size: 20px;
-      cursor: pointer;
-      font-weight: bold;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
 
-    @media (max-width: 900px) {
-      .homeContainer {
-        grid-template-columns: 1fr;
-      }
-
-      .eventTask {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .Task,
-      .event {
-        flex: 1;
-        min-width: 250px;
-      }
-    }
   </style>
 </head>
 
 <body>
-  <div class="homeContainer">
-    <div class="announce">
-      <!-- Announcements -->
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
     </div>
-    <div class="eventTask">
-      <div class="Task"><!-- Tasks --></div>
-      <div class="event" id="eventList"><!-- Events --></div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="homeContainer">
+      <div class="announce"><!-- Announcements --></div>
+      <div class="eventTask">
+        <div class="Task"><!-- Tasks --></div>
+        <div class="event" id="eventList"><!-- Events --></div>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <!-- Modal -->
   <div id="eventModal" class="modal">
@@ -275,7 +256,6 @@
       <span class="close">&times;</span>
       <h2 id="modalTitle"></h2>
       <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
-
 
       <!-- Attendance buttons -->
       <div style="margin-top: 15px; display:flex; gap:10px;">
@@ -288,7 +268,6 @@
       </div>
     </div>
   </div>
-
 
   <script>
     let currentEventId = null;
@@ -308,23 +287,21 @@
         const div = document.createElement("div");
         div.classList.add("eventCard");
         div.innerHTML = `
-        <div class="eventDate">
-          <h2>${month}</h2>
-          <h1>${day}</h1>
-        </div>
-        <div class="eventDetails">
-          <h3>${ev.title}</h3>
-          <button class="viewMoreBtn">View more...</button>
-        </div>
-      `;
+          <div class="eventDate">
+            <h2>${month}</h2>
+            <h1>${day}</h1>
+          </div>
+          <div class="eventDetails">
+            <h3>${ev.title}</h3>
+            <button class="viewMoreBtn">View more...</button>
+          </div>
+        `;
 
         div.querySelector(".viewMoreBtn").addEventListener("click", () => {
           currentEventId = ev._id;
 
-          // Keep the title as is
           document.getElementById("modalTitle").textContent = ev.title;
 
-          // Friendly date/time for readability
           const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
             weekday: 'long',
             year: 'numeric',
@@ -334,23 +311,18 @@
             minute: '2-digit'
           });
 
-          // Description (optional)
           const desc = (ev.description || '').trim();
           const extra = desc ? `${desc}` : '';
 
-          // One sentence with bold highlights + line breaks
           const sentence =
             `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
             `with a duration of <strong>${ev.duration}</strong>.\n\n` +
             (extra ? `<strong>Description:</strong>\n${extra}` : '');
 
-          // Inject as HTML so <strong> renders; \n\n respected via white-space: pre-line
           document.getElementById("modalSentence").innerHTML = sentence;
 
-          // Show modal (unchanged)
           document.getElementById("eventModal").style.display = "block";
         });
-
 
         container.appendChild(div);
       });
@@ -372,28 +344,26 @@
         const div = document.createElement("div");
         div.className = "task-card";
         div.innerHTML = `
-      <div class="task-title">${task.title}</div>
-      <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
-      <div class="task-description">${task.description}</div>
-    `;
+          <div class="task-title">${task.title}</div>
+          <div class="task-dates">${task.startDate} → ${task.dueDate}</div>
+          <div class="task-description">${task.description}</div>
+        `;
         container.appendChild(div);
       });
     }
-
 
     /* ----------------- Load Announcements ----------------- */
     async function loadAnnouncements() {
       const res = await fetch("/announcements");
       const anns = await res.json();
       const container = document.querySelector(".announce");
-      container.innerHTML = ""; // clear old announcements (leave the section box & heading ::before)
+      container.innerHTML = "";
 
       if (!anns || anns.length === 0) {
         container.innerHTML = "<p>No announcements available.</p>";
         return;
       }
 
-      // newest first
       anns.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       anns.forEach(a => {
@@ -408,18 +378,15 @@
           minute: "2-digit"
         });
 
-        // 3 rows: title, meta, content (no priority)
         card.innerHTML = `
-      <div>${a.title}</div>
-      <div>${formattedDate} • ${a.category || "General"}</div>
-      <div>${a.content}</div>
-    `;
+          <div>${a.title}</div>
+          <div>${formattedDate} • ${a.category || "General"}</div>
+          <div>${a.content}</div>
+        `;
 
         container.appendChild(card);
       });
     }
-
-
 
     /* ----------------- Attendance ----------------- */
     document.getElementById("attendBtn").onclick = async () => {
@@ -427,7 +394,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "attend" }),
-        credentials: "include"   // ✅ send cookies!
+        credentials: "include"
       });
       alert("Attendance saved!");
     };
@@ -437,26 +404,21 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "not_attend" }),
-        credentials: "include"   // ✅ send cookies!
+        credentials: "include"
       });
       alert("Attendance saved!");
     };
 
-
-    // ✅ Close modal when X is clicked
+    // Close modal handlers
     document.querySelector(".close").onclick = () => {
       document.getElementById("eventModal").style.display = "none";
     };
-
-    // ✅ Close modal when clicking outside
     window.onclick = (e) => {
       const modal = document.getElementById("eventModal");
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
+      if (e.target === modal) modal.style.display = "none";
     };
 
-    // ✅ Load all data on page load
+    // Load data
     window.onload = () => {
       loadEvents();
       loadTasks();
@@ -464,5 +426,4 @@
     };
   </script>
 </body>
-
 </html>

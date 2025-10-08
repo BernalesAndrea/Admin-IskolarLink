@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
+    :root{
+      --gold:#D4A017;   /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -18,23 +24,60 @@
       font-family: Arial, Helvetica, sans-serif;
     }
 
+    html, body { height: 100%; }
+
     body {
-      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column; /* header / main / footer */
       background-image: url('/assets/iskolarbg.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
     }
 
+    /* ========= HEADER ========= */
+    .site-header{
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff; user-select:none;
+    }
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px;
+      transition: color .25s ease;
+    }
+    .brand-block > a:hover{ color: var(--gold); }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition: color .25s ease; }
+    .brand-sub a:hover{ color: var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block > a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
+    }
+
+    /* ========= MAIN ========= */
     main {
+      flex: 1; /* push footer to bottom */
       display: flex;
       justify-content: center;
       align-items: center;
       width: 100%;
+      padding: 30px 20px;
     }
 
     .main {
@@ -47,12 +90,8 @@
       text-align: center;
     }
 
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
+    h2 { margin-bottom: 20px; color: #333; }
 
-    /* Term inputs */
     .termInputs {
       display: flex;
       gap: 15px;
@@ -60,223 +99,124 @@
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
-
     .termInputs input {
       padding: 8px;
-      border: 2px solid #800000;
+      border: 2px solid var(--maroon);
       border-radius: 50px;
       width: 250px;
+      background: #fff;
+      color: #000;
     }
 
+    .layout { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; }
 
-    .layout {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
+    .gradeImg { margin-bottom: 20px; }
+    .attachmentBox { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+    .attachmentBox input[type="file"] { display: none; }
 
-    /* attach image box */
-
-    .gradeImg {
-      margin-bottom: 20px;
-    }
-
-    .attachmentBox {
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .attachmentBox input[type="file"] {
-      display: none;
-    }
-
-    /* Custom button styling */
     .custom-file-label {
       display: inline-block;
-      background: #800000;
+      background: var(--maroon);
       color: white;
       padding: 10px 20px;
       border-radius: 50px;
       cursor: pointer;
       transition: 0.3s ease;
     }
-
-    .custom-file-label:hover {
-      background: #a52a2a;
-    }
+    .custom-file-label:hover { background: #a52a2a; }
 
     .attachmentBox img {
-      width: 200px;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 2px solid #800000;
-      margin-top: 10px;
+      width: 200px; height: 200px; object-fit: cover;
+      border-radius: 12px; border: 2px solid var(--maroon); margin-top: 10px;
     }
 
-    /* Grade Inputs */
-    #subjectsContainer {
-      flex: 1;
-      justify-items: center;
-    }
+    #subjectsContainer { flex: 1; justify-items: center; }
 
     .gradeCompute {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-      background: #800000;
-      padding: 12px;
-      border-radius: 25px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+      background: var(--maroon); padding: 12px; border-radius: 25px;
     }
 
-    .inputBox {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
+    .inputBox { display: flex; flex-direction: column; align-items: flex-start; }
     .inputBox input {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 50px;
-      width: 120px;
-      background: #fff;
-      color: #000;
-
+      padding: 8px; border: 1px solid #ccc; border-radius: 50px;
+      width: 120px; background: #fff; color: #000;
     }
 
     .removeSubject button {
-      background: white;
-      color: #800000;
-      padding: 8px;
-      border-radius: 50px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: white; color: var(--maroon); padding: 8px; border-radius: 50px; cursor: pointer; font-size: 16px;
+      display: flex; justify-content: center; align-items: center;
     }
-
-    .removeSubject button:hover {
-      background: #f0f0f0;
-    }
+    .removeSubject button:hover { background: #f0f0f0; }
 
     .buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-top: 15px
+      display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px;
     }
-
     .buttons button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      color: white;
-      background: #800000;
+      display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; color: white; background: var(--maroon);
     }
 
-    #message {
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .error {
-      color: red;
-    }
-
-    .success {
-      color: green;
-    }
+    #message { margin-top: 10px; font-weight: bold; text-align: center; }
+    .error { color: red; }
+    .success { color: green; }
 
     /* Modal */
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;
     }
-
     .modal-content {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 550px;
-      width: 90%;
+      background: white; padding: 25px; border-radius: 12px; text-align: center; max-width: 550px; width: 90%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
+    .modal-content h3 { color: var(--maroon); margin-bottom: 10px; }
+    .modal-content p { margin-bottom: 15px; }
 
-    .modal-content h3 {
-      color: #800000;
-      margin-bottom: 10px;
-    }
+    .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .modal-table th, .modal-table td { border: 1px solid #ccc; padding: 6px 8px; text-align: center; }
+    .modal-table td img { width: 50px; height: auto; border-radius: 4px; }
 
-    .modal-content p {
-      margin-bottom: 15px;
-    }
+    .modal-buttons { display: flex; justify-content: center; gap: 15px; }
+    .modal-buttons button { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+    #cancelBtn { background: #ccc; }
+    #confirmBtn { background: var(--maroon); color: white; }
 
-    .modal-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px;
     }
-
-    .modal-table th,
-    .modal-table td {
-      border: 1px solid #ccc;
-      padding: 6px 8px;
-      text-align: center;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    .modal-table td img {
-      width: 50px;
-      height: auto;
-      border-radius: 4px;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    .modal-buttons button {
-      padding: 10px 18px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #cancelBtn {
-      background: #ccc;
-    }
-
-    #confirmBtn {
-      background: #800000;
-      color: white;
-    }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
 
+  <!-- MAIN -->
   <main>
     <div class="main">
       <h2>Submit Grades</h2>
@@ -288,7 +228,6 @@
       </div>
 
       <div class="gradeImg">
-        <!--Attach grade img-->
         <div class="attachmentBox">
           <input type="file" id="gradePicture" accept="image/*,application/pdf" required>
           <label for="gradePicture" class="custom-file-label">
@@ -301,7 +240,6 @@
 
       <div class="layout">
         <div id="subjectsContainer">
-          <!--subject/unit/grade inputs -->
           <div class="gradeCompute">
             <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
             <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
@@ -311,7 +249,6 @@
         </div>
       </div>
 
-      <!-- buttons now below the grade inputs -->
       <div class="buttons">
         <button onclick="addSubject()"><i class="fa fa-plus"></i> Add Subject</button>
         <button onclick="calculateAverage()"><i class="fa fa-calculator"></i> Calculate Average</button>
@@ -319,7 +256,6 @@
       </div>
 
       <div id="message"></div>
-
     </div>
   </main>
 
@@ -353,62 +289,58 @@
     const previewPdf   = document.getElementById("previewPdf");
 
     gradePicture.addEventListener("change", function () {
-  const file = this.files[0];
-  if (!file) return;
+      const file = this.files[0];
+      if (!file) return;
 
-  // 10 MB limit (tweak as you like)
-  const MAX = 10 * 1024 * 1024;
-  if (file.size > MAX) {
-    showMessage("File too large (max 10MB).", true);
-    this.value = "";
-    previewImage.style.display = "none";
-    previewPdf.style.display = "none";
-    return;
-  }
+      const MAX = 10 * 1024 * 1024;
+      if (file.size > MAX) {
+        showMessage("File too large (max 10MB).", true);
+        this.value = "";
+        previewImage.style.display = "none";
+        previewPdf.style.display = "none";
+        return;
+      }
 
-  const isImage = file.type.startsWith("image/");
-  const isPdf   = file.type === "application/pdf";
-  if (!isImage && !isPdf) {
-    showMessage("Please upload an image or PDF.", true);
-    this.value = "";
-    previewImage.style.display = "none";
-    previewPdf.style.display = "none";
-    return;
-  }
+      const isImage = file.type.startsWith("image/");
+      const isPdf   = file.type === "application/pdf";
+      if (!isImage && !isPdf) {
+        showMessage("Please upload an image or PDF.", true);
+        this.value = "";
+        previewImage.style.display = "none";
+        previewPdf.style.display = "none";
+        return;
+      }
 
-  // Revoke old object URL if any
-  if (previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
-  if (previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
+      if (previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
+      if (previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
 
-  const url = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
 
-  if (isImage) {
-    previewPdf.style.display = "none";
-    previewImage.src = url;
-    previewImage.dataset.url = url;
-    previewImage.style.display = "block";
-  } else {
-    previewImage.style.display = "none";
-    previewPdf.src = url;
-    previewPdf.dataset.url = url;
-    previewPdf.style.display = "block";
-  }
-});
+      if (isImage) {
+        previewPdf.style.display = "none";
+        previewImage.src = url;
+        previewImage.dataset.url = url;
+        previewImage.style.display = "block";
+      } else {
+        previewImage.style.display = "none";
+        previewPdf.src = url;
+        previewPdf.dataset.url = url;
+        previewPdf.style.display = "block";
+      }
+    });
 
     function addSubject() {
-  const container = document.getElementById("subjectsContainer");
-  const newDiv = document.createElement("div");
-  newDiv.classList.add("gradeCompute");
-  newDiv.innerHTML = `
-    <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
-    <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
-    <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
-    <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
-  `;
-  container.appendChild(newDiv);
-}
-
-
+      const container = document.getElementById("subjectsContainer");
+      const newDiv = document.createElement("div");
+      newDiv.classList.add("gradeCompute");
+      newDiv.innerHTML = `
+        <div class="inputBox"><input type="text" placeholder="Subject Code" class="subject" required></div>
+        <div class="inputBox"><input type="text" placeholder="Units" class="unit" required></div>
+        <div class="inputBox"><input type="text" placeholder="Grade" class="grade" required></div>
+        <div class="removeSubject"><button onclick="removeSubject(this)"><i class="fa fa-xmark"></i></button></div>
+      `;
+      container.appendChild(newDiv);
+    }
 
     function removeSubject(button) {
       const container = document.getElementById("subjectsContainer");
@@ -422,156 +354,147 @@
     }
 
     function calculateAverage() {
-  const subjects = document.querySelectorAll(".subject");
-  const units = document.querySelectorAll(".unit");
-  const grades = document.querySelectorAll(".grade");
+      const subjects = document.querySelectorAll(".subject");
+      const units = document.querySelectorAll(".unit");
+      const grades = document.querySelectorAll(".grade");
 
-  let totalWeighted = 0;
-  let totalUnits = 0;
+      let totalWeighted = 0;
+      let totalUnits = 0;
 
-  for (let i = 0; i < subjects.length; i++) {
-    const s = subjects[i].value.trim();
-    const u = parseInt(units[i].value.trim(), 10);
-    const g = parseFloat(grades[i].value.trim());
+      for (let i = 0; i < subjects.length; i++) {
+        const s = subjects[i].value.trim();
+        const u = parseInt(units[i].value.trim(), 10);
+        const g = parseFloat(grades[i].value.trim());
 
-    if (!s || Number.isNaN(u) || Number.isNaN(g)) {
-      showMessage("Please complete Subject, Units (integer), and Grade (number) for all rows.", true);
-      return;
+        if (!s || Number.isNaN(u) || Number.isNaN(g)) {
+          showMessage("Please complete Subject, Units (integer), and Grade (number) for all rows.", true);
+          return;
+        }
+        if (!Number.isInteger(u) || u <= 0) {
+          showMessage("Units must be a positive integer.", true);
+          return;
+        }
+        totalWeighted += g * u;
+        totalUnits += u;
+      }
+
+      if (totalUnits === 0) {
+        showMessage("No units to compute.", true);
+        return;
+      }
+      showMessage(`Calculated GWA: ${(totalWeighted / totalUnits).toFixed(2)}`, false);
     }
-    if (!Number.isInteger(u) || u <= 0) {
-      showMessage("Units must be a positive integer.", true);
-      return;
-    }
-    totalWeighted += g * u;
-    totalUnits += u;
-  }
-
-  if (totalUnits === 0) {
-    showMessage("No units to compute.", true);
-    return;
-  }
-  showMessage(`Calculated GWA: ${(totalWeighted / totalUnits).toFixed(2)}`, false);
-}
-
 
     function uploadData() {
-  const schoolYear = document.getElementById("schoolYear").value.trim();
-  const semester = document.getElementById("semester").value.trim();
-  if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
+      const schoolYear = document.getElementById("schoolYear").value.trim();
+      const semester = document.getElementById("semester").value.trim();
+      if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
 
-  const file = gradePicture.files[0];
-  if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
+      const file = gradePicture.files[0];
+      if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
 
-  const rows = document.querySelectorAll(".gradeCompute");
-  const subjects = [];
-  for (const row of rows) {
-    const s = row.querySelector(".subject").value.trim();
-    const u = row.querySelector(".unit").value.trim();
-    const g = row.querySelector(".grade").value.trim();
-    if (!s || !u || !g) { showMessage("Please complete all subject rows.", true); return; }
-    if (!/^\d+$/.test(u) || isNaN(parseFloat(g))) {
-      showMessage("Units must be integer; Grade must be a number.", true);
-      return;
+      const rows = document.querySelectorAll(".gradeCompute");
+      const subjects = [];
+      for (const row of rows) {
+        const s = row.querySelector(".subject").value.trim();
+        const u = row.querySelector(".unit").value.trim();
+        const g = row.querySelector(".grade").value.trim();
+        if (!s || !u || !g) { showMessage("Please complete all subject rows.", true); return; }
+        if (!/^\d+$/.test(u) || isNaN(parseFloat(g))) {
+          showMessage("Units must be integer; Grade must be a number.", true);
+          return;
+        }
+        subjects.push({ s, u, g });
+      }
+
+      document.getElementById("modalTermText").textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
+      const tbody = document.getElementById("modalTableBody");
+      tbody.innerHTML = "";
+
+      const isImage = file.type.startsWith("image/");
+      const imgUrl  = isImage ? (previewImage.dataset.url || "") : "";
+      const pdfUrl  = !isImage ? (previewPdf.dataset.url || "") : "";
+
+      subjects.forEach((item, i) => {
+        const tr = document.createElement("tr");
+        if (i === 0) {
+          tr.innerHTML = `
+            <td rowspan="${subjects.length}">
+              ${isImage ? `<img src="${imgUrl}" alt="Grade Image">`
+                        : `<span style="display:inline-block;padding:6px 10px;border:1px solid #ccc;border-radius:6px;">PDF attached</span>`}
+            </td>
+            <td>${item.s}</td>
+            <td>${item.u}</td>
+            <td>${item.g}</td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td>${item.s}</td>
+            <td>${item.u}</td>
+            <td>${item.g}</td>
+          `;
+        }
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("confirmationModal").style.display = "flex";
     }
-    subjects.push({ s, u, g });
-  }
-
-  // Fill modal table
-  document.getElementById("modalTermText").textContent = `S.Y. ${schoolYear} (${semester}) Semester`;
-  const tbody = document.getElementById("modalTableBody");
-  tbody.innerHTML = "";
-
-  const isImage = file.type.startsWith("image/");
-  const imgUrl  = isImage ? (previewImage.dataset.url || "") : "";
-  const pdfUrl  = !isImage ? (previewPdf.dataset.url || "") : "";
-
-  subjects.forEach((item, i) => {
-    const tr = document.createElement("tr");
-    if (i === 0) {
-      tr.innerHTML = `
-        <td rowspan="${subjects.length}">
-          ${isImage ? `<img src="${imgUrl}" alt="Grade Image">`
-                    : `<span style="display:inline-block;padding:6px 10px;border:1px solid #ccc;border-radius:6px;">PDF attached</span>`}
-        </td>
-        <td>${item.s}</td>
-        <td>${item.u}</td>
-        <td>${item.g}</td>
-      `;
-    } else {
-      tr.innerHTML = `
-        <td>${item.s}</td>
-        <td>${item.u}</td>
-        <td>${item.g}</td>
-      `;
-    }
-    tbody.appendChild(tr);
-  });
-
-  // Show modal
-  document.getElementById("confirmationModal").style.display = "flex";
-}
-
 
     const confirmationModal = document.getElementById("confirmationModal");
-const cancelBtn = document.getElementById("cancelBtn");
-const confirmBtn = document.getElementById("confirmBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const confirmBtn = document.getElementById("confirmBtn");
 
-cancelBtn.onclick = function () {
-  confirmationModal.style.display = "none";
-  showMessage("Upload cancelled. Please review your data.", true);
-};
-
-confirmBtn.onclick = submitGrade; // one-time binding
-
-async function submitGrade() {
-  const schoolYear = document.getElementById("schoolYear").value.trim();
-  const semester = document.getElementById("semester").value.trim();
-  const file = gradePicture.files[0];
-
-  if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
-  if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
-
-  // Rebuild subjects fresh at submit time
-  const rows = document.querySelectorAll(".gradeCompute");
-  const subjects = [];
-  for (const row of rows) {
-    const s = row.querySelector(".subject").value.trim();
-    const u = parseInt(row.querySelector(".unit").value.trim(), 10);
-    const g = parseFloat(row.querySelector(".grade").value.trim());
-    if (!s || Number.isNaN(u) || Number.isNaN(g)) {
-      showMessage("Please complete all subject rows.", true);
-      return;
-    }
-    subjects.push({ subjectCode: s, units: u, grade: g });
-  }
-
-  const formData = new FormData();
-  formData.append("schoolYear", schoolYear);
-  formData.append("semester", semester);
-  formData.append("subjects", JSON.stringify(subjects));
-  formData.append("attachment", file); // matches backend field name
-
-  try {
-    const res = await fetch("/api/grades/me", {
-      method: "POST",
-      body: formData
-      // same-origin cookies are sent by default; add credentials if you prefer:
-      // credentials: "include"
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      showMessage("✅ " + (data.msg || "Grade uploaded successfully."), false);
+    cancelBtn.onclick = function () {
       confirmationModal.style.display = "none";
-      // Optionally clear the form here
-    } else {
-      showMessage("❌ " + (data.msg || "Upload failed."), true);
-    }
-  } catch (err) {
-    showMessage("❌ Upload failed: " + err.message, true);
-  }
-}
+      showMessage("Upload cancelled. Please review your data.", true);
+    };
 
+    confirmBtn.onclick = submitGrade;
+
+    async function submitGrade() {
+      const schoolYear = document.getElementById("schoolYear").value.trim();
+      const semester = document.getElementById("semester").value.trim();
+      const file = gradePicture.files[0];
+
+      if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
+      if (!file) { showMessage("Please attach the grade picture/PDF.", true); return; }
+
+      const rows = document.querySelectorAll(".gradeCompute");
+      const subjects = [];
+      for (const row of rows) {
+        const s = row.querySelector(".subject").value.trim();
+        const u = parseInt(row.querySelector(".unit").value.trim(), 10);
+        const g = parseFloat(row.querySelector(".grade").value.trim());
+        if (!s || Number.isNaN(u) || Number.isNaN(g)) {
+          showMessage("Please complete all subject rows.", true);
+          return;
+        }
+        subjects.push({ subjectCode: s, units: u, grade: g });
+      }
+
+      const formData = new FormData();
+      formData.append("schoolYear", schoolYear);
+      formData.append("semester", semester);
+      formData.append("subjects", JSON.stringify(subjects));
+      formData.append("attachment", file);
+
+      try {
+        const res = await fetch("/api/grades/me", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showMessage("✅ " + (data.msg || "Grade uploaded successfully."), false);
+          confirmationModal.style.display = "none";
+        } else {
+          showMessage("❌ " + (data.msg || "Upload failed."), true);
+        }
+      } catch (err) {
+        showMessage("❌ Upload failed: " + err.message, true);
+      }
+    }
 
     window.onclick = function (event) {
       const modal = document.getElementById("confirmationModal");
@@ -588,6 +511,12 @@ async function submitGrade() {
     }
   </script>
 
+  <!-- FOOTER (single instance) -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 </body>
 
 </html>

@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home - IskolarLink</title>
   <style>
+    :root {
+      --maroon: #800000;
+      --gold: #D4A017;
+      --maroon-dark: #5a0000;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -16,16 +22,80 @@
     }
 
     body {
-      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
       background-image: url('/assets/iskolarbg.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
     }
 
+    /* ===== HEADER ===== */
+    .site-header {
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark);
+    }
+
+    .header-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .header-logo {
+      height: 64px;
+      width: auto;
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff;
+    }
+
+    .brand-block > a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 24px;
+      transition: color 0.25s ease;
+    }
+
+    .brand-block > a:hover { color: var(--gold); }
+
+    .brand-sub {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .brand-sub a {
+      color: #fff;
+      text-decoration: none;
+      transition: color 0.25s ease;
+    }
+
+    .brand-sub a:hover { color: var(--gold); }
+
+    @media (max-width: 640px) {
+      .header-logo { height: 48px; }
+      .brand-block > a { font-size: 20px; }
+      .brand-sub { font-size: 12px; }
+    }
+
+    /* ===== MAIN ===== */
     main {
       padding: 20px;
       margin-top: 40px;
@@ -39,7 +109,7 @@
       justify-content: center;
       flex-wrap: wrap;
     }
-    
+
     .dashboard {
       height: 500px;
       width: 60%;
@@ -48,7 +118,6 @@
       padding: 20px;
     }
 
-    /* was: div p { text-align:center } — narrowed to dashboard only */
     .dashboard p { text-align: center; }
 
     .home-section {
@@ -76,7 +145,7 @@
       gap: 15px;
       margin-bottom: 10px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2 ease;
+      transition: transform 0.2s ease;
     }
 
     .eventCard:hover { transform: translateY(-4px); }
@@ -84,30 +153,38 @@
     .eventDate {
       text-align: center;
       padding: 10px;
-      background: rgba(146, 59, 59);
+      background: var(--maroon);
       color: white;
       border-radius: 8px;
       width: 60px;
     }
 
-    .eventDate h2, .eventDate h1 { margin: 0; color: white; }
+    .eventDate h2, .eventDate h1 {
+      margin: 0;
+      color: white;
+    }
+
     .eventDate h2 { font-size: 16px; }
     .eventDate h1 { font-size: 24px; }
 
-    .eventDetails h3 { margin: 0; font-size: 18px; color: #333; }
+    .eventDetails h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
+    }
 
     .viewMoreBtn {
       background: none;
       border: none;
-      color: rgba(146, 59, 59);
+      color: var(--maroon);
       cursor: pointer;
       font-weight: bold;
       font-size: 14px;
     }
 
-    /* Centered modal */
+    /* ===== MODAL ===== */
     .modal {
-      display: none;     /* set to flex in JS when opened */
+      display: none;
       position: fixed;
       z-index: 1000;
       inset: 0;
@@ -141,36 +218,85 @@
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* left-align the sentence + respect line breaks */
     #modalSentence {
       text-align: left;
       white-space: pre-line;
       line-height: 1.6;
     }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      background: #fff;
+      border-top: 1px solid #000;
+      outline: 1px solid #000;
+      outline-offset: -1px;
+    }
+
+    .footer-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .footer-wrap img {
+      max-height: 48px;
+      width: auto;
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
   <main>
     <div class="row">
 
-      <!--Statistics-->
+      <!-- Dashboard -->
       <div class="dashboard">
         <p>dashboard</p>
       </div>
 
-      <!-- Upcoming Events Section -->
+      <!-- Upcoming Events -->
       <div class="home-section">
         <h2>Upcoming Events</h2>
         <div id="upcomingEvents"></div>
       </div>
+
     </div>
   </main>
 
-  <!-- Centered sentence-style modal -->
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <!-- EVENT MODAL -->
   <div id="eventModal" class="modal" aria-hidden="true">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <span class="close" aria-label="Close">&times;</span>
@@ -212,8 +338,8 @@
           </div>
         `;
 
-        // Open modal: sentence-style + centered
         div.querySelector(".viewMoreBtn").addEventListener("click", function () {
+          const modal = document.getElementById("eventModal");
           const titleEl = document.getElementById("modalTitle");
           const sentenceEl = document.getElementById("modalSentence");
 
@@ -229,18 +355,15 @@
           });
 
           const desc = (ev.description || '').trim();
-          const extra = desc ? `${desc}` : '';
-
           const sentence =
             `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
             `with a duration of <strong>${ev.duration}</strong>.\n\n` +
-            (extra ? `<strong>Description:</strong>\n${extra}` : '');
+            (desc ? `<strong>Description:</strong>\n${desc}` : '');
 
           sentenceEl.innerHTML = sentence;
 
-          const modal = document.getElementById("eventModal");
-          modal.style.display = "flex";    // use flex for true centering
-          modal.setAttribute('aria-hidden', 'false');
+          modal.style.display = "flex";
+          modal.setAttribute("aria-hidden", "false");
         });
 
         container.appendChild(div);
@@ -253,7 +376,7 @@
   function closeModal() {
     const modal = document.getElementById("eventModal");
     modal.style.display = "none";
-    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute("aria-hidden", "true");
   }
 
   document.querySelector(".close").addEventListener("click", closeModal);

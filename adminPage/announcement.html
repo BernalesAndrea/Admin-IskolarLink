@@ -1,407 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Announcements</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --gold:#D4A017;
     }
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    /* ===== LAYOUT ===== */
+    body{
+      display:flex; flex-direction:column; min-height:100vh;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
     }
+    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
 
-    .container {
-      width: 90%;
-      height: 80%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    /* ===== HEADER ===== */
+    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+
+    /* ===== MAIN CARD ===== */
+    .container{
+      width:90%; height:80vh; max-width:1000px;
+      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
+      overflow:hidden; display:flex; flex-direction:column;
     }
 
     /* Tabs */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #eee;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 14px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      background: #f9f9f9;
-      transition: all 0.3s ease;
-    }
-
-    .tab:hover {
-      background: #eaeaea;
-    }
-
-    .tab.active {
-      background: #800000;
-      color: #fff;
-      font-weight: bold;
-    }
+    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
+    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease; user-select:none }
+    .tab:hover{ background:#eaeaea }
+    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
 
     /* Content */
-    .content {
-      padding: 20px;
-      flex: 1;
-      max-height: 500px;
-    }
+    .content{ padding:20px; min-height:0; overflow-y:auto; flex:1 }
+    .content-section{ display:none }
+    .content-section.active{ display:block }
 
-    .content-section {
-      display: none;
-    }
+    /* Post form */
+    form{ max-width:800px; margin:auto; display:flex; flex-direction:column; gap:10px; background:#fff; padding:20px; border-radius:15px }
+    form h2{ margin-bottom:10px; color:#000 }
 
-    .content-section.active {
-      display: block;
-    }
-
-    /* Post Announcement */
-    form {
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 15px;
-    }
-
-    form h2 {
-      margin-bottom: 10px;
-      color: black;
-    }
-
-    .inputBox {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .inputBox label {
-      font-weight: bold;
-      margin-top: 5px;
-      color: black;
-    }
+    .inputBox{ display:flex; flex-direction:column; gap:8px }
+    .inputBox label{ font-weight:bold; margin-top:5px; color:#000 }
 
     .inputBox input,
     .inputBox select,
-    .announcementContent textarea {
-      background-color: rgb(201, 201, 201);
-      border: none;
-      border-radius: 20px;
-      padding: 10px 14px;
-      font-weight: bold;
-      outline: none;
-      transition: box-shadow 0.2s ease;
+    .announcementContent textarea{
+      background:#c9c9c9; border:none; border-radius:20px; padding:10px 14px; font-weight:bold; outline:none; transition:box-shadow .2s ease;
     }
+    .inputBox input:focus, .inputBox select:focus, .announcementContent textarea:focus{ box-shadow:0 0 0 2px rgba(128,0,0,.3) }
+    .announcementContent textarea{ resize:none; width:100%; height:120px }
 
-    .inputBox input:focus,
-    .inputBox select:focus,
-    .announcementContent textarea:focus {
-      box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.3);
+    .priority-row{ display:flex; gap:20px; align-items:end }
+    .priority-row .inputGroup{ display:flex; flex-direction:column; flex:1 }
+
+    .createButton{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px }
+    .createButton button{ height:35px; padding:0 16px; border-radius:10px; background:rgba(146,59,59); color:#fff; cursor:pointer; font-weight:bold; transition:background .3s, box-shadow .2s }
+    .createButton button:hover{ background:rgba(126,49,49); box-shadow:0 2px 6px rgba(0,0,0,.2) }
+    .createButton button[type="reset"]{ background:#6c757d }
+    .createButton button[type="reset"]:hover{ background:#5a6268 }
+
+    /* Announcement list */
+    .announcementsWrapper{ width:100%; max-width:800px; margin:auto; display:flex; flex-direction:column; gap:15px; padding-right:10px }
+    .announcementsWrapper h2{ color:#000; margin-bottom:10px; flex-shrink:0 }
+
+    .announcementsList{ display:flex; flex-direction:column; gap:20px; padding-bottom:40px }
+
+    .announcement-card{
+      width:100%; background:#fff; border-radius:12px; padding:15px 20px;
+      box-shadow:0 4px 10px rgba(0,0,0,.1); text-align:left; transition:transform .2s ease;
     }
+    .announcement-card:hover{ transform:translateY(-4px) }
 
-    .announcementContent textarea {
-      resize: none;
-      width: 100%;
-      height: 120px;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+    /* 3 rows: Title, Meta, Content */
+    .announcement-card .title{ font-weight:bold; font-style:italic; font-size:1.1em; color:var(--maroon); margin-bottom:6px }
+    .announcement-card .meta{ font-size:.85em; color:#555; margin-bottom:10px; font-weight:600 }
+    .announcement-card .content{ font-size:1em; line-height:1.4em; color:#222 }
 
-    .priority-row {
-      display: flex;
-      gap: 20px;
-      align-items: end;
-    }
-
-    .priority-row .inputGroup {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-
-    /* Buttons */
-    .createButton {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .createButton button {
-      height: 35px;
-      padding: 0 16px;
-      border-radius: 10px;
-      background-color: rgba(146, 59, 59);
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-      outline: none;
-      transition: background-color 0.3s, box-shadow 0.2s ease;
-    }
-
-    .createButton button:hover {
-      background-color: rgba(126, 49, 49);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .createButton button[type="reset"] {
-      background-color: #6c757d;
-    }
-
-    .createButton button[type="reset"]:hover {
-      background-color: #5a6268;
-    }
-
-    /* Announcements Section */
-    .announcementsWrapper {
-      width: 100%;
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 500px;
-      padding-right: 10px;
-    }
-
-    .announcementsWrapper h2 {
-      color: black;
-      margin-bottom: 10px;
-      flex-shrink: 0;
-    }
-
-    .announcementsList {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      padding-bottom: 40px;
-
-    }
-
-    .announcement-card {
-      width: 100%;
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: left;
-      transition: transform 0.2s ease;
-    }
-
-    .announcement-card:hover {
-      transform: translateY(-4px);
-    }
-
-
-    .announcement-card div:first-child {
-      font-weight: bold;
-      font-style: italic;
-      font-size: 1.1em;
-      color: #800000;
-      margin-bottom: 6px;
-    }
-
-    .announcement-card div:nth-child(2) {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: black;
-      margin-bottom: 6px;
-    }
-
-    .announcement-card div:nth-child(3) {
-      font-size: 0.85em;
-      color: #555;
-      margin-bottom: 10px;
-    }
-
-    .announcement-card div:nth-child(4) {
-      font-size: 1em;
-      line-height: 1.4em;
-    }
+    /* ===== FOOTER ===== */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" data-target="post">Post Announcement</div>
-      <div class="tab" data-target="list">Announcements</div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
     </div>
+  </header>
 
-    <!-- Content -->
-    <div class="content">
-      <!-- Post Announcement Section -->
-      <div class="content-section active" id="post">
-        <form id="announcementForm" class="inputBox">
-          <h2>Post Announcement</h2>
-          <label>Announcement Title</label>
-          <input type="text" name="announcementTitle" required>
-
-          <div class="priority-row">
-            <div class="inputGroup">
-              <label>Category</label>
-              <select name="category" required>
-                <option value="">Select Category</option>
-                <option value="General">General</option>
-                <option value="Urgent">Urgent</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Update">Update</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="announcementContent">
-            <label>Announcement Content</label>
-            <textarea name="announcementContent" placeholder="Enter your announcement details here..."
-              required></textarea>
-          </div>
-
-          <div class="createButton">
-            <button type="reset">Reset</button>
-            <button type="submit">Post Announcement</button>
-          </div>
-        </form>
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-target="post">Post Announcement</div>
+        <div class="tab" data-target="list">Announcements</div>
       </div>
 
-      <!-- Announcements Section -->
-      <div class="content-section" id="list">
-        <div class="announcementsWrapper">
-          <h2>Announcements</h2>
-          <div class="announcementsList"></div>
+      <!-- Content -->
+      <div class="content">
+        <!-- Post -->
+        <div class="content-section active" id="post">
+          <form id="announcementForm" class="inputBox">
+            <h2>Post Announcement</h2>
+
+            <label>Announcement Title</label>
+            <input type="text" name="announcementTitle" required>
+
+            <div class="priority-row">
+              <div class="inputGroup">
+                <label>Category</label>
+                <select name="category" required>
+                  <option value="">Select Category</option>
+                  <option value="General">General</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Maintenance">Maintenance</option>
+                  <option value="Update">Update</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="announcementContent">
+              <label>Announcement Content</label>
+              <textarea name="announcementContent" placeholder="Enter your announcement details here..." required></textarea>
+            </div>
+
+            <div class="createButton">
+              <button type="reset">Reset</button>
+              <button type="submit">Post Announcement</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- List -->
+        <div class="content-section" id="list">
+          <div class="announcementsWrapper">
+            <h2>Announcements</h2>
+            <div class="announcementsList" id="announcements"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script>
+    /* Tabs */
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-
+    tabs.forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        sections.forEach(s=>s.classList.remove('active'));
         tab.classList.add('active');
-        document.getElementById(tab.dataset.target).classList.add('active');
+        const target = document.getElementById(tab.dataset.target);
+        if(target) target.classList.add('active');
+        // lazy load list on tab open
+        if(tab.dataset.target === 'list') loadAnnouncements();
       });
     });
 
-    async function loadAnnouncements() {
-      const announcementsDiv = document.querySelector('.announcementsList');
-      announcementsDiv.innerHTML = '';
+    /* Escape helper to avoid injecting HTML into cards */
+    function esc(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'","&#039;");
+    }
 
-      try {
-        const res = await fetch('/announcements');
+    async function loadAnnouncements(){
+      const list = document.getElementById('announcements');
+      list.innerHTML = '';
+      try{
+        const res = await fetch('/announcements', {credentials:'include'});
+        if(!res.ok) throw new Error('Failed to load announcements');
         const announcements = await res.json();
 
-        if (!announcements || announcements.length === 0) {
-          announcementsDiv.innerHTML = '<div>No announcements posted yet.</div>';
+        if(!Array.isArray(announcements) || !announcements.length){
+          list.innerHTML = '<div>No announcements posted yet.</div>';
           return;
         }
 
-        // If your backend already sorts by date desc, this is optional:
-        announcements.sort((a, b) => new Date(b.date) - new Date(a.date));
+        announcements.sort((a,b)=> new Date(b.date) - new Date(a.date));
 
-        announcements.forEach(announcement => {
-          const announcementEl = document.createElement('div');
-          announcementEl.className = 'announcement-card';
+        announcements.forEach(a=>{
+          const card = document.createElement('div');
+          card.className = 'announcement-card';
 
-          const formattedDate = new Date(announcement.date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+          const title = document.createElement('div');
+          title.className = 'title';
+          title.textContent = a.title ?? '';
+
+          const when = new Date(a.date).toLocaleDateString('en-US', {
+            year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
           });
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent = `${when} • ${a.category || 'General'}`;
 
-          // NOTE: priority line removed
-          announcementEl.innerHTML = `
-        <div>${announcement.title}</div>
-        <div>${formattedDate} • ${announcement.category || 'General'}</div>
-        <div>${announcement.content}</div>
-      `;
-          announcementsDiv.appendChild(announcementEl);
+          const content = document.createElement('div');
+          content.className = 'content';
+          content.textContent = a.content ?? '';
+
+          card.appendChild(title);
+          card.appendChild(meta);
+          card.appendChild(content);
+          list.appendChild(card);
         });
-
-      } catch (err) {
-        announcementsDiv.innerHTML = '<div>Error loading announcements.</div>';
+      }catch(err){
         console.error(err);
+        list.innerHTML = '<div>Error loading announcements.</div>';
       }
     }
 
-
-    document.getElementById('announcementForm').addEventListener('submit', async function (e) {
+    // Post new announcement
+    document.getElementById('announcementForm').addEventListener('submit', async function(e){
       e.preventDefault();
-
-      const formData = new FormData(this);
-      const newAnnouncement = {
-        title: formData.get('announcementTitle'),
-        // priority removed
-        category: formData.get('category'),
-        content: formData.get('announcementContent')
+      const fd = new FormData(this);
+      const payload = {
+        title: fd.get('announcementTitle'),
+        category: fd.get('category'),
+        content: fd.get('announcementContent')
       };
-
-      try {
+      try{
         const res = await fetch('/announcements', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newAnnouncement)
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          credentials:'include',
+          body: JSON.stringify(payload)
         });
+        if(!res.ok) throw new Error('Failed to post announcement');
 
-        if (res.ok) {
-          this.reset();
-          loadAnnouncements();
+        this.reset();
+        // If user is on list tab, refresh; otherwise it will load when they open the tab
+        const activeTab = document.querySelector('.tab.active')?.dataset.target;
+        if(activeTab === 'list') loadAnnouncements();
 
-          const submitBtn = this.querySelector('button[type="submit"]');
-          const originalText = submitBtn.textContent;
-          submitBtn.textContent = 'Posted!';
-          submitBtn.style.backgroundColor = '#28a745';
-          setTimeout(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.style.backgroundColor = 'rgba(146, 59, 59)';
-          }, 2000);
-        }
-      } catch (err) {
-        console.error("Error posting announcement:", err);
+        const btn = this.querySelector('button[type="submit"]');
+        const original = btn.textContent;
+        btn.textContent = 'Posted!';
+        btn.style.backgroundColor = '#28a745';
+        setTimeout(()=>{ btn.textContent = original; btn.style.backgroundColor = 'rgba(146, 59, 59)'; }, 1800);
+      }catch(err){
+        console.error('Error posting announcement:', err);
+        alert('Error posting announcement.');
       }
     });
 
-
-    window.onload = loadAnnouncements;
+    // Initial load: keep user on Post tab, but also prefetch list quietly
+    loadAnnouncements();
   </script>
 </body>
-
 </html>

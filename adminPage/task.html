@@ -1,469 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif
+    :root{
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --gold:#D4A017;
+    }
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
+
+    /* ===== LAYOUT ===== */
+    body{
+      display:flex; flex-direction:column; min-height:100vh;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    }
+    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    /* ===== HEADER ===== */
+    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+
+    /* ===== MAIN CARD ===== */
+    .container{
+      width:90%; height:80vh; max-width:1000px;
+      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
+      overflow:hidden; display:flex; flex-direction:column;
     }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
+    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; background:#f9f9f9; transition:.3s; user-select:none }
+    .tab:hover{ background:#eaeaea }
+    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
+
+    .content{ padding:20px; flex:1; min-height:0; overflow:auto }
+    .content-section{ display:none }
+    .content-section.active{ display:block }
+
+    /* Form */
+    form{ max-width:800px; margin:auto; display:flex; flex-direction:column; gap:10px; background:#fff; padding:20px; border-radius:15px }
+    form h2{ margin-bottom:10px; color:#000 }
+    .inputBox{ display:flex; flex-direction:column; gap:8px }
+    .inputBox label{ font-weight:bold; margin-top:5px; color:#000 }
+    .inputBox input, .taskDescription textarea{
+      background:#c9c9c9; border:none; border-radius:20px; padding:10px 14px; font-weight:bold; outline:none
+    }
+    .taskDescription textarea{ resize:none; width:100%; height:100px }
+
+    .dateRow{ display:flex; gap:20px }
+    .dateRow .inputGroup{ display:flex; flex-direction:column; flex:1 }
+    .dateRow .inputGroup input{
+      background:#c9c9c9; border-radius:20px; padding:8px 12px; font-weight:bold; border:none; height:38px; width:100%; box-sizing:border-box
     }
 
-    .container {
-      width: 90%;
-      height: 80%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column
+    .createButton{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px }
+    .createButton button{
+      height:35px; padding:0 16px; border-radius:10px; background:rgba(146,59,59); color:#fff; cursor:pointer; font-weight:bold; transition:.3s
     }
+    .createButton button:hover{ background:rgba(126,49,49); box-shadow:0 2px 6px rgba(0,0,0,.2) }
+    .createButton button[type="reset"]{ background:#6c757d }
+    .createButton button[type="reset"]:hover{ background:#5a6268 }
 
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #eee
+    /* Tasks list */
+    .tasksWrapper{ width:100%; max-width:800px; margin:auto; display:flex; flex-direction:column; gap:15px; max-height:500px; padding-right:10px }
+    .tasksWrapper h2{ color:#000; margin-bottom:10px }
+    .tasksList{ display:flex; flex-direction:column; gap:15px; overflow-y:auto; padding-bottom:40px }
+    .task-card{
+      background:#fdfdfd; border-left:5px solid var(--maroon); border-radius:10px; padding:15px 20px; box-shadow:0 2px 6px rgba(0,0,0,.1); transition:.2s; cursor:pointer
     }
+    .task-card:hover{ transform:translateY(-4px) }
+    .task-title{ font-weight:bold; font-size:1.1em; color:var(--maroon); margin-bottom:5px }
+    .task-dates{ font-size:.9em; color:#555; margin-bottom:8px }
+    .task-description{ font-size:.95em; color:#333; line-height:1.4em }
 
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 14px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      background: #f9f9f9;
-      transition: .3s
+    /* Modal (single, high z-index above header) */
+    .modal{
+      display:none; position:fixed; z-index:2000; inset:0;
+      background:rgba(0,0,0,.6); backdrop-filter:blur(3px); overflow-y:auto; padding:40px 15px;
     }
-
-    .tab:hover {
-      background: #eaeaea
+    .modal-content{
+      background:#fff; margin:auto; padding:25px; border-radius:15px; max-width:700px; width:100%;
+      box-shadow:0 8px 20px rgba(0,0,0,.25); animation:fadeInUp .3s ease;
     }
+    @keyframes fadeInUp{ from{ transform:translateY(20px); opacity:0 } to{ transform:translateY(0); opacity:1 } }
+    .close{ float:right; font-size:26px; font-weight:bold; color:#666; cursor:pointer; transition:.2s }
+    .close:hover{ color:var(--maroon) }
 
-    .tab.active {
-      background: #800000;
-      color: #fff;
-      font-weight: bold
+    /* Table in modal */
+    .modal-content table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:14px }
+    .modal-content th, .modal-content td{ border:1px solid #ddd; padding:10px; text-align:center }
+    .modal-content th{ background:var(--maroon); color:#fff; font-weight:bold }
+    .modal-content tr:nth-child(even){ background:#f9f9f9 }
+    .modal-content tr:hover{ background:#f1f1f1 }
+
+    .modal-content button.previewBtn{
+      background:var(--maroon); color:#fff; padding:6px 12px; border-radius:6px; font-size:13px; font-weight:bold; cursor:pointer; transition:.3s
     }
+    .modal-content button.previewBtn:hover{ background:var(--maroon-dark) }
+    .modal-content a{ color:var(--maroon); font-size:13px; text-decoration:none; font-weight:bold }
+    .modal-content a:hover{ text-decoration:underline }
 
-    .content {
-      padding: 20px;
-      flex: 1;
-      max-height: 500px;
-    }
+    /* Larger preview modal */
+    #taskFilePreviewModal .modal-content{ max-width:800px }
 
-    .content-section {
-      display: none
-    }
-
-    .content-section.active {
-      display: block
-    }
-
-    form {
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 15px
-    }
-
-    form h2 {
-      margin-bottom: 10px;
-      color: black
-    }
-
-    .inputBox {
-      display: flex;
-      flex-direction: column;
-      gap: 8px
-    }
-
-    .inputBox label {
-      font-weight: bold;
-      margin-top: 5px;
-      color: black
-    }
-
-    .inputBox input,
-    .taskDescription textarea {
-      background: rgb(201, 201, 201);
-      border: none;
-      border-radius: 20px;
-      padding: 10px 14px;
-      font-weight: bold;
-      outline: none
-    }
-
-    .taskDescription textarea {
-      resize: none;
-      width: 100%;
-      height: 100px
-    }
-
-    .dateRow {
-      display: flex;
-      gap: 20px
-    }
-
-    .dateRow .inputGroup {
-      display: flex;
-      flex-direction: column;
-      flex: 1
-    }
-
-    .dateRow .inputGroup input {
-      background: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
-      font-weight: bold;
-      border: none;
-      height: 38px;
-      width: 100%;
-      box-sizing: border-box
-    }
-
-    .createButton {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 10px
-    }
-
-    .createButton button {
-      height: 35px;
-      padding: 0 16px;
-      border-radius: 10px;
-      background: rgba(146, 59, 59);
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-      border: none;
-      outline: none;
-      transition: .3s
-    }
-
-    .createButton button:hover {
-      background: rgba(126, 49, 49);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, .2)
-    }
-
-    .createButton button[type="reset"] {
-      background: #6c757d
-    }
-
-    .createButton button[type="reset"]:hover {
-      background: #5a6268
-    }
-
-    .tasksWrapper {
-      width: 100%;
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 500px;
-      padding-right: 10px
-    }
-
-    .tasksWrapper h2 {
-      color: black;
-      margin-bottom: 10px
-    }
-
-    .tasksList {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      overflow-y: auto;
-      padding-bottom: 40px;
-    }
-
-    .task-card {
-      background: #fdfdfd;
-      border-left: 5px solid #800000;
-      border-radius: 10px;
-      padding: 15px 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
-      transition: .2s
-    }
-
-    .task-card:hover {
-      transform: translateY(-4px)
-    }
-
-    .task-title {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #800000;
-      margin-bottom: 5px
-    }
-
-    .task-dates {
-      font-size: .9em;
-      color: #555;
-      margin-bottom: 8px
-    }
-
-    .task-description {
-      font-size: .95em;
-      color: #333;
-      line-height: 1.4em
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      padding-top: 80px;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, .6)
-    }
-
-    /* Modal background */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, .6);
-      backdrop-filter: blur(3px);
-      overflow-y: auto;
-      padding: 40px 15px;
-    }
-
-    /* Modal box */
-    .modal-content {
-      background: #fff;
-      margin: auto;
-      padding: 25px;
-      border-radius: 15px;
-      max-width: 700px;
-      width: 100%;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
-      animation: fadeInUp .3s ease;
-    }
-
-    /* Animation */
-    @keyframes fadeInUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    /* Close button */
-    .close {
-      float: right;
-      font-size: 26px;
-      font-weight: bold;
-      color: #666;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    .close:hover {
-      color: #800000;
-    }
-
-    /* Modal title */
-    #modalTaskTitle {
-      font-size: 20px;
-      font-weight: bold;
-      color: #800000;
-      margin-bottom: 15px;
-    }
-
-    /* Table design */
-    .modal-content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    .modal-content th,
-    .modal-content td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-
-    .modal-content th {
-      background: #800000;
-      color: #fff;
-      font-weight: bold;
-    }
-
-    .modal-content tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-
-    .modal-content tr:hover {
-      background: #f1f1f1;
-    }
-
-    /* Buttons inside table */
-    .modal-content button.previewBtn {
-      background: #800000;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: .3s;
-      border: none;
-    }
-
-    .modal-content button.previewBtn:hover {
-      background: #5a0000;
-    }
-
-    .modal-content a {
-      color: #800000;
-      font-size: 13px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .modal-content a:hover {
-      text-decoration: underline;
-    }
-
-
-    .close {
-      float: right;
-      font-size: 22px;
-      cursor: pointer
-    }
+    /* ===== FOOTER ===== */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" data-target="create">Create Task</div>
-      <div class="tab" data-target="list">Assigned Tasks</div>
-    </div>
 
-    <!-- Content -->
-    <div class="content">
-      <!-- Create Task -->
-      <div class="content-section active" id="create">
-        <form id="taskForm" class="inputBox">
-          <h2>Create Task</h2>
-          <label>Task Title</label>
-          <input type="text" name="taskTitle" required>
-
-          <div class="dateRow">
-            <div class="inputGroup">
-              <label>Start Date</label>
-              <input type="text" id="pikadayStartDate" name="startDate" placeholder="Select a date" required>
-            </div>
-            <div class="inputGroup">
-              <label>Due Date</label>
-              <input type="text" id="pikadayDueDate" name="dueDate" placeholder="Select a date" required>
-            </div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
           </div>
-
-          <div class="taskDescription">
-            <label>Task Description</label>
-            <textarea name="taskDesc" required></textarea>
-          </div>
-
-          <div class="createButton">
-            <button type="reset">Reset</button>
-            <button type="submit">Create Task</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Task List -->
-      <div class="content-section" id="list">
-        <div class="tasksWrapper">
-          <h2>Assigned Tasks</h2>
-          <div class="tasksList"></div>
         </div>
-      </div>
-
-      <!-- Submissions Modal -->
-      <div id="submissionModal" class="modal">
-        <div class="modal-content">
-          <span class="close">&times;</span>
-          <h2 id="modalTaskTitle"></h2>
-          <table border="1" width="100%" style="border-collapse:collapse; margin-top:15px;">
-            <thead>
-              <tr>
-                <th>Scholar Name</th>
-                <th>Batch Year</th>
-                <th>Date Submitted</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="submissionTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- File Preview Modal -->
-      <div id="taskFilePreviewModal" class="modal">
-        <div class="modal-content" style="max-width:800px;">
-          <span id="closeTaskPreview" class="close">&times;</span>
-          <iframe id="taskFileFrame" width="100%" height="500px"></iframe>
-        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
     </div>
-  </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-target="create">Create Task</div>
+        <div class="tab" data-target="list">Assigned Tasks</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Create Task -->
+        <div class="content-section active" id="create">
+          <form id="taskForm" class="inputBox">
+            <h2>Create Task</h2>
+            <label>Task Title</label>
+            <input type="text" name="taskTitle" required>
+
+            <div class="dateRow">
+              <div class="inputGroup">
+                <label>Start Date</label>
+                <input type="text" id="pikadayStartDate" name="startDate" placeholder="Select a date" required>
+              </div>
+              <div class="inputGroup">
+                <label>Due Date</label>
+                <input type="text" id="pikadayDueDate" name="dueDate" placeholder="Select a date" required>
+              </div>
+            </div>
+
+            <div class="taskDescription">
+              <label>Task Description</label>
+              <textarea name="taskDesc" required></textarea>
+            </div>
+
+            <div class="createButton">
+              <button type="reset">Reset</button>
+              <button type="submit">Create Task</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Task List -->
+        <div class="content-section" id="list">
+          <div class="tasksWrapper">
+            <h2>Assigned Tasks</h2>
+            <div class="tasksList"></div>
+          </div>
+        </div>
+
+        <!-- Submissions Modal -->
+        <div id="submissionModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTaskTitle"></h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Scholar Name</th>
+                  <th>Batch Year</th>
+                  <th>Date Submitted</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="submissionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- File Preview Modal -->
+        <div id="taskFilePreviewModal" class="modal">
+          <div class="modal-content">
+            <span id="closeTaskPreview" class="close">&times;</span>
+            <iframe id="taskFileFrame" width="100%" height="500px" style="border:none;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
   <script>
     // ---------- Tabs ----------
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
+    tabs.forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        sections.forEach(s=>s.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(tab.dataset.target).classList.add('active');
+        if(tab.dataset.target === 'list'){ loadTasks(); }
       });
     });
 
@@ -472,41 +247,44 @@
       field: document.getElementById('pikadayStartDate'),
       format: 'YYYY-MM-DD',
       minDate: new Date(),
-      toString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+      toString(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     });
     new Pikaday({
       field: document.getElementById('pikadayDueDate'),
       format: 'YYYY-MM-DD',
       minDate: new Date(),
-      toString(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+      toString(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     });
 
     // ---------- GridFS URL helpers ----------
-    function fileUrl(bucket, id, { download = false } = {}) {
-      if (!bucket || !id) return null;
+    function fileUrl(bucket, id, { download=false } = {}){
+      if(!bucket || !id) return null;
       return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
     }
-    function resolveSubmissionUrl(sub) {
-      // Prefer GridFS fields (bucket + fileId); fallback to legacy filePath
+    function resolveSubmissionUrl(sub){
       return fileUrl(sub.bucket, sub.fileId) || sub.filePath || null;
+    }
+    // ObjectId -> Date (bugfix: this was referenced but missing)
+    function objectIdToDate(oid){
+      try{ return new Date(parseInt(String(oid).substring(0,8), 16)*1000); }catch{ return null; }
     }
 
     // ---------- Load Tasks ----------
-    async function loadTasks() {
+    async function loadTasks(){
       const tasksDiv = document.querySelector('.tasksList');
       tasksDiv.innerHTML = '';
-      try {
-        const res = await fetch("/api/tasks", { method: "GET", credentials: "include" });
-        if (res.status === 401) { window.location.href = "/"; return; }
-        if (!res.ok) throw new Error("Failed to fetch tasks");
+      try{
+        const res = await fetch("/api/tasks",{ method:"GET", credentials:"include" });
+        if(res.status === 401){ window.location.href = "/"; return; }
+        if(!res.ok) throw new Error("Failed to fetch tasks");
 
         const tasks = await res.json();
-        if (!Array.isArray(tasks) || !tasks.length) {
+        if(!Array.isArray(tasks) || !tasks.length){
           tasksDiv.innerHTML = '<div>No tasks assigned yet.</div>';
           return;
         }
 
-        tasks.forEach(task => {
+        tasks.forEach(task=>{
           const taskEl = document.createElement('div');
           taskEl.className = 'task-card';
           taskEl.innerHTML = `
@@ -514,17 +292,17 @@
             <div class="task-dates">${esc(task.startDate)} → ${esc(task.dueDate)}</div>
             <div class="task-description">${esc(task.description)}</div>
           `;
-          taskEl.addEventListener("click", () => showTaskSubmissions(task));
+          taskEl.addEventListener("click", ()=> showTaskSubmissions(task));
           tasksDiv.appendChild(taskEl);
         });
-      } catch (err) {
+      }catch(err){
         tasksDiv.innerHTML = '<div>⚠️ Failed to load tasks.</div>';
         console.error("Error in loadTasks:", err);
       }
     }
 
     // ---------- Create Task (admin) ----------
-    document.getElementById('taskForm').addEventListener('submit', async function (e) {
+    document.getElementById('taskForm').addEventListener('submit', async function(e){
       e.preventDefault();
       const fd = new FormData(this);
       const newTask = {
@@ -534,45 +312,46 @@
         description: fd.get('taskDesc')
       };
 
-      try {
-        const res = await fetch('/api/tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+      try{
+        const res = await fetch('/api/tasks',{
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
           body: JSON.stringify(newTask),
-          credentials: "include"
+          credentials:"include"
         });
-        if (res.status === 401) { window.location.href = "/"; return; }
-        if (!res.ok) throw new Error(await res.text());
+        if(res.status === 401){ window.location.href = "/"; return; }
+        if(!res.ok) throw new Error(await res.text());
         this.reset();
-        loadTasks();
-      } catch (err) {
+        // Refresh list if it's visible
+        if(document.querySelector('.tab.active')?.dataset.target === 'list'){ loadTasks(); }
+      }catch(err){
         console.error('Failed to create task:', err);
         alert('Failed to create task.');
       }
     });
 
     // ---------- Show Submissions ----------
-    async function showTaskSubmissions(task) {
-      try {
-        const res = await fetch(`/api/admin/submitted-tasks/${task._id}`, {
-          method: "GET",
-          credentials: "include"
+    async function showTaskSubmissions(task){
+      try{
+        const res = await fetch(`/api/admin/submitted-tasks/${task._id}`,{
+          method:"GET", credentials:"include"
         });
-        if (res.status === 401) { window.location.href = "/"; return; }
-        if (!res.ok) throw new Error("Failed to fetch submissions");
+        if(res.status === 401){ window.location.href = "/"; return; }
+        if(!res.ok) throw new Error("Failed to fetch submissions");
         const submissions = await res.json();
 
         document.getElementById("modalTaskTitle").innerText = task.title;
-
         const tbody = document.getElementById("submissionTableBody");
         tbody.innerHTML = "";
 
-        if (!Array.isArray(submissions) || !submissions.length) {
+        if(!Array.isArray(submissions) || !submissions.length){
           tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No submissions yet.</td></tr>`;
-        } else {
-          submissions.forEach(sub => {
-            const url = resolveSubmissionUrl(sub); // ✅ GridFS or legacy
-            const submittedDate = (sub.submittedAt || sub.createdAt || (sub._id && objectIdToDate(sub._id))) ? new Date(sub.submittedAt || sub.createdAt || objectIdToDate(sub._id)).toLocaleString() : "N/A";
+        }else{
+          submissions.forEach(sub=>{
+            const url = resolveSubmissionUrl(sub);
+            const fallbackDate = sub._id ? objectIdToDate(sub._id) : null;
+            const submittedDate = new Date(sub.submittedAt || sub.createdAt || fallbackDate || Date.now()).toLocaleString();
+
             const tr = document.createElement("tr");
             tr.innerHTML = `
               <td>${esc(sub.scholar?.fullname || sub.fullname || "N/A")}</td>
@@ -580,23 +359,22 @@
               <td>${esc(submittedDate)}</td>
               <td>
                 ${url
-                ? `<button class="previewBtn" data-url="${url.replace(/"/g, '&quot;')}">Preview</button>
+                  ? `<button class="previewBtn" data-url="${url.replace(/"/g,'&quot;')}">Preview</button>
                      <a href="${url}/download" target="_blank" rel="noopener" style="margin-left:6px;">Download</a>`
-                : `<span style="color:#999;">No file</span>`}
+                  : `<span style="color:#999;">No file</span>`}
               </td>
             `;
             tbody.appendChild(tr);
           });
 
-          // Preview buttons
-          tbody.querySelectorAll(".previewBtn").forEach(btn => {
-            btn.addEventListener("click", () => previewFile(btn.dataset.url));
+          // Wire preview buttons
+          tbody.querySelectorAll(".previewBtn").forEach(btn=>{
+            btn.addEventListener("click", ()=> previewFile(btn.dataset.url));
           });
         }
 
-        // Show modal
         document.getElementById("submissionModal").style.display = "block";
-      } catch (err) {
+      }catch(err){
         console.error("Failed to load submissions:", err);
         alert("Failed to load submissions.");
       }
@@ -604,35 +382,34 @@
 
     // ---------- Preview Modal ----------
     const taskPreviewModal = document.getElementById("taskFilePreviewModal");
-    const taskFileFrame = document.getElementById("taskFileFrame");
-    const closeTaskPreview = document.getElementById("closeTaskPreview");
+    const taskFileFrame   = document.getElementById("taskFileFrame");
+    const closeTaskPreview= document.getElementById("closeTaskPreview");
 
-    function previewFile(url) {
-      taskFileFrame.src = url; // inline route streams with Content-Type set
+    function previewFile(url){
+      taskFileFrame.src = url;
       taskPreviewModal.style.display = "block";
     }
 
     // Close buttons
-    document.querySelectorAll(".close").forEach(btn => {
-      btn.onclick = () => {
+    document.querySelectorAll(".close").forEach(btn=>{
+      btn.onclick = ()=>{
         const m = btn.closest(".modal");
         m.style.display = "none";
-        if (m.id === "taskFilePreviewModal") taskFileFrame.src = "";
+        if(m.id === "taskFilePreviewModal") taskFileFrame.src = "";
       };
     });
-
     // Close on backdrop click
-    window.onclick = (e) => {
-      if (e.target == taskPreviewModal) { taskPreviewModal.style.display = "none"; taskFileFrame.src = ""; }
-      if (e.target == document.getElementById("submissionModal")) { document.getElementById("submissionModal").style.display = "none"; }
+    window.onclick = (e)=>{
+      if(e.target === taskPreviewModal){ taskPreviewModal.style.display = "none"; taskFileFrame.src = ""; }
+      const subModal = document.getElementById("submissionModal");
+      if(e.target === subModal){ subModal.style.display = "none"; }
     };
 
     // ---------- Utils ----------
-    function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+    function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
 
     // Init
     window.addEventListener("load", loadTasks);
   </script>
 </body>
-
 </html>

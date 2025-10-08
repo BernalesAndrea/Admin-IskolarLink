@@ -2,402 +2,413 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tuition Tracker</title>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: url('/assets/iskolarbg.png') center/cover no-repeat;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-            overflow: hidden
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tuition Tracker</title>
+  <style>
+    :root{
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --gold:#D4A017;
+    }
+    *{ box-sizing:border-box }
 
-        .container {
-            width: 95%;
-            max-width: 1200px;
-            background: rgba(255, 255, 255, .9);
-            padding: 20px;
-            border-radius: 12px;
-            overflow-y: auto;
-            max-height: 90vh;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, .2)
-        }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      font-family: Arial, Helvetica, sans-serif;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat fixed;
+    }
 
-        h2 {
-            color: #800000;
-            margin-bottom: 10px
-        }
+    /* ===== HEADER ===== */
+    .site-header{ background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; text-decoration:none; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; text-decoration:none; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
 
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px
-        }
+    /* ===== MAIN ===== */
+    main{ flex:1; display:flex; justify-content:center; align-items:flex-start; padding:20px }
+    .container{
+      width:95%; max-width:1200px;
+      background: rgba(255,255,255,.9);
+      padding:20px; border-radius:12px;
+      overflow-y:auto; max-height: calc(100vh - 180px);
+      box-shadow:0 4px 12px rgba(0,0,0,.2);
+    }
 
-        input,
-        select {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px
-        }
+    h2{ color: var(--maroon); margin: 0 0 10px }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 10px;
-            overflow: hidden
-        }
+    /* Non-blocking status banner (no popups on load) */
+    .status{ display:none; margin:0 0 12px; padding:10px 12px; border-radius:8px; font-weight:600 }
+    .status.show{ display:block }
+    .status.success{ background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9 }
+    .status.error{ background:#ffebee; color:#b71c1c; border:1px solid #ffcdd2 }
 
-        th,
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left
-        }
+    .controls{ display:flex; gap:10px; margin-bottom:10px }
+    input, select{
+      padding:8px 12px; border:1px solid #ccc; border-radius:6px; font-size:14px; background:#fff;
+    }
 
-        thead {
-            background: #800000;
-            color: #fff
-        }
+    table{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden }
+    th, td{ padding:12px; border-bottom:1px solid #ddd; text-align:left }
+    thead{ background: var(--maroon); color:#fff }
+    tr:hover{ background: rgba(128,0,0,.08) }
 
-        tr:hover {
-            background: rgba(128, 0, 0, .1)
-        }
+    .btn{
+      background: var(--maroon); color:#fff; border:0; border-radius:6px; padding:6px 10px; cursor:pointer;
+    }
+    .btn:hover{ background:#a00000 }
 
-        .btn {
-            background: #800000;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 10px;
-            cursor: pointer
-        }
+    .reset-btn{
+      background: var(--maroon); color:#fff; border:0; border-radius:8px; padding:8px 14px; font-weight:600; letter-spacing:.2px; cursor:pointer;
+      box-shadow:0 2px 6px rgba(211,47,47,.25);
+      transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .reset-btn:active{ transform: translateY(1px); box-shadow:0 2px 6px rgba(183,28,28,.35) }
+    .reset-btn::before{ content:"↺"; margin-right:8px; font-weight:700 }
 
-        .btn:hover {
-            background: #a00000
-        }
+    /* ===== MODALS ===== (only open on click) */
+    .modal{
+      display:none; position:fixed; z-index:1000; inset:0;
+      background: rgba(0,0,0,.5); justify-content:center; align-items:center; padding:20px;
+    }
+    .modal-content{
+      background:#fff; padding:20px; border-radius:8px; width:300px; text-align:center;
+      box-shadow:0 4px 10px rgba(0,0,0,.3);
+    }
+    .modal-content input{ width:80%; padding:8px; margin:10px 0; border-radius:5px; border:1px solid #ccc }
+    .modal-buttons{ display:flex; justify-content:space-around }
+    .cancel-btn{ background:#ccc; color:#000; border:0; padding:6px 12px; border-radius:6px; cursor:pointer }
+    .cancel-btn:hover{ background:#bbb }
 
-        .reset-btn {
-            background: #800000;
-            color: #fff;
-            border: 0;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-weight: 600;
-            letter-spacing: .2px;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(211, 47, 47, .25);
-            transition: transform .08s ease, box-shadow .2s ease, background .2s ease
-        }
-
-        .reset-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 6px rgba(183, 28, 28, .35)
-        }
-
-        .reset-btn::before {
-            content: "↺";
-            margin-right: 8px;
-            font-weight: 700
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            inset: 0;
-            background: rgba(0, 0, 0, .5);
-            justify-content: center;
-            align-items: center
-        }
-
-        .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .3)
-        }
-
-        .modal-content input {
-            width: 80%;
-            padding: 8px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: space-around
-        }
-
-        .cancel-btn {
-            background: #ccc;
-            color: #000;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer
-        }
-
-        .cancel-btn:hover {
-            background: #bbb
-        }
-    </style>
+    /* ===== FOOTER ===== */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
+  </style>
 </head>
 
 <body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
     <div class="container">
-        <h2>Tuition Tracker</h2>
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="Search scholar...">
-            <select id="batchFilter"></select>
-        </div>
+      <!-- non-blocking status messages -->
+      <div id="status" class="status" role="status" aria-live="polite"></div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Scholar</th>
-                    <th>Batch</th>
-                    <th>Allotted Budget (₱)</th>
-                    <th>Total Paid (₱)</th>
-                    <th>Remaining Balance (₱)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="expenseTable"></tbody>
-        </table>
+      <h2>Tuition Tracker</h2>
+
+      <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search scholar...">
+        <select id="batchFilter"></select>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Scholar</th>
+            <th>Batch</th>
+            <th>Allotted Budget (₱)</th>
+            <th>Total Paid (₱)</th>
+            <th>Remaining Balance (₱)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTable"></tbody>
+      </table>
     </div>
+  </main>
 
-    <div id="budgetModal" class="modal">
-        <div class="modal-content">
-            <h3>Set Allotted Budget</h3>
-            <input type="number" id="budgetInput" placeholder="Enter amount" />
-            <div class="modal-buttons">
-                <button id="saveBudgetBtn" class="btn">Save</button>
-                <button id="cancelBudgetBtn" class="cancel-btn">Cancel</button>
-            </div>
-        </div>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
     </div>
+  </footer>
 
-    <div id="payModal" class="modal">
-        <div class="modal-content">
-            <h3>Pay Tuition</h3>
-            <input type="number" id="payInput" placeholder="Enter amount to pay" />
-            <div class="modal-buttons">
-                <button id="savePayBtn" class="btn">Save</button>
-                <button id="cancelPayBtn" class="cancel-btn">Cancel</button>
-            </div>
-        </div>
+  <!-- Set Budget Modal -->
+  <div id="budgetModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="budgetTitle">
+      <h3 id="budgetTitle">Set Allotted Budget</h3>
+      <input type="number" id="budgetInput" placeholder="Enter amount" />
+      <div class="modal-buttons">
+        <button id="saveBudgetBtn" class="btn">Save</button>
+        <button id="cancelBudgetBtn" class="cancel-btn">Cancel</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-const expenseTable = document.getElementById("expenseTable");
-const searchInput = document.getElementById("searchInput");
-const batchFilter = document.getElementById("batchFilter");
+  <!-- Pay Modal -->
+  <div id="payModal" class="modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+      <h3 id="payTitle">Pay Tuition</h3>
+      <input type="number" id="payInput" placeholder="Enter amount to pay" />
+      <div class="modal-buttons">
+        <button id="savePayBtn" class="btn">Save</button>
+        <button id="cancelPayBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
 
-const budgetModal = document.getElementById("budgetModal");
-const payModal    = document.getElementById("payModal");
+  <script>
+    // ===== Elements
+    const expenseTable = document.getElementById("expenseTable");
+    const searchInput  = document.getElementById("searchInput");
+    const batchFilter  = document.getElementById("batchFilter");
+    const statusEl     = document.getElementById("status");
 
-const budgetInput = document.getElementById("budgetInput");
-const payInput    = document.getElementById("payInput");
+    const budgetModal  = document.getElementById("budgetModal");
+    const payModal     = document.getElementById("payModal");
 
-const saveBudgetBtn = document.getElementById("saveBudgetBtn");
-const savePayBtn    = document.getElementById("savePayBtn");
+    const budgetInput  = document.getElementById("budgetInput");
+    const payInput     = document.getElementById("payInput");
 
-const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
-const cancelPayBtn    = document.getElementById("cancelPayBtn");
+    const saveBudgetBtn = document.getElementById("saveBudgetBtn");
+    const savePayBtn    = document.getElementById("savePayBtn");
 
-let currentScholarId = null;
-let allRows = [];
+    const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
+    const cancelPayBtn    = document.getElementById("cancelPayBtn");
 
-async function loadScholars() {
-  try {
-    // pull merged snapshot from backend (admin-only)
-    const r = await fetch("/api/tuition", { credentials: "same-origin" });
-    if (!r.ok) {
-      const t = await r.text().catch(()=> "");
-      throw new Error(`GET /api/tuition HTTP ${r.status}${t ? `: ${t}` : ""}`);
+    // ===== State
+    let currentScholarId = null;
+    let allRows = [];
+
+    // ===== Helpers (non-blocking)
+    function notify(msg, type='success', timeout=3000){
+      statusEl.textContent = msg;
+      statusEl.className = `status show ${type}`;
+      clearTimeout(statusEl._t);
+      statusEl._t = setTimeout(()=>{ statusEl.className='status'; statusEl.textContent=''; }, timeout);
     }
-    allRows = await r.json();
-    populateBatchFilter(allRows);
-    renderTable(allRows);
-  } catch (err) {
-    console.error("Failed to load tuition tracker:", err);
-    alert("Failed to load tuition tracker. Make sure you're logged in as admin.");
-  }
-}
+    function openModal(el){ el.style.display='flex'; el.setAttribute('aria-hidden','false'); }
+    function closeModal(el){ el.style.display='none'; el.setAttribute('aria-hidden','true'); }
 
-function populateBatchFilter(data) {
-  const years = [...new Set(data.map(s => s.batchYear).filter(Boolean))].sort();
-  batchFilter.innerHTML = '<option value="">All Batches</option>';
-  years.forEach(y => {
-    const opt = document.createElement("option");
-    opt.value = y; opt.textContent = "Batch " + y; batchFilter.appendChild(opt);
-  });
-}
-
-function renderTable(rows) {
-  expenseTable.innerHTML = "";
-  if (!rows.length) {
-    expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
-    return;
-  }
-
-  rows.forEach(s => {
-    const remaining = (s.allottedBudget || 0) - (s.totalPaid || 0);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${s.fullname}</td>
-      <td>${s.batchYear || '-'}</td>
-
-      <td>
-        <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
-      </td>
-
-      <td>
-        <button class="btn pay-btn" data-id="${s._id}" data-total="${s.totalPaid || 0}" data-budget="${s.allottedBudget || 0}">Pay</button>
-      </td>
-
-      <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
-      <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-    `;
-    expenseTable.appendChild(tr);
-  });
-}
-
-function applyFilters() {
-  const q = (searchInput.value || "").toLowerCase();
-  const by = batchFilter.value;
-  const filtered = allRows.filter(s => {
-    const okQ = s.fullname.toLowerCase().includes(q);
-    const okB = by === "" || String(s.batchYear) === by;
-    return okQ && okB;
-  });
-  renderTable(filtered);
-}
-
-expenseTable.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button"); if (!btn) return;
-
-  if (btn.classList.contains("set-budget-btn")) {
-    currentScholarId = btn.dataset.id;
-    budgetInput.value = btn.dataset.budget || 0;
-    budgetModal.style.display = "flex"; return;
-  }
-
-  if (btn.classList.contains("pay-btn")) {
-    currentScholarId = btn.dataset.id;
-    payInput.value = "";
-    payModal.style.display = "flex"; return;
-  }
-
-  if (btn.classList.contains("reset-btn")) {
-    const userId = btn.dataset.id;
-    if (!confirm("Reset this scholar's Tuition tracker to zero?")) return;
-    try {
-      const r = await fetch(`/api/tuition/${userId}/reset`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin"
-      });
-      if (r.ok) { alert("Reset successful."); loadScholars(); }
-      else {
-        const t = await r.text().catch(()=> "");
-        alert(`Failed to reset. HTTP ${r.status}${t ? `: ${t}` : ""}`);
+    // ===== Load data (no popups on load)
+    async function loadScholars() {
+      try {
+        const r = await fetch("/api/tuition", { credentials: "include" });
+        if (!r.ok) {
+          const t = await r.text().catch(()=> "");
+          notify(`Failed to load tuition tracker (HTTP ${r.status})${t?`: ${t}`:''}`, 'error', 5000);
+          return;
+        }
+        allRows = await r.json();
+        populateBatchFilter(allRows);
+        renderTable(allRows);
+      } catch (err) {
+        console.error("Failed to load tuition tracker:", err);
+        notify("Network error while loading data.", 'error', 5000);
       }
-    } catch (err) { console.error(err); alert("Reset failed."); }
-  }
-});
-
-saveBudgetBtn.addEventListener("click", async () => {
-  const amount = Number(budgetInput.value);
-  if (!currentScholarId || !Number.isFinite(amount) || amount < 0) {
-    alert("Enter a non-negative number."); return;
-  }
-  try {
-    const r = await fetch(`/api/tuition/${currentScholarId}/budget`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ allottedBudget: amount })
-    });
-    if (!r.ok) {
-      const msg = await r.text().catch(()=> "");
-      alert(`Failed to update budget. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
-      return;
     }
-    const { tracker } = await r.json();
-    // update locally without full reload
-    allRows = allRows.map(row =>
-      row._id === currentScholarId
-        ? {
-            ...row,
-            allottedBudget: tracker.allottedBudget ?? amount,
-            totalPaid: tracker.totalPaid ?? row.totalPaid ?? 0,
-            remaining: (tracker.allottedBudget ?? amount) - (tracker.totalPaid ?? row.totalPaid ?? 0)
-          }
-        : row
-    );
-    renderTable(allRows);
-    budgetModal.style.display = "none";
-  } catch (err) { console.error(err); alert(`Budget update failed: ${err.message}`); }
-});
 
-savePayBtn.addEventListener("click", async () => {
-  const v = Number(payInput.value);
-  if (!currentScholarId || !Number.isFinite(v) || v <= 0) {
-    alert("Enter a positive number."); return;
-  }
-  try {
-    const r = await fetch(`/api/tuition/${currentScholarId}/pay`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ addAmount: v })
-    });
-    if (!r.ok) {
-      const msg = await r.text().catch(()=> "");
-      alert(`Failed to record payment. HTTP ${r.status}${msg ? `: ${msg}` : ""}`);
-      return;
+    function populateBatchFilter(data) {
+      const years = [...new Set(data.map(s => s.batchYear).filter(Boolean))].sort();
+      batchFilter.innerHTML = '<option value="">All Batches</option>';
+      years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y; opt.textContent = "Batch " + y; batchFilter.appendChild(opt);
+      });
     }
-    const { tracker } = await r.json();
-    allRows = allRows.map(row =>
-      row._id === currentScholarId
-        ? {
-            ...row,
-            allottedBudget: tracker.allottedBudget ?? row.allottedBudget ?? 0,
-            totalPaid: tracker.totalPaid ?? (row.totalPaid || 0),
-            remaining: tracker.remaining ?? ((tracker.allottedBudget ?? row.allottedBudget ?? 0) - (tracker.totalPaid ?? row.totalPaid ?? 0))
+
+    function renderTable(rows) {
+      expenseTable.innerHTML = "";
+      if (!rows.length) {
+        expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+        return;
+      }
+
+      rows.forEach(s => {
+        const remaining = (s.allottedBudget || 0) - (s.totalPaid || 0);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.fullname}</td>
+          <td>${s.batchYear || '-'}</td>
+
+          <td>
+            <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
+          </td>
+
+          <td>
+            <button class="btn pay-btn" data-id="${s._id}" data-total="${s.totalPaid || 0}" data-budget="${s.allottedBudget || 0}">Pay</button>
+          </td>
+
+          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
+          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+        `;
+        expenseTable.appendChild(tr);
+      });
+    }
+
+    function applyFilters() {
+      const q  = (searchInput.value || "").toLowerCase();
+      const by = batchFilter.value;
+      const filtered = allRows.filter(s => {
+        const okQ = (s.fullname || "").toLowerCase().includes(q);
+        const okB = by === "" || String(s.batchYear) === by;
+        return okQ && okB;
+      });
+      renderTable(filtered);
+    }
+
+    // ===== Actions
+    expenseTable.addEventListener("click", async (e) => {
+      const btn = e.target.closest("button"); if (!btn) return;
+
+      if (btn.classList.contains("set-budget-btn")) {
+        currentScholarId = btn.dataset.id;
+        budgetInput.value = btn.dataset.budget || 0;
+        openModal(budgetModal);
+        return;
+      }
+
+      if (btn.classList.contains("pay-btn")) {
+        currentScholarId = btn.dataset.id;
+        payInput.value = "";
+        openModal(payModal);
+        return;
+      }
+
+      if (btn.classList.contains("reset-btn")) {
+        const userId = btn.dataset.id;
+        if (!confirm("Reset this scholar's Tuition tracker to zero?")) return;
+        try {
+          const r = await fetch(`/api/tuition/${userId}/reset`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+          });
+          if (r.ok) {
+            notify("Reset successful.");
+            loadScholars();
+          } else {
+            const t = await r.text().catch(()=> "");
+            notify(`Failed to reset (HTTP ${r.status})${t?`: ${t}`:''}`, 'error', 5000);
           }
-        : row
-    );
-    renderTable(allRows);
-    payModal.style.display = "none";
-  } catch (err) { console.error(err); alert(`Payment failed: ${err.message}`); }
-});
+        } catch (err) {
+          console.error(err);
+          notify("Reset failed. Check console for details.", 'error', 5000);
+        }
+      }
+    });
 
-cancelBudgetBtn.addEventListener("click", () => budgetModal.style.display = "none");
-cancelPayBtn.addEventListener("click", () => payModal.style.display = "none");
-window.addEventListener("click", (e) => {
-  if (e.target === budgetModal) budgetModal.style.display = "none";
-  if (e.target === payModal)    payModal.style.display    = "none";
-});
+    saveBudgetBtn.addEventListener("click", async () => {
+      const amount = Number(budgetInput.value);
+      if (!currentScholarId || !Number.isFinite(amount) || amount < 0) {
+        notify("Enter a non-negative number.", 'error', 3000);
+        return;
+      }
+      try {
+        const r = await fetch(`/api/tuition/${currentScholarId}/budget`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ allottedBudget: amount })
+        });
+        if (!r.ok) {
+          const msg = await r.text().catch(()=> "");
+          notify(`Failed to update budget (HTTP ${r.status})${msg?`: ${msg}`:''}`, 'error', 5000);
+          return;
+        }
+        const { tracker } = await r.json();
+        allRows = allRows.map(row =>
+          row._id === currentScholarId
+            ? {
+                ...row,
+                allottedBudget: tracker?.allottedBudget ?? amount,
+                totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
+                remaining: (tracker?.allottedBudget ?? amount) - (tracker?.totalPaid ?? row.totalPaid ?? 0)
+              }
+            : row
+        );
+        renderTable(allRows);
+        closeModal(budgetModal);
+        notify("Budget updated successfully.");
+      } catch (err) {
+        console.error(err);
+        notify(`Budget update failed: ${err.message}`, 'error', 5000);
+      }
+    });
 
-searchInput.addEventListener("input", applyFilters);
-batchFilter.addEventListener("change", applyFilters);
-window.addEventListener("DOMContentLoaded", loadScholars);
-</script>
+    savePayBtn.addEventListener("click", async () => {
+      const v = Number(payInput.value);
+      if (!currentScholarId || !Number.isFinite(v) || v <= 0) {
+        notify("Enter a positive number.", 'error', 3000);
+        return;
+      }
+      try {
+        const r = await fetch(`/api/tuition/${currentScholarId}/pay`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ addAmount: v })
+        });
+        if (!r.ok) {
+          const msg = await r.text().catch(()=> "");
+          notify(`Failed to record payment (HTTP ${r.status})${msg?`: ${msg}`:''}`, 'error', 5000);
+          return;
+        }
+        const { tracker } = await r.json();
+        allRows = allRows.map(row =>
+          row._id === currentScholarId
+            ? {
+                ...row,
+                allottedBudget: tracker?.allottedBudget ?? row.allottedBudget ?? 0,
+                totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
+                remaining: tracker?.remaining ?? ((tracker?.allottedBudget ?? row.allottedBudget ?? 0) - (tracker?.totalPaid ?? row.totalPaid ?? 0))
+              }
+            : row
+        );
+        renderTable(allRows);
+        closeModal(payModal);
+        notify("Payment saved.");
+      } catch (err) {
+        console.error(err);
+        notify(`Payment failed: ${err.message}`, 'error', 5000);
+      }
+    });
+
+    // Close modals
+    cancelBudgetBtn.addEventListener("click", ()=> closeModal(budgetModal));
+    cancelPayBtn.addEventListener("click", ()=> closeModal(payModal));
+    window.addEventListener("click", (e)=>{
+      if(e.target === budgetModal) closeModal(budgetModal);
+      if(e.target === payModal)    closeModal(payModal);
+    });
+
+    // Filters
+    searchInput.addEventListener("input", applyFilters);
+    batchFilter.addEventListener("change", applyFilters);
+
+    // Init (no alerts on load)
+    window.addEventListener("DOMContentLoaded", loadScholars);
+  </script>
 </body>
 
 </html>

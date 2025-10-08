@@ -1,433 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Event Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --gold:#D4A017;
+    }
+    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
+
+    /* ===== LAYOUT ===== */
+    body{
+      display:flex; flex-direction:column; min-height:100vh;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    }
+    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    /* ===== HEADER ===== */
+    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+
+    /* ===== MAIN CARD ===== */
+    .container{
+      width:90%; height:80vh; max-width:1000px;
+      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
+      display:flex; flex-direction:column; overflow:hidden;
     }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-
-    .container {
-      width: 90%;
-      height: 80%;
-      max-width: 1000px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sectionBox {
-      background: transparent;
-      max-width: 800px;
-      border-radius: 12px;
-      padding: 20px;
-      margin: auto;
-    }
-
-    .sectionBox h2 {
-      margin-bottom: 15px;
-    }
+    .sectionBox{ background:transparent; max-width:800px; border-radius:12px; padding:20px; margin:auto }
+    .sectionBox h2{ margin-bottom:15px }
 
     /* Tabs */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #eee;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 14px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      background: #f9f9f9;
-      transition: all 0.3s ease;
-    }
-
-    .tab:hover {
-      background: #eaeaea;
-    }
-
-    .tab.active {
-      background: #800000;
-      color: #fff;
-      font-weight: bold;
-    }
+    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
+    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease; user-select:none }
+    .tab:hover{ background:#eaeaea }
+    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
 
     /* Content */
-    .content {
-      padding: 20px;
-      flex: 1;
-      max-height: 500px;
-      overflow-y: hidden;
+    .content{ padding:20px; flex:1; min-height:0; overflow:hidden }
+    .content-section{ display:none; height:100% }
+    .content-section.active{ display:block }
+
+    .inputBox{ display:flex; flex-direction:column; gap:8px }
+    .inputBox label{ font-weight:bold; margin-top:5px }
+
+    .inputBox input{
+      background:#c9c9c9; border-radius:20px; padding:8px 12px;
     }
 
-    .content-section {
-      display: none;
+    .datetimeRow{ display:flex; gap:20px }
+    .datetimeRow .inputGroup{ display:flex; flex-direction:column; flex:1 }
+    .datetimeRow .inputGroup input{
+      background:#c9c9c9; border-radius:20px; padding:8px 12px; font-weight:bold; border:none; height:38px; width:100%;
     }
 
-    .content-section.active {
-      display: block;
+    .eventDescription textarea{
+      background:#c9c9c9; margin-top:5px; border-radius:20px; padding:8px 12px; resize:none; width:100%; height:80px;
     }
 
-    .inputBox {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .createButton{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px }
+    .createButton button{ height:35px; padding:0 16px; border-radius:10px; background:rgba(146,59,59); color:#fff; cursor:pointer; font-weight:bold }
+    .createButton button[type="reset"]{ background:#6c757d }
 
-    .inputBox label {
-      font-weight: bold;
-      margin-top: 5px;
+    /* Events list */
+    .displayEventContainer{
+      width:100%; max-width:800px; margin:auto; display:flex; flex-direction:column; gap:15px;
+      height:500px; overflow-y:auto; padding-right:10px;
     }
-
-    .inputBox input {
-      background-color: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
+    .eventCard{
+      display:flex; align-items:center; background:#fdfdfd; border-radius:10px; padding:10px; gap:15px;
+      box-shadow:0 2px 5px rgba(0,0,0,.1); transition:transform .2s ease;
     }
+    .eventCard:hover{ transform:translateY(-4px) }
 
-    .datetimeRow {
-      display: flex;
-      gap: 20px;
+    .eventDate{ text-align:center; padding:10px; background:rgba(146,59,59); color:#fff; border-radius:8px; width:60px }
+    .eventDate h2{ font-size:18px; margin:0 }
+    .eventDate h1{ font-size:28px; margin:0 }
+
+    .eventDetails h3{ margin:0 0 6px 0; color:#333 }
+    .viewMoreBtn{ background:none; border:none; color:rgba(146,59,59); cursor:pointer; font-weight:bold; font-size:14px }
+
+    /* Modal overlay (above sticky header) */
+    .modal{
+      display:none; position:fixed; z-index:2000; inset:0; background:rgba(0,0,0,.5);
+      justify-content:center; align-items:center; padding:16px;
     }
-
-    .datetimeRow .inputGroup {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
+    .modal-content{
+      background:#fff; padding:20px; border-radius:12px; max-width:600px; width:90%;
+      box-shadow:0 5px 15px rgba(0,0,0,.3); animation:fadeIn .25s ease;
     }
+    .close{ color:#aaa; float:right; font-size:24px; font-weight:bold; cursor:pointer }
+    .close:hover{ color:#000 }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:translateY(0)} }
+    #modalSentence{ white-space:pre-line; line-height:1.6 }
 
-    .datetimeRow .inputGroup input {
-      background-color: rgb(201, 201, 201);
-      border-radius: 20px;
-      padding: 8px 12px;
-      font-weight: bold;
-      border: none;
-      height: 38px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .eventDescription textarea {
-      background-color: rgb(201, 201, 201);
-      margin-top: 5px;
-      border-radius: 20px;
-      padding: 8px 12px;
-      resize: none;
-      width: 100%;
-      height: 80px;
-    }
-
-    .createButton {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .createButton button {
-      height: 35px;
-      padding: 0 16px;
-      border-radius: 10px;
-      background-color: rgba(146, 59, 59);
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .eventCard {
-      display: flex;
-      align-items: center;
-      background: #fdfdfd;
-      border-radius: 10px;
-      padding: 10px;
-      gap: 15px;
-      max-height: 500px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .eventCard:hover {
-      transform: translateY(-4px);
-    }
-
-    .displayEventContainer {
-      width: 100%;
-      max-width: 800px;
-      margin: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      height: 500px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-
-    .eventDate {
-      text-align: center;
-      padding: 10px;
-      background: rgba(146, 59, 59);
-      color: white;
-      border-radius: 8px;
-      width: 60px;
-    }
-
-    .eventDate h2 {
-      font-size: 18px;
-      margin: 0;
-    }
-
-    .eventDate h1 {
-      font-size: 28px;
-      margin: 0;
-    }
-
-    .viewMoreBtn {
-      background: none;
-      border: none;
-      color: rgba(146, 59, 59);
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    /* Modal overlay */
-    .modal {
-      display: none;
-      /* will be set to flex in JS when opened */
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      /* center horizontally */
-      align-items: center;
-      /* center vertically */
-      padding: 16px;
-      /* small padding for tiny screens */
-    }
-
-    /* Centered modal box */
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 600px;
-      width: 90%;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      animation: fadeIn 0.25s ease;
-    }
-
-    /* Close button */
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 24px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover {
-      color: #000;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-6px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    #modalSentence {
-      white-space: pre-line;
-      line-height: 1.6;
-    }
+    /* ===== FOOTER ===== */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
   </style>
 </head>
-
 <body>
-  <div class="container">
-    <!-- Tabs -->
-    <div class="tabs">
-      <div class="tab active" data-target="create">Create Event</div>
-      <div class="tab" data-target="list">Upcoming Events</div>
-    </div>
 
-    <!-- Content -->
-    <div class="content">
-
-      <!-- Create Event -->
-      <div class="content-section active" id="create">
-        <div class="sectionBox">
-          <h2>Create Event</h2>
-          <form id="eventForm" class="inputBox">
-            <label>Event Name</label>
-            <input type="text" name="title" required>
-
-            <div class="datetimeRow">
-              <div class="inputGroup">
-                <label>Date</label>
-                <input type="text" id="pikadayDate" name="date" placeholder="Select a date" required>
-              </div>
-              <div class="inputGroup">
-                <label for="time">Time</label>
-                <input type="time" id="time" name="time" required>
-              </div>
-              <div class="inputGroup">
-                <label>Duration</label>
-                <input type="text" name="duration" placeholder="e.g. 1h 30m" required>
-              </div>
-            </div>
-
-            <label>Location</label>
-            <input type="text" name="location" required>
-
-            <div class="eventDescription">
-              <label>Event Description</label>
-              <textarea name="description" required></textarea>
-            </div>
-
-            <div class="createButton">
-              <button type="reset">Reset</button>
-              <button type="submit">Create Event</button>
-            </div>
-          </form>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
         </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" data-target="create">Create Event</div>
+        <div class="tab" data-target="list">Upcoming Events</div>
       </div>
 
-      <!-- Events List -->
-      <div class="content-section" id="list">
-        <div class="sectionBox">
-          <h2>Upcoming Events</h2>
-          <div class="displayEventContainer">
-            <!-- Event cards will load here -->
+      <!-- Content -->
+      <div class="content">
+        <!-- Create Event -->
+        <div class="content-section active" id="create">
+          <div class="sectionBox">
+            <h2>Create Event</h2>
+            <form id="eventForm" class="inputBox">
+              <label>Event Name</label>
+              <input type="text" name="title" required>
+
+              <div class="datetimeRow">
+                <div class="inputGroup">
+                  <label>Date</label>
+                  <input type="text" id="pikadayDate" name="date" placeholder="Select a date" required>
+                </div>
+                <div class="inputGroup">
+                  <label for="time">Time</label>
+                  <input type="time" id="time" name="time" required>
+                </div>
+                <div class="inputGroup">
+                  <label>Duration</label>
+                  <input type="text" name="duration" placeholder="e.g. 1h 30m" required>
+                </div>
+              </div>
+
+              <label>Location</label>
+              <input type="text" name="location" required>
+
+              <div class="eventDescription">
+                <label>Event Description</label>
+                <textarea name="description" required></textarea>
+              </div>
+
+              <div class="createButton">
+                <button type="reset">Reset</button>
+                <button type="submit">Create Event</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Events List -->
+        <div class="content-section" id="list">
+          <div class="sectionBox">
+            <h2>Upcoming Events</h2>
+            <div class="displayEventContainer"><!-- cards injected here --></div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- Modal (single-sentence details) -->
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <!-- Modal -->
   <div id="eventModal" class="modal" aria-hidden="true">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <span class="close" aria-label="Close">&times;</span>
       <h2 id="modalTitle"></h2>
-      <p id="modalSentence" style="line-height:1.6;"></p>
+      <p id="modalSentence"></p>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
-
   <script>
-    // Tab switching
+    // Tabs
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
+    tabs.forEach(tab=>{
+      tab.addEventListener('click', ()=>{
+        tabs.forEach(t=>t.classList.remove('active'));
+        sections.forEach(s=>s.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(tab.dataset.target).classList.add('active');
+        if(tab.dataset.target === 'list'){ loadEvents(); }
       });
     });
 
-    // Pikaday for date
+    // Pikaday date picker
     new Pikaday({
       field: document.getElementById('pikadayDate'),
       format: 'YYYY-MM-DD',
       minDate: new Date(),
-      toString(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+      toString(date){
+        const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0');
+        return `${y}-${m}-${d}`;
       }
     });
 
     const API_URL = 'http://localhost:3000';
 
-    // Form submission handler
-    document.getElementById('eventForm').addEventListener('submit', async function (e) {
+    // Create event
+    document.getElementById('eventForm').addEventListener('submit', async function(e){
       e.preventDefault();
-      const formData = new FormData(this);
-      const eventData = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        dateTime: `${formData.get('date')}T${formData.get('time')}`,
-        duration: formData.get('duration'),
-        location: formData.get('location')
+      const fd = new FormData(this);
+      const payload = {
+        title: fd.get('title'),
+        description: fd.get('description'),
+        dateTime: `${fd.get('date')}T${fd.get('time')}`,
+        duration: fd.get('duration'),
+        location: fd.get('location')
       };
-
-      try {
+      try{
         const res = await fetch(`${API_URL}/api/events`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData)
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
         });
-
-        if (res.ok) {
+        if(res.ok){
           alert('Event created successfully!');
           this.reset();
-          loadEvents();
-        } else {
+          // if on list tab, refresh; else user can switch to see it
+          const activeTab = document.querySelector('.tab.active')?.dataset.target;
+          if(activeTab === 'list') loadEvents();
+        }else{
           alert('Error creating event');
         }
-      } catch (err) {
+      }catch(err){
         console.error(err);
         alert('Network error');
       }
     });
 
     // Load events
-    async function loadEvents() {
-      try {
+    async function loadEvents(){
+      try{
         const res = await fetch(`${API_URL}/api/events`);
         const events = await res.json();
         const container = document.querySelector('.displayEventContainer');
         container.innerHTML = '';
 
-        events.forEach(ev => {
+        if(!Array.isArray(events) || !events.length){
+          container.innerHTML = '<div style="color:#555;">No events found.</div>';
+          return;
+        }
+
+        events.forEach(ev=>{
           const dateObj = new Date(ev.dateTime);
-          const month = dateObj.toLocaleString('default', { month: 'short' });
-          const day = dateObj.getDate();
+          const month = dateObj.toLocaleString('default', {month:'short'});
+          const day   = dateObj.getDate();
 
           const div = document.createElement('div');
-          div.classList.add('eventCard');
+          div.className = 'eventCard';
           div.innerHTML = `
             <div class="eventDate">
               <h2>${month}</h2>
@@ -439,85 +301,59 @@
             </div>
           `;
 
-          // View More -> open modal centered with one-sentence details
-          div.querySelector('.viewMoreBtn').addEventListener('click', async function () {
-            // Title
+          div.querySelector('.viewMoreBtn').addEventListener('click', async ()=>{
             document.getElementById('modalTitle').textContent = ev.title;
 
-            // Nice human-readable date/time
             const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit'
+              weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'numeric', minute:'2-digit', hour12:true
             });
 
-            // Fetch attendance counts
-            let attend = 0;
-            let notAttend = 0;
-            try {
+            let attend = 0, notAttend = 0;
+            try{
               const eventId = ev._id || ev.id;
-              if (!eventId) throw new Error('Event id missing on event object');
-
-              const res = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
-              if (res.ok) {
-                const data = await res.json();
-                attend = data.attendCount ?? 0;
-                notAttend = data.notAttendCount ?? 0;
+              if(eventId){
+                const r = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
+                if(r.ok){
+                  const d = await r.json();
+                  attend   = d.attendCount ?? 0;
+                  notAttend= d.notAttendCount ?? 0;
+                }
               }
-            } catch (err) {
-              console.warn('Attendance API error:', err);
-            }
+            }catch(e){ console.warn('Attendance API error:', e); }
 
-            // Build one sentence
             const desc = (ev.description || '').trim();
-            const extra = desc ? ` ${desc}` : '';
             const sentence =
               `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
               `with a duration of <strong>${ev.duration}</strong>.\n\n` +
-              `<strong>Description:</strong>\n${extra ? extra + '\n\n' : ''}` +
+              (desc ? `<strong>Description:</strong>\n${desc}\n\n` : '') +
               `<strong>Attendance so far:</strong> ${attend} will attend, ${notAttend} will not attend.`;
 
             document.getElementById('modalSentence').innerHTML = sentence;
 
-
-            // Show modal centered
             const modal = document.getElementById('eventModal');
-            modal.style.display = 'flex';         // IMPORTANT: use flex (not block) so it's centered
-            modal.setAttribute('aria-hidden', 'false');
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden','false');
           });
 
           container.appendChild(div);
         });
-      } catch (err) {
+      }catch(err){
         console.error(err);
       }
     }
 
-    // Close modal helpers
-    function closeModal() {
+    // Modal close
+    function closeModal(){
       const modal = document.getElementById('eventModal');
       modal.style.display = 'none';
-      modal.setAttribute('aria-hidden', 'true');
+      modal.setAttribute('aria-hidden','true');
     }
-
     document.querySelector('.close').addEventListener('click', closeModal);
+    window.addEventListener('click', (e)=>{ if(e.target === document.getElementById('eventModal')) closeModal(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
 
-    window.addEventListener('click', function (e) {
-      if (e.target.id === 'eventModal') {
-        closeModal();
-      }
-    });
-
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeModal();
-    });
-
-    // Load events on page load
-    window.onload = loadEvents;
+    // Initial load: keep Create tab active; prefetch events
+    loadEvents();
   </script>
 </body>
-
 </html>

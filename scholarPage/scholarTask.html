@@ -5,21 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scholar Tasks</title>
   <style>
+    :root{
+      --gold:#D4A017;   /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
+    }
+
     * { margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif }
 
+    html, body { height: 100%; }
+
     body {
-      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column; /* header / main / footer */
       background-image: url('/assets/iskolarbg.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      color: #333;
+    }
+
+    /* ========= HEADER ========= */
+    .site-header{
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter: drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff; user-select:none;
+    }
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px;
+      transition: color .25s ease;
+    }
+    .brand-block > a:hover{ color: var(--gold); }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition: color .25s ease; }
+    .brand-sub a:hover{ color: var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block > a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
+    }
+
+    /* ========= MAIN ========= */
+    main{
+      flex: 1; /* push footer to bottom */
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
       padding: 20px;
-      color: #333;
-      overflow: hidden
     }
 
     .task-container {
@@ -32,7 +79,7 @@
       background: rgba(255, 255, 255, .9);
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
-      overflow: hidden
+      overflow: hidden;
     }
 
     .task-list {
@@ -64,7 +111,7 @@
       user-select: none;
     }
     .task-tab:hover { background: #f0f0f0; }
-    .task-tab.active { background: #800000; color: #fff; }
+    .task-tab.active { background: var(--maroon); color: #fff; }
 
     .task-list-scroll {
       overflow-y: auto;
@@ -77,23 +124,23 @@
       font-size: 1.05rem;
       font-weight: bold;
       margin: 5px 0 12px;
-      color: #800000;
+      color: var(--maroon);
     }
 
     .task-card {
       background: #fdfdfd;
-      border-left: 5px solid #800000;
+      border-left: 5px solid var(--maroon);
       border-radius: 10px;
       padding: 15px 20px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
       transition: transform .2s ease;
       margin-bottom: 12px;
-      cursor: pointer
+      cursor: pointer;
     }
     .task-card:hover { transform: translateY(-4px) }
     .task-card.active { background: #f0f0f0 }
 
-    .task-title { font-weight: bold; font-size: 1.1em; color: #800000; margin-bottom: 5px }
+    .task-title { font-weight: bold; font-size: 1.1em; color: var(--maroon); margin-bottom: 5px }
     .task-dates { font-size: .9em; color: #555; margin-bottom: 8px }
     .task-description { font-size: .95em; color: #333; line-height: 1.4em }
 
@@ -115,46 +162,88 @@
       width: 100%
     }
 
-    .task-detail-title { margin-bottom: 15px; color: #800000; font-size: 1.4rem; font-weight: bold }
+    .task-detail-title { margin-bottom: 15px; color: var(--maroon); font-size: 1.4rem; font-weight: bold }
     .task-meta p { margin: 5px 0; font-size: .95em; color: #444 }
 
-    .task-description-box { margin-top: 20px; padding: 15px; background: #fafafa; border-left: 4px solid #800000; border-radius: 8px }
-    .task-description-box h3 { margin: 0 0 10px 0; font-size: 1rem; color: #800000 }
+    .task-description-box { margin-top: 20px; padding: 15px; background: #fafafa; border-left: 4px solid var(--maroon); border-radius: 8px }
+    .task-description-box h3 { margin: 0 0 10px 0; font-size: 1rem; color: var(--maroon) }
 
     .upload-box { margin-top: 25px }
-    .upload-box h3 { margin-bottom: 10px; font-size: 1rem; color: #800000 }
+    .upload-box h3 { margin-bottom: 10px; font-size: 1rem; color: var(--maroon) }
     .upload-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
     .upload-box input[type="file"] { display: none }
-    .custom-file-label { display: inline-block; background: #800000; color: #fff; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: .95em; transition: background .2s ease }
+    .custom-file-label { display: inline-block; background: var(--maroon); color: #fff; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: .95em; transition: background .2s ease }
     .custom-file-label:hover { background: #5e0000 }
     .file-preview { margin-top: 8px; font-size: .9em; color: #555; font-style: italic }
-    .submit-btn { background: #800000; color: #fff; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer }
+    .submit-btn { background: var(--maroon); color: #fff; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer }
     .submit-btn:hover { background: #5e0000 }
     .submit-btn[disabled] { opacity: .6; cursor: not-allowed }
 
     .status-line { margin-top: 8px; font-size: .9em; color: #555 }
     .empty-state { color: #666; font-style: italic }
+
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px; /* 1px stroke around footer */
+    }
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
-  <div class="task-container">
-    <!-- LEFT: Task List with Tabs -->
-    <div class="task-list">
-      <div class="task-tabs">
-        <div class="task-tab active" data-target="currentList">Current Tasks</div>
-        <div class="task-tab" data-target="submittedList">Submitted</div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="task-container">
+      <!-- LEFT: Task List with Tabs -->
+      <div class="task-list">
+        <div class="task-tabs">
+          <div class="task-tab active" data-target="currentList">Current Tasks</div>
+          <div class="task-tab" data-target="submittedList">Submitted</div>
+        </div>
+
+        <div id="currentList" class="task-list-scroll" data-title="📝 Current Tasks"></div>
+        <div id="submittedList" class="task-list-scroll" data-title="📦 Submitted / Archive" style="display:none;"></div>
       </div>
 
-      <div id="currentList" class="task-list-scroll" data-title="📝 Current Tasks"></div>
-      <div id="submittedList" class="task-list-scroll" data-title="📦 Submitted / Archive" style="display:none;"></div>
+      <!-- RIGHT: Task Details -->
+      <div class="task-details" id="taskDetails">
+        <p class="empty-state">Select a task to view details</p>
+      </div>
     </div>
+  </main>
 
-    <!-- RIGHT: Task Details -->
-    <div class="task-details" id="taskDetails">
-      <p class="empty-state">Select a task to view details</p>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
     </div>
-  </div>
+  </footer>
 
   <script>
     let tasks = [];                // all tasks from /api/tasks (open list baseline)
@@ -187,7 +276,6 @@
         tasks = await res.json();
 
         // try to fetch submitted tasks for THIS scholar (if your backend provides it)
-        // Recommended endpoint to add later: GET /api/my-submissions  -> [{ task: <taskId>, ... }]
         await tryLoadSubmittedIds();
 
         renderLists();
@@ -199,7 +287,6 @@
 
     async function tryLoadSubmittedIds() {
       // Graceful fallback if no endpoint exists yet.
-      // Try common possibilities. If all fail, we keep submittedTaskIds as-is.
       const candidates = ["/api/my-submissions", "/api/submissions/me"];
       for (const url of candidates) {
         try {
@@ -373,7 +460,7 @@
           submittedTaskIds.add(String(currentTaskId));
           renderLists();
 
-          // Switch to Submitted tab automatically (optional but nice)
+          // Switch to Submitted tab automatically
           const submittedTab = document.querySelector('.task-tab[data-target="submittedList"]');
           submittedTab.click();
 

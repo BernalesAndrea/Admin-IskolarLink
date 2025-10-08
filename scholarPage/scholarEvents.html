@@ -10,99 +10,153 @@
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --gold:#D4A017;   /* golden yellow */
+      --maroon:#800000; /* maroon red */
+      --maroon-dark:#5a0000;
     }
 
-    body {
-      margin: 0;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-      overflow-y: hidden;
+    *{
+      margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
     }
 
-    .container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      padding: 20px;
-      max-width: 1000px;
-      width: 100%;
+    html, body { height:100%; }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column; /* header / main / footer */
+      background-image:url('/assets/iskolarbg.png');
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
     }
 
-    #calendar {
-      max-width: 100%;
-      margin: 0 auto;
+    /* ========= HEADER ========= */
+    .site-header{
+      position:sticky; top:0; z-index:1000;
+      background:var(--maroon);
+      border-bottom:2px solid var(--maroon-dark);
     }
+    .header-wrap{
+      max-width:1200px; margin:0 auto; padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{
+      height:64px; width:auto; flex:0 0 auto;
+      filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    }
+    .brand-block{
+      display:flex; flex-direction:column; align-items:center;
+      line-height:1.15; text-align:center; color:#fff; user-select:none;
+    }
+    /* Main title link */
+    .brand-block > a{
+      color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px;
+      transition:color .25s ease;
+    }
+    .brand-block > a:hover{ color:var(--gold); }
+    /* Subtext link */
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition:color .25s ease; }
+    .brand-sub a:hover{ color:var(--gold); }
+
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block > a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
+    }
+
+    /* ========= MAIN ========= */
+    main{
+      flex:1; /* push footer to bottom */
+      display:flex; justify-content:center; align-items:flex-start;
+      padding:20px;
+    }
+
+    .container{
+      background:#fff; border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      padding:20px; max-width:1000px; width:100%;
+    }
+
+    #calendar{ max-width:100%; margin:0 auto; }
+
+    h2.page-title{ margin-bottom:20px; color:var(--maroon); }
 
     /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
+    .modal{
+      display:none; position:fixed; z-index:2000; inset:0;
+      background:rgba(0,0,0,0.6);
     }
+    .modal-content{
+      background:#fff; padding:20px; border-radius:10px; width:400px; max-width:90%;
+      margin:100px auto; box-shadow:0 4px 10px rgba(0,0,0,0.3);
+    }
+    .close{ float:right; font-size:20px; cursor:pointer; font-weight:bold; }
+    .modal h2{ margin-bottom:10px; color:var(--maroon); }
+    .modal p{ margin:8px 0; }
 
-    .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      width: 400px;
-      max-width: 90%;
-      margin: 100px auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    /* ========= FOOTER ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000; outline-offset:-1px; /* 1px stroke around footer */
     }
-
-    .close {
-      float: right;
-      font-size: 20px;
-      cursor: pointer;
-      font-weight: bold;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    .modal h2 {
-      margin-bottom: 10px;
-      color: #800000;
-    }
-
-    .modal p {
-      margin: 8px 0;
-    }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h2 style="margin-bottom: 20px; color:#800000;">📅 Event Calendar</h2>
-    <div id="calendar"></div>
-  </div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <h2 class="page-title">📅 Event Calendar</h2>
+      <div id="calendar"></div>
+    </div>
+  </main>
 
   <!-- Event Modal -->
   <div id="eventModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
       <h2 id="modalTitle"></h2>
-      <!-- sentence-style details -->
       <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
     </div>
   </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <!-- FullCalendar JS -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -111,20 +165,16 @@
     document.addEventListener('DOMContentLoaded', async function () {
       const calendarEl = document.getElementById('calendar');
 
-      // ✅ Initialize Calendar
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 600,
 
-        // 🔵 Force AM/PM in the grid (fixes "5a" -> "5 AM")
         eventTimeFormat: {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
-          meridiem: 'long' // 'AM' / 'PM' (use 'short' for 'am/pm')
+          meridiem: 'long'
         },
-
-        // (Only used in timeGrid views; safe to keep for future)
         slotLabelFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -156,7 +206,6 @@
         },
 
         eventClick: function (info) {
-          // Build friendly date/time for modal (with AM/PM)
           const dateNice = new Date(info.event.start).toLocaleString(undefined, {
             weekday: 'long',
             year: 'numeric',
@@ -171,24 +220,21 @@
           const dur = info.event.extendedProps.duration || 'N/A';
           const desc = (info.event.extendedProps.description || '').trim();
 
-          // Compose sentence with bold key details + line breaks
           const sentence =
             `<strong>${info.event.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${loc}</strong> ` +
             `with a duration of <strong>${dur}</strong>.\n\n` +
             (desc ? `<strong>Description:</strong>\n${desc}` : '');
 
-          // Populate modal
           document.getElementById('modalTitle').textContent = info.event.title;
           document.getElementById('modalSentence').innerHTML = sentence;
 
-          // Show modal
           document.getElementById('eventModal').style.display = 'block';
         }
       });
 
       calendar.render();
 
-      // ✅ Modal close logic
+      // Modal close logic
       document.querySelector('.close').onclick = () => {
         document.getElementById('eventModal').style.display = 'none';
       };
