@@ -8,13 +8,6 @@ const gradeSchema = new mongoose.Schema(
     batchYear: String,
     schoolYear: { type: String, required: true },
     semester:  { type: String, required: true },
-    subjects: [
-      {
-        subjectCode: String,
-        units: Number,
-        grade: Number,
-      }
-    ],
 
     // 🔴 New (match what server.js actually saves):
     attachmentId:     { type: mongoose.Schema.Types.ObjectId },

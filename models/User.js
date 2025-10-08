@@ -9,6 +9,11 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: "scholar" },
   verified: { type: Boolean, default: false }, // for admin verification later
+
+  scholarType: { type: String, default: "" },
+  type:        { type: String, default: "" },
+  rejectionReason: { type: String, default: "" },
+
   profilePic: { type: String, default: "/assets/default-avatar.png" },
   profilePicId: { type: mongoose.Schema.Types.ObjectId, default: null },
   profilePicBucket: { type: String, default: null },

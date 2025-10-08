@@ -179,161 +179,200 @@
     </div>
 
     <script>
-        (async function () {
-            // helpers
-            function qs(name) { return new URLSearchParams(window.location.search).get(name); }
-            function show(selector) { document.querySelectorAll('.folderSection').forEach(el => el.style.display = 'none'); document.getElementById(selector).style.display = 'block'; }
-            function groupByType(doc) { // simple type grouping (adjust to your docType values)
-                const t = (doc.docType || "").toLowerCase();
-                if (t.includes('grade')) return 'scanned-grades';
-                if (t.includes('soa')) return 'soa';
-                if (t.includes('certificate') || t.includes('enrollment') || t.includes('coe')) return 'coe';
-                return 'others';
-            }
+(async function () {
+  /* -------------------- helpers -------------------- */
+  function qs(name){ return new URLSearchParams(window.location.search).get(name); }
+  function show(selector){
+    document.querySelectorAll('.folderSection').forEach(el => el.style.display='none');
+    document.getElementById(selector).style.display='block';
+  }
+  function groupByType(doc){
+    const t = (doc.docType || "").toLowerCase();
+    if (t.includes('grade')) return 'scanned-grades';
+    if (t.includes('soa')) return 'soa';
+    if (t.includes('certificate') || t.includes('enrollment') || t.includes('coe')) return 'coe';
+    return 'others';
+  }
 
-            // UI elements
-            const scholarMeta = document.getElementById('scholarMeta');
-            const docsAll = document.getElementById('docsAll');
-            const docsGrades = document.getElementById('docsGrades');
-            const docsSoa = document.getElementById('docsSoa');
-            const docsCoe = document.getElementById('docsCoe');
-            const docsOthers = document.getElementById('docsOthers');
+  // Build a /files/<bucket>/<id> URL
+  function fileUrl(bucket, id){ return (bucket && id) ? `/files/${bucket}/${id}` : null; }
 
-            // get scholarId
-            const scholarId = qs('scholarId');
-            if (!scholarId) {
-                scholarMeta.textContent = 'No scholar selected. Go back and choose a scholar.';
-                return;
-            }
+  // For SubmittedDocument rows coming from admin endpoints
+  function resolveDocUrl(d){
+    return (
+      d.fileUrl ||                                   // server-shaped
+      fileUrl(d.bucket, d.fileId) ||                 // gridfs pair
+      d.filePath ||                                  // legacy path
+      null
+    );
+  }
 
-            // bind tabs
-            document.getElementById('folderTabs').addEventListener('click', (e) => {
-                const t = e.target.closest('.tab');
-                if (!t) return;
-                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-                t.classList.add('active');
-                show(t.dataset.target);
-            });
+  // For Grade rows from /api/admin/grades/:scholarId
+  function resolveGradeAttachmentUrl(g){
+    return (
+      fileUrl(g.attachmentBucket, g.attachmentId) || // gridfs pair
+      g.attachment ||                                 // legacy path
+      null
+    );
+  }
 
-            // fetch scholar info (try admin endpoint)
-            async function fetchScholarInfo() {
-                try {
-                    const r = await fetch(`/api/admin/scholars/${scholarId}`, { credentials: 'include' });
-                    if (!r.ok) throw new Error('admin endpoint not allowed');
-                    const s = await r.json();
-                    return s;
-                } catch (err) {
-                    // fallback: try to find scholar from verified list (if admin endpoint not present)
-                    try {
-                        const r2 = await fetch('/api/verified-scholars', { credentials: 'include' });
-                        const list = await r2.json();
-                        return list.find(x => x._id === scholarId) || null;
-                    } catch (err2) {
-                        return null;
-                    }
-                }
-            }
+  /* -------------------- UI els -------------------- */
+  const scholarMeta = document.getElementById('scholarMeta');
+  const docsAll    = document.getElementById('docsAll');
+  const docsGrades = document.getElementById('docsGrades');
+  const docsSoa    = document.getElementById('docsSoa');
+  const docsCoe    = document.getElementById('docsCoe');
+  const docsOthers = document.getElementById('docsOthers');
 
-            // fetch documents for this scholar
-            async function fetchScholarDocs() {
-                try {
-                    // preferred: admin endpoint we added
-                    let r = await fetch(`/api/admin/scholars/${scholarId}/documents`, { credentials: 'include' });
-                    if (!r.ok) {
-                        // fallback: fetch all admin docs then filter
-                        const all = await (await fetch('/api/admin/documents', { credentials: 'include' })).json();
-                        return all.filter(d => (d.scholar && d.scholar._id ? d.scholar._id === scholarId : (d.scholar && d.scholar.toString ? d.scholar.toString() === scholarId : false)));
-                    }
-                    return await r.json();
-                } catch (err) {
-                    console.error('Error fetching scholar docs:', err);
-                    return [];
-                }
-            }
+  /* -------------------- guards -------------------- */
+  const scholarId = qs('scholarId');
+  if (!scholarId){
+    scholarMeta.textContent = 'No scholar selected. Go back and choose a scholar.';
+    return;
+  }
 
-            // fetch grades for this scholar
-            async function fetchScholarGrades() {
-                try {
-                    const r = await fetch(`/api/admin/grades/${scholarId}`, { credentials: 'include' });
-                    if (!r.ok) return [];
-                    return await r.json();
-                } catch (err) {
-                    console.error('Error fetching grades:', err);
-                    return [];
-                }
-            }
+  /* -------------------- tabs -------------------- */
+  document.getElementById('folderTabs').addEventListener('click', (e)=>{
+    const t = e.target.closest('.tab'); if(!t) return;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); show(t.dataset.target);
+  });
+
+  /* -------------------- fetchers -------------------- */
+  async function fetchScholarInfo(){
+    try{
+      const r = await fetch(`/api/scholars/${scholarId}`, { credentials:'include' });
+      if(!r.ok) throw 0;
+      return await r.json();
+    }catch{
+      try{
+        const r2 = await fetch('/api/verified-scholars', { credentials:'include' });
+        const list = await r2.json();
+        return list.find(x=>x._id === scholarId) || null;
+      }catch{ return null; }
+    }
+  }
+
+  async function fetchScholarDocs(){
+  try{
+    // prefer dedicated endpoint if you add one later
+    let r = await fetch(`/api/admin/scholars/${scholarId}/documents`, { credentials:'include' });
+    if (!r.ok){
+      const all = await (await fetch('/api/admin/documents', { credentials:'include' })).json();
+      return all
+        .filter(d => {
+          const sameScholar = d.scholar && d.scholar._id
+            ? d.scholar._id === scholarId
+            : String(d.scholar) === String(scholarId);
+          const statusNorm = String(d.status || '').trim().toLowerCase();
+          return sameScholar && statusNorm === 'accepted';   // ✅ only VERIFIED docs
+        })
+        .map(d => ({ ...d, url: resolveDocUrl(d) }));
+    }
+    const list = await r.json();
+    return list
+      .filter(d => String(d.status || '').trim().toLowerCase() === 'accepted')
+      .map(d => ({ ...d, url: resolveDocUrl(d) }));
+  }catch(err){
+    console.error('Error fetching scholar docs:', err);
+    return [];
+  }
+}
 
 
-            const scholar = await fetchScholarInfo();
-            if (!scholar) {
-                scholarMeta.textContent = 'Scholar not found or you are not authorized to view this. (Make sure you are logged in as admin.)';
-                return;
-            }
+  async function fetchScholarGrades(){
+  try{
+    const r = await fetch(`/api/admin/grades/${scholarId}`, { credentials:'include' });
+    if(!r.ok) return [];
+    const list = await r.json();
+    // normalize: add _url and _statusNorm
+    return list.map(g => ({
+      ...g,
+      _url: (
+        (g.attachmentBucket && g.attachmentId) ? `/files/${g.attachmentBucket}/${g.attachmentId}` :
+        (g.attachment || null)
+      ),
+      _statusNorm: String(g.status || '').trim().toLowerCase()
+    }));
+  }catch(err){
+    console.error('Error fetching grades:', err);
+    return [];
+  }
+}
 
-            scholarMeta.innerHTML = `
-    <strong>${scholar.fullname}</strong> <span class="small"> • Batch: ${scholar.batchYear || 'N/A'} • ${scholar.email || ''}</span>
+
+  /* -------------------- render -------------------- */
+ function addDocToList(listEl, doc){
+  const li = document.createElement('li');
+  const fileLabel = doc.docType || (doc.url ? decodeURIComponent(doc.url.split('/').pop()) : 'File');
+  const date = (doc.dateSubmitted || doc.createdAt)
+    ? new Date(doc.dateSubmitted || doc.createdAt).toLocaleDateString()
+    : '';
+  const href = doc.url || '';
+
+  li.innerHTML = `
+    <div>
+      <strong>${fileLabel}</strong>
+      <div class="small">${date}</div>
+    </div>
+    <div>
+      ${href ? `<a href="#" class="preview" data-file="${href}"><i class="fa fa-eye"></i> Preview</a>` : ''}
+      ${href ? `&nbsp;<a href="${href}" target="_blank" class="small">Open</a>` : ''}
+    </div>
   `;
-
-            // get docs & populate lists
-            const docs = await fetchScholarDocs();
-            function addDocToList(listEl, doc) {
-                const li = document.createElement('li');
-                const fileLabel = doc.docType || (doc.filePath ? doc.filePath.split('/').pop() : 'File');
-                const date = doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : '';
-                li.innerHTML = `
-      <div>
-        <strong>${fileLabel}</strong><div class="small">${date}</div>
-      </div>
-      <div>
-        ${doc.filePath ? `<a href="#" class="preview" data-file="${doc.filePath}"><i class="fa fa-eye"></i> Preview</a>` : ''}
-        &nbsp;
-        <a href="${doc.filePath || '#'}" target="_blank" class="small">Open</a>
-      </div>
-    `;
-                listEl.appendChild(li);
-            }
-
-            const grades = await fetchScholarGrades();
-
-                        // Push grades into "docs" format
-                        grades.forEach(g => {
-                              if (g.status === "accepted") {
-                                    docs.push({
-                                          docType: "Scanned Grades",
-                                          filePath: g.attachment,
-                                          dateSubmitted: g.dateSubmitted
-                                    });
-                              }
-                        });
+  listEl.appendChild(li);
+}
 
 
-            docs.forEach(doc => {
-                addDocToList(docsAll, doc);
-                const group = groupByType(doc);
-                if (group === 'scanned-grades') addDocToList(docsGrades, doc);
-                else if (group === 'soa') addDocToList(docsSoa, doc);
-                else if (group === 'coe') addDocToList(docsCoe, doc);
-                else addDocToList(docsOthers, doc);
-            });
+  const scholar = await fetchScholarInfo();
+  if (!scholar){
+    scholarMeta.textContent = 'Scholar not found or you are not authorized to view this. (Make sure you are logged in as admin.)';
+    return;
+  }
+  scholarMeta.innerHTML = `<strong>${scholar.fullname}</strong> <span class="small"> • Batch: ${scholar.batchYear || 'N/A'} • ${scholar.email || ''}</span>`;
 
-            // preview clicks
-            document.body.addEventListener('click', (e) => {
-                const a = e.target.closest('a.preview');
-                if (!a) return;
-                e.preventDefault();
-                const href = a.dataset.file;
-                if (!href) return;
-                document.getElementById('previewFrame').src = href;
-                document.getElementById('previewModal').style.display = 'block';
-            });
+  const docs   = await fetchScholarDocs();          // already has .url
+  const grades = await fetchScholarGrades();        // has ._url and ._statusNorm
 
-            document.getElementById('closePreview').onclick = () => {
-                document.getElementById('previewFrame').src = '';
-                document.getElementById('previewModal').style.display = 'none';
-            };
+  // Push ACCEPTED grades as "Scanned Grades" entries
+  grades.forEach(g => {
+    if (g._statusNorm === 'accepted' && g._url){
+      docs.push({
+        docType: 'Scanned Grades',
+        url: g._url,
+        dateSubmitted: g.dateSubmitted || g.createdAt
+      });
+    }
+  });
 
-        })();
-    </script>
+  // Render
+  docs.forEach(doc => {
+    const entry = { ...doc, url: doc.url || resolveDocUrl(doc) };
+    addDocToList(docsAll, entry);
+    const group = groupByType(entry);
+    if (group === 'scanned-grades') addDocToList(docsGrades, entry);
+    else if (group === 'soa')      addDocToList(docsSoa, entry);
+    else if (group === 'coe')      addDocToList(docsCoe, entry);
+    else                           addDocToList(docsOthers, entry);
+  });
+
+  /* -------------------- preview modal -------------------- */
+  document.body.addEventListener('click', (e) => {
+    const a = e.target.closest('a.preview');
+    if (!a) return;
+    e.preventDefault();
+    const href = a.dataset.file;
+    if (!href) return;
+    document.getElementById('previewFrame').src = href;
+    document.getElementById('previewModal').style.display = 'block';
+  });
+
+  document.getElementById('closePreview').onclick = () => {
+    document.getElementById('previewFrame').src = '';
+    document.getElementById('previewModal').style.display = 'none';
+  };
+})();
+</script>
 </body>
 
 </html>

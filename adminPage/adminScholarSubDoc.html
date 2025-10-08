@@ -1,105 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submitted Documents</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
   <style>
-    :root{
-      --maroon:#800000;
-      --maroon-dark:#5a0000;
-      --gold:#D4A017;
+    :root {
+      --maroon: #800000;
+      --maroon-dark: #5a0000;
+      --gold: #D4A017;
     }
-    *{margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box; font-family:Arial, Helvetica, sans-serif}
+
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif
+    }
 
     /* ===== LAYOUT ===== */
-    body{
-      display:flex; flex-direction:column; min-height:100vh;
-      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat;
     }
-    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px
+    }
 
     /* ===== HEADER ===== */
-    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
-    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
-    .header-center{ display:flex; align-items:center; gap:18px }
-    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
-    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff; user-select:none }
-    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
-    .brand-block > a:hover{ color:var(--gold) }
-    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
-    .brand-sub a{ color:#fff; transition:color .25s ease }
-    .brand-sub a:hover{ color:var(--gold) }
-    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark)
+    }
+
+    .header-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 18px
+    }
+
+    .header-logo {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .1))
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff;
+      user-select: none
+    }
+
+    .brand-block>a {
+      color: #fff;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: .5px;
+      transition: color .25s ease
+    }
+
+    .brand-block>a:hover {
+      color: var(--gold)
+    }
+
+    .brand-sub {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .brand-sub a {
+      color: #fff;
+      transition: color .25s ease
+    }
+
+    .brand-sub a:hover {
+      color: var(--gold)
+    }
+
+    @media (max-width:640px) {
+      .header-logo {
+        height: 48px
+      }
+
+      .brand-block>a {
+        font-size: 20px
+      }
+
+      .brand-sub {
+        font-size: 12px
+      }
+    }
 
     /* ===== MAIN CARD ===== */
-    .container{
-      width:90%; height:80vh; max-width:1000px;
-      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
-      overflow:hidden; display:flex; flex-direction:column;
+    .container {
+      width: 90%;
+      height: 80vh;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Tabs */
-    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
-    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease }
-    .tab:hover{ background:#eaeaea }
-    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+      background: #f9f9f9
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      transition: all .3s ease
+    }
+
+    .tab:hover {
+      background: #eaeaea
+    }
+
+    .tab.active {
+      background: var(--maroon);
+      color: #fff;
+      font-weight: bold
+    }
 
     /* Content */
-    .content{ padding:20px; min-height:0; overflow-y:auto; flex:1 }
-    .content-section{ display:none }
-    .content-section.active{ display:block }
+    .content {
+      padding: 20px;
+      min-height: 0;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .content-section {
+      display: none
+    }
+
+    .content-section.active {
+      display: block
+    }
 
     /* Table */
-    table{ width:100%; border-collapse:collapse; margin-top:15px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.05); table-layout:fixed }
-    thead{ background:var(--maroon); color:#fff }
-    thead th{ padding:12px; font-size:14px; text-align:left; letter-spacing:.5px }
-    tbody td{ padding:12px; border-bottom:1px solid #ddd; font-size:14px; color:#333; vertical-align:middle }
-    tbody tr:hover{ background:rgba(128,0,0,.08); transition:.3s }
-    tbody tr:last-child td{ border-bottom:none }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+      table-layout: fixed
+    }
 
-    .status-actions{ display:flex; align-items:center; gap:15px }
-    .action-btn{ cursor:pointer; font-size:14px; padding:6px 10px; border-radius:15px; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:background .3s ease, color .3s ease }
-    .accept{ background:#28a745; color:#fff }
-    .accept:hover{ background:#1e7e34 }
-    .reject{ background:#dc3545; color:#fff }
-    .reject:hover{ background:#a71d2a }
+    thead {
+      background: var(--maroon);
+      color: #fff
+    }
+
+    thead th {
+      padding: 12px;
+      font-size: 14px;
+      text-align: left;
+      letter-spacing: .5px
+    }
+
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+      color: #333;
+      vertical-align: middle
+    }
+
+    tbody tr:hover {
+      background: rgba(128, 0, 0, .08);
+      transition: .3s
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    .status-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px
+    }
+
+    .action-btn {
+      cursor: pointer;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .3s ease, color .3s ease
+    }
+
+    .accept {
+      background: #28a745;
+      color: #fff
+    }
+
+    .accept:hover {
+      background: #1e7e34
+    }
+
+    .reject {
+      background: #dc3545;
+      color: #fff
+    }
+
+    .reject:hover {
+      background: #a71d2a
+    }
 
     /* Modals */
-    .modal{ display:none; position:fixed; z-index:2000; inset:0; background:rgba(0,0,0,.5) }
-    .modal-content{ background:#fff; margin:10% auto; padding:20px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 4px 10px rgba(0,0,0,.2) }
-    .modal-content h3{ margin-bottom:15px; color:var(--maroon) }
-    .close-btn{ float:right; cursor:pointer; font-size:20px; color:#333 }
-    .close-btn:hover{ color:var(--maroon) }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      inset: 0;
+      background: rgba(0, 0, 0, .5)
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .2)
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+      color: var(--maroon)
+    }
+
+    .close-btn {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      color: #333
+    }
+
+    .close-btn:hover {
+      color: var(--maroon)
+    }
 
     /* Larger preview & grades modal sizing */
-    #docPreviewModal .modal-content{ width:80%; max-width:900px; height:80% }
-    #gradesModal .modal-content{ width:500px; max-width:95% }
+    #docPreviewModal .modal-content {
+      width: 80%;
+      max-width: 900px;
+      height: 80%
+    }
+
+    #gradesModal .modal-content {
+      width: 500px;
+      max-width: 95%
+    }
 
     /* Upload form */
-    .upload-form{ margin-top:15px }
-    .upload-form label{ font-weight:600; display:block; margin-bottom:6px; color:#333 }
-    .upload-form select, .upload-form input[type="file"], .upload-form input[type="text"]{
-      width:100%; padding:10px; border:2px solid var(--maroon); border-radius:8px; margin-bottom:15px; font-size:14px; transition:border-color .2s ease, box-shadow .2s ease;
+    .upload-form {
+      margin-top: 15px
     }
-    .upload-form select:focus, .upload-form input[type="file"]:focus, .upload-form input[type="text"]:focus{
-      border-color:var(--maroon); box-shadow:0 0 5px rgba(128,0,0,.3); outline:none;
+
+    .upload-form label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #333
     }
-    .upload-form button{ background:var(--maroon); color:#fff; padding:10px 18px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; transition:background .3s ease }
-    .upload-form button:hover{ background:#a00000 }
-    #uploadStatus{ margin-top:15px; color:#333; font-weight:500 }
-    .upload-form input[type="file"]::-webkit-file-upload-button{
-      background:var(--maroon); color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:600; transition:background .3s ease; margin-right:10px;
+
+    .upload-form select,
+    .upload-form input[type="file"],
+    .upload-form input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid var(--maroon);
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .upload-form select:focus,
+    .upload-form input[type="file"]:focus,
+    .upload-form input[type="text"]:focus {
+      border-color: var(--maroon);
+      box-shadow: 0 0 5px rgba(128, 0, 0, .3);
+      outline: none;
+    }
+
+    .upload-form button {
+      background: var(--maroon);
+      color: #fff;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background .3s ease
+    }
+
+    .upload-form button:hover {
+      background: #a00000
+    }
+
+    #uploadStatus {
+      margin-top: 15px;
+      color: #333;
+      font-weight: 500
+    }
+
+    .upload-form input[type="file"]::-webkit-file-upload-button {
+      background: var(--maroon);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .3s ease;
+      margin-right: 10px;
     }
 
     /* ===== FOOTER ===== */
-    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
-    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
-    .footer-wrap img{ max-height:48px; width:auto }
+    .site-footer {
+      background: #fff;
+      border-top: 1px solid #000;
+      outline: 1px solid #000;
+      outline-offset: -1px
+    }
+
+    .footer-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .footer-wrap img {
+      max-height: 48px;
+      width: auto
+    }
   </style>
 </head>
 
@@ -159,8 +448,9 @@
             <thead>
               <tr>
                 <th>Scholar Name</th>
-                <th>Batch</th>
-                <th>Subjects</th>
+                <th>Batch Year</th>
+                <th>School Year</th>
+                <th>Semester</th>
                 <th>Attachment</th>
                 <th>Status</th>
               </tr>
@@ -175,20 +465,21 @@
           <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
             <!-- Scholar Search -->
             <label for="scholarSearch">Search Scholar:</label>
-            <input type="text" id="scholarSearch" name="scholarName" list="scholarList" placeholder="Type to search..." required>
+            <input type="text" id="scholarSearch" name="scholarName" list="scholarList" placeholder="Type to search..."
+              required>
             <datalist id="scholarList"></datalist>
             <input type="hidden" id="scholarId" name="scholarId" required>
 
-          <!-- Document Type -->
-          <label for="docType">Document Type:</label>
-          <select id="docType" name="docType" required>
-            <option value="">-- Select Document Type --</option>
-            <option value="Grades">Grades</option>
-            <option value="SOA">SOA</option>
-            <option value="Certificate of Registration">Certificate of Registration</option>
-            <option value="Book Reimbursement">Book Reimbursement</option>
-            <option value="Others">Others</option>
-          </select>
+            <!-- Document Type -->
+            <label for="docType">Document Type:</label>
+            <select id="docType" name="docType" required>
+              <option value="">-- Select Document Type --</option>
+              <option value="Grades">Grades</option>
+              <option value="SOA">SOA</option>
+              <option value="Certificate of Registration">Certificate of Registration</option>
+              <option value="Book Reimbursement">Book Reimbursement</option>
+              <option value="Others">Others</option>
+            </select>
 
             <!-- File Input -->
             <label for="docFile">Choose File (PDF, DOCX, JPG, PNG):</label>
@@ -249,124 +540,135 @@
     </div>
   </div>
 
-  <!-- Grades Modal -->
-  <div id="gradesModal" class="modal">
-    <div class="modal-content" style="width:500px; max-width:95%;">
-      <span class="close-btn" id="closeGrades">&times;</span>
-      <h3>Subjects & Grades</h3>
-      <p id="gradesModalTerm" style="margin:6px 0 10px; color:#333; font-weight:600;"></p>
-      <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-        <thead>
-          <tr style="background:#800000; color:#fff;">
-            <th style="padding:8px; text-align:left;">Subject Code</th>
-            <th style="padding:8px; text-align:left;">Units</th>
-            <th style="padding:8px; text-align:left;">Grade</th>
-          </tr>
-        </thead>
-        <tbody id="gradesModalBody"></tbody>
-      </table>
-    </div>
-  </div>
-
   <!-- Reject Reason Modal -->
   <div id="rejectReasonModal" class="modal">
     <div class="modal-content" style="width:420px; max-width:95%;">
       <span class="close-btn" id="closeReject">&times;</span>
       <h3>Reject Document</h3>
       <p style="margin:8px 0 6px;">Provide a reason for rejection:</p>
-      <textarea id="rejectReasonInput" style="width:100%; min-height:110px; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical;" placeholder="e.g., File is incomplete / incorrect document type / unreadable scan..."></textarea>
+      <textarea id="rejectReasonInput"
+        style="width:100%; min-height:110px; padding:10px; border:1px solid #ccc; border-radius:8px; resize:vertical;"
+        placeholder="e.g., File is incomplete / incorrect document type / unreadable scan..."></textarea>
       <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
-        <button id="rejectCancelBtn" style="background:#6c757d; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Cancel</button>
-        <button id="rejectSubmitBtn" style="background:#dc3545; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Reject</button>
+        <button id="rejectCancelBtn"
+          style="background:#6c757d; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Cancel</button>
+        <button id="rejectSubmitBtn"
+          style="background:#dc3545; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Reject</button>
       </div>
     </div>
   </div>
 
   <script>
     /* ---------- URL helpers ---------- */
-    function fileUrl(bucket, id, opts = { download:false }) {
+    function fileUrl(bucket, id, opts = { download: false }) {
       if (!bucket || !id) return null;
       return opts.download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
     }
-    function resolveDocUrl(row, legacyField='filePath'){ return fileUrl(row.bucket, row.fileId) || row[legacyField] || null; }
-    function resolveGradeAttachmentUrl(grade){ return fileUrl(grade.attachmentBucket, grade.attachmentId) || grade.attachment || null; }
+    function resolveDocUrl(row, legacyField = 'filePath') { return fileUrl(row.bucket, row.fileId) || row[legacyField] || null; }
+    function resolveGradeAttachmentUrl(grade) { return fileUrl(grade.attachmentBucket, grade.attachmentId) || grade.attachment || null; }
 
     /* ---------- Fetch & render: documents ---------- */
-    async function fetchDocuments(){
-      try{
-        const res = await fetch("/api/admin/documents",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to fetch documents");
+    async function fetchDocuments() {
+      try {
+        const res = await fetch("/api/admin/documents", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch documents");
         const docs = await res.json();
-        const tbody = document.getElementById("docs-table-body");
-        tbody.innerHTML = "";
+const tbody = document.getElementById("docs-table-body");
+tbody.innerHTML = "";
 
-        docs.forEach(doc=>{
-          const submittedDate = doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : "");
-          const url = doc.fileUrl || resolveDocUrl(doc);
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${doc.scholar ? doc.scholar.fullname : (doc.fullname || '')}</td>
-            <td>${doc.docType || ''}</td>
-            <td>${submittedDate}</td>
-            <td>
-              <div class="status-actions">
-                <span>${doc.status || 'Pending'}</span>
-                ${url ? `<button class="action-btn" style="background:#007bff;color:#fff;" onclick="previewDoc('${url.replace(/'/g,"\\'")}')"><i class="fa-solid fa-eye"></i></button>` : ''}
-                <button class="action-btn accept" onclick="updateStatus('${doc._id}','accepted')"><i class="fa-solid fa-check"></i></button>
-                <button class="action-btn reject" onclick="updateStatus('${doc._id}','rejected')"><i class="fa-solid fa-xmark"></i></button>
-              </div>
-            </td>`;
-          tbody.appendChild(row);
-        });
-      }catch(err){ console.error("Error fetching documents:",err); }
+// 🔽 Hide accepted docs in the verification list
+const toShow = docs.filter(d => {
+  const s = String(d.status ?? "Pending").trim().toLowerCase();
+  return !["accepted", "rejected"].includes(s);
+});
+
+toShow.forEach(doc => {
+  const submittedDate = doc.createdAt
+    ? new Date(doc.createdAt).toLocaleDateString()
+    : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : "");
+  const url = doc.fileUrl || resolveDocUrl(doc);
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${doc.scholar ? doc.scholar.fullname : (doc.fullname || '')}</td>
+    <td>${doc.docType || ''}</td>
+    <td>${submittedDate}</td>
+    <td>
+      <div class="status-actions">
+        <span>${doc.status || 'Pending'}</span>
+        ${url ? `<button class="action-btn" style="background:#007bff;color:#fff;" onclick="previewDoc('${url.replace(/'/g, "\\'")}')"><i class="fa-solid fa-eye"></i></button>` : ''}
+        <button class="action-btn accept" onclick="updateStatus('${doc._id}','accepted')"><i class="fa-solid fa-check"></i></button>
+        <button class="action-btn reject" onclick="updateStatus('${doc._id}','rejected')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </td>`;
+  tbody.appendChild(row);
+});
+
+      } catch (err) { console.error("Error fetching documents:", err); }
     }
+
 
     /* ---------- Fetch & render: grades ---------- */
-    async function fetchGrades(){
-      try{
-        const res = await fetch("/api/admin/grades",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to fetch grades");
+    /* ---------- Fetch & render: grades ---------- */
+    async function fetchGrades() {
+      try {
+        const res = await fetch("/api/admin/grades", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch grades");
         const grades = await res.json();
-        const tbody = document.getElementById("grades-table-body");
-        tbody.innerHTML = "";
+const tbody = document.getElementById("grades-table-body");
+tbody.innerHTML = "";
 
-        grades.forEach(grade=>{
-          const avg = grade.subjects?.length ? (grade.subjects.reduce((s,x)=>s+parseFloat(x.grade||0),0)/grade.subjects.length).toFixed(2) : "N/A";
-          const attachmentUrl = resolveGradeAttachmentUrl(grade);
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
-            <td>${grade.scholar ? grade.scholar.batchYear : grade.batchYear}</td>
-            <td>
-              <button class="action-btn" style="background:var(--maroon);color:#fff;"
-                onclick='showGrades(${JSON.stringify(grade.subjects||[])}, "${avg}", "${encodeURIComponent(grade.schoolYear||"")}", "${encodeURIComponent(grade.semester||"")}")'>
-                See Grades
-              </button>
-            </td>
-            <td>
-              ${attachmentUrl ? `<button class="action-btn" style="background:#007bff;color:#fff;" onclick="previewDoc('${attachmentUrl.replace(/'/g,"\\'")}')"><i class="fa fa-eye"></i> Preview</button>` : 'No file'}
-            </td>
-            <td>
-              <div class="status-actions">
-                <span>${grade.status || 'Pending'}</span>
-                <button class="action-btn accept" onclick="updateGradeStatus('${grade._id}','accepted')"><i class="fa-solid fa-check"></i></button>
-                <button class="action-btn reject" onclick="updateGradeStatus('${grade._id}','rejected')"><i class="fa-solid fa-xmark"></i></button>
-              </div>
-            </td>`;
-          tbody.appendChild(row);
-        });
-      }catch(err){ console.error("Error fetching grades:",err); }
+// 🔽 Hide accepted grades in the verification list
+// Hide accepted & rejected grades in the verification list
+const toShow = grades.filter(g => {
+  const s = String(g.status ?? "Pending").trim().toLowerCase();
+  return !["accepted", "rejected"].includes(s);
+});
+
+
+toShow.forEach(grade => {
+  const attachmentUrl = resolveGradeAttachmentUrl(grade);
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
+    <td>${grade.scholar ? (grade.scholar.batchYear ?? "") : (grade.batchYear ?? "")}</td>
+    <td>${grade.schoolYear ?? ""}</td>
+    <td>${grade.semester ?? ""}</td>
+    <td>
+      ${attachmentUrl
+        ? `<button class="action-btn" style="background:#007bff;color:#fff;"
+            onclick="previewDoc('${attachmentUrl.replace(/'/g, "\\'")}')">
+            <i class="fa fa-eye"></i> Preview
+           </button>`
+        : 'No file'}
+    </td>
+    <td>
+      <div class="status-actions">
+        <span>${grade.status || 'Pending'}</span>
+        <button class="action-btn accept" onclick="updateGradeStatus('${grade._id}','accepted')">
+          <i class="fa-solid fa-check"></i>
+        </button>
+        <button class="action-btn reject" onclick="updateGradeStatus('${grade._id}','rejected')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </td>`;
+  tbody.appendChild(row);
+});
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+      }
     }
 
+
     /* ---------- Fetch & render: scholar folders ---------- */
-    async function fetchScholarFolders(){
-      try{
-        const res = await fetch("/api/verified-scholars",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to fetch scholars");
+    async function fetchScholarFolders() {
+      try {
+        const res = await fetch("/api/verified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch scholars");
         const scholars = await res.json();
         const tbody = document.getElementById("folders-tbody");
         tbody.innerHTML = "";
-        scholars.forEach(s=>{
+        scholars.forEach(s => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${s.fullname}</td>
@@ -374,51 +676,33 @@
             <td>${s.updatedAt ? new Date(s.updatedAt).toLocaleDateString() : "N/A"}</td>`;
           tbody.appendChild(tr);
         });
-      }catch(err){ console.error("Error fetching scholar folders:",err); }
+      } catch (err) { console.error("Error fetching scholar folders:", err); }
     }
 
     /* ---------- Status updates ---------- */
-    async function updateStatus(id,status){
-      try{
-        await fetch(`/api/admin/documents/${id}/status`,{
-          method:"PUT",
-          headers:{ "Content-Type":"application/json" },
-          credentials:"include",
-          body:JSON.stringify({status})
+    async function updateStatus(id, status) {
+      try {
+        await fetch(`/api/admin/documents/${id}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status })
         });
         fetchDocuments();
-      }catch(err){ console.error("Error updating status:",err); }
+      } catch (err) { console.error("Error updating status:", err); }
     }
-    async function updateGradeStatus(id,status){
-      try{
-        await fetch(`/api/admin/grades/${id}/status`,{
-          method:"PUT",
-          headers:{ "Content-Type":"application/json" },
-          credentials:"include",
-          body:JSON.stringify({status})
+    async function updateGradeStatus(id, status) {
+      try {
+        await fetch(`/api/admin/grades/${id}/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status })
         });
         fetchGrades();
-      }catch(err){ console.error("Error updating grade status:",err); }
+      } catch (err) { console.error("Error updating grade status:", err); }
     }
 
-    /* ---------- See Grades modal ---------- */
-    function showGrades(subjects,avg,schoolYearEnc,semesterEnc){
-      const schoolYear = schoolYearEnc ? decodeURIComponent(schoolYearEnc) : "";
-      const semester   = semesterEnc   ? decodeURIComponent(semesterEnc)   : "";
-      document.getElementById("gradesModalTerm").textContent = (schoolYear || semester) ? `S.Y. ${schoolYear} — ${semester}` : "";
-
-      const tbody = document.getElementById("gradesModalBody");
-      tbody.innerHTML = "";
-      subjects.forEach(s=>{
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.subjectCode}</td>
-          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.units}</td>
-          <td style="padding:8px; border-bottom:1px solid #ddd;">${s.grade}</td>`;
-        tbody.appendChild(tr);
-      });
-      document.getElementById("gradesModal").style.display = "block";
-    }
 
     /* ---------- Preview modal ---------- */
     const previewModal = document.getElementById("docPreviewModal");
@@ -426,27 +710,27 @@
     const closePreview = document.getElementById("closePreview");
     let docImg = null;
 
-    async function previewDoc(url){
-      try{
-        const metaRes = await fetch((url + "/meta").replace("//meta","/meta"), {credentials:"include"});
+    async function previewDoc(url) {
+      try {
+        const metaRes = await fetch((url + "/meta").replace("//meta", "/meta"), { credentials: "include" });
         let contentType = "";
-        if(metaRes.ok){ const meta = await metaRes.json(); contentType = meta?.contentType || ""; }
+        if (metaRes.ok) { const meta = await metaRes.json(); contentType = meta?.contentType || ""; }
 
-        if(docImg){ docImg.remove(); docImg = null; }
+        if (docImg) { docImg.remove(); docImg = null; }
         const isImage = contentType.startsWith("image/");
-        if(isImage){
+        if (isImage) {
           docFrame.style.display = "none";
           docImg = document.createElement("img");
           docImg.style.cssText = "width:100%;height:90%;object-fit:contain;border:none;";
           docImg.src = url;
           docFrame.parentElement.appendChild(docImg);
-        }else{
+        } else {
           docFrame.src = url;
           docFrame.style.display = "block";
         }
         previewModal.style.display = "block";
-      }catch(e){
-        console.error("Preview failed:",e);
+      } catch (e) {
+        console.error("Preview failed:", e);
         docFrame.src = url;
         docFrame.style.display = "block";
         previewModal.style.display = "block";
@@ -454,85 +738,71 @@
     }
     window.previewDoc = previewDoc;
 
-    closePreview.onclick = ()=>{
+    closePreview.onclick = () => {
       previewModal.style.display = "none";
       docFrame.src = "";
-      if(docImg){ docImg.remove(); docImg = null; }
+      if (docImg) { docImg.remove(); docImg = null; }
     };
 
     /* ---------- Tabs ---------- */
-    document.querySelectorAll(".tab").forEach(tab=>{
-      tab.addEventListener("click", ()=>{
-        document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-        document.querySelectorAll(".content-section").forEach(c=>c.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".content-section").forEach(c => c.classList.remove("active"));
         tab.classList.add("active");
         document.getElementById(tab.dataset.target).classList.add("active");
       });
     });
 
-    /* ---------- Folder modal (delegated so it works on dynamic rows) ---------- */
-    const folderModal = document.getElementById("folderModal");
-    const folderClose = folderModal.querySelector(".close-btn");
-    document.addEventListener("click",(e)=>{
-      const a = e.target.closest(".view-folder");
-      if(a){ e.preventDefault(); folderModal.style.display = "block"; }
-    });
-    folderClose.onclick = ()=> folderModal.style.display="none";
-
-    /* ---------- Grades modal close ---------- */
-    const gradesModal = document.getElementById("gradesModal");
-    const closeGrades = document.getElementById("closeGrades");
-    closeGrades.onclick = ()=> gradesModal.style.display = "none";
-
     /* ---------- Reject reason wrapper ---------- */
-    (function(){
+    (function () {
       const originalUpdateStatus = window.updateStatus;
       let pendingRejectDocId = null;
 
-      window.updateStatus = function(id,status){
-        if(String(status).toLowerCase()==='rejected'){
+      window.updateStatus = function (id, status) {
+        if (String(status).toLowerCase() === 'rejected') {
           pendingRejectDocId = id;
           document.getElementById('rejectReasonInput').value = '';
           document.getElementById('rejectReasonModal').style.display = 'block';
           return;
         }
-        if(typeof originalUpdateStatus==='function'){ return originalUpdateStatus(id,status); }
+        if (typeof originalUpdateStatus === 'function') { return originalUpdateStatus(id, status); }
       };
 
-      const rejectModal     = document.getElementById('rejectReasonModal');
-      const rejectClose     = document.getElementById('closeReject');
+      const rejectModal = document.getElementById('rejectReasonModal');
+      const rejectClose = document.getElementById('closeReject');
       const rejectCancelBtn = document.getElementById('rejectCancelBtn');
       const rejectSubmitBtn = document.getElementById('rejectSubmitBtn');
-      const rejectInput     = document.getElementById('rejectReasonInput');
+      const rejectInput = document.getElementById('rejectReasonInput');
 
-      function closeReject(){
-        rejectModal.style.display='none';
+      function closeReject() {
+        rejectModal.style.display = 'none';
         pendingRejectDocId = null;
         rejectSubmitBtn.disabled = false;
       }
       rejectClose.onclick = closeReject;
       rejectCancelBtn.onclick = closeReject;
-      window.addEventListener('click', e=>{ if(e.target===rejectModal) closeReject(); });
+      window.addEventListener('click', e => { if (e.target === rejectModal) closeReject(); });
 
-      rejectSubmitBtn.addEventListener('click', async ()=>{
-        if(!pendingRejectDocId) return;
-        const reason = (rejectInput.value||'').trim();
-        if(!reason){ alert('Please provide a reason for rejection.'); return; }
-        try{
+      rejectSubmitBtn.addEventListener('click', async () => {
+        if (!pendingRejectDocId) return;
+        const reason = (rejectInput.value || '').trim();
+        if (!reason) { alert('Please provide a reason for rejection.'); return; }
+        try {
           rejectSubmitBtn.disabled = true;
-          const res = await fetch(`/api/admin/documents/${pendingRejectDocId}/status`,{
-            method:'PUT',
-            headers:{'Content-Type':'application/json'},
-            credentials:'include',
-            body:JSON.stringify({status:'rejected', reason})
+          const res = await fetch(`/api/admin/documents/${pendingRejectDocId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status: 'rejected', reason })
           });
-          if(!res.ok){
-            const data = await res.json().catch(()=>({}));
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
             throw new Error(data.msg || 'Failed to reject document');
           }
           closeReject();
-          if(typeof fetchDocuments==='function') fetchDocuments();
-        }catch(err){
+          if (typeof fetchDocuments === 'function') fetchDocuments();
+        } catch (err) {
           alert(err.message || 'Error submitting rejection');
           rejectSubmitBtn.disabled = false;
         }
@@ -541,27 +811,27 @@
 
     /* ---------- Upload: scholar lookup + submit ---------- */
     let scholarMap = {};
-    async function fetchScholarsForUpload(){
-      try{
-        const res = await fetch("/api/verified-scholars",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to load scholars");
+    async function fetchScholarsForUpload() {
+      try {
+        const res = await fetch("/api/verified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to load scholars");
         const scholars = await res.json();
         const dl = document.getElementById("scholarList");
         dl.innerHTML = "";
         scholarMap = {};
-        scholars.forEach(s=>{
+        scholars.forEach(s => {
           const opt = document.createElement("option");
           opt.value = s.fullname;
           dl.appendChild(opt);
           scholarMap[s.fullname] = s._id;
         });
-      }catch(err){ console.error(err); }
+      } catch (err) { console.error(err); }
     }
-    document.getElementById("scholarSearch").addEventListener("change", function(){
+    document.getElementById("scholarSearch").addEventListener("change", function () {
       const name = this.value;
       document.getElementById("scholarId").value = scholarMap[name] || "";
     });
-    document.getElementById("uploadForm").addEventListener("submit", async (e)=>{
+    document.getElementById("uploadForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const form = e.target;
       const formData = new FormData(form);
@@ -589,13 +859,13 @@
           const data = await res.json().catch(() => ({}));
           throw new Error(data.msg || "Upload failed");
         }
-        status.style.color = "green";
-        status.textContent = "✅ Document uploaded successfully!";
+        statusDiv.style.color = "green";
+        statusDiv.textContent = "✅ Document uploaded successfully!";
         form.reset();
         fetchDocuments();
-      }catch(err){
-        status.style.color = "red";
-        status.textContent = "❌ " + err.message;
+      } catch (err) {
+        statusDiv.style.color = "red";
+        statusDiv.textContent = "❌ " + err.message;
       }
     });
     document.querySelector("[data-target='uploads']").addEventListener("click", fetchScholarsForUpload);

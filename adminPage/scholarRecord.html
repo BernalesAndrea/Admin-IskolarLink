@@ -1,75 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scholar Records</title>
   <style>
-    :root{
-      --maroon:#800000;
-      --maroon-dark:#5a0000;
-      --gold:#D4A017;
+    :root {
+      --maroon: #800000;
+      --maroon-dark: #5a0000;
+      --gold: #D4A017;
     }
-    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
+
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif
+    }
 
     /* ===== LAYOUT ===== */
-    body{
-      display:flex; flex-direction:column; min-height:100vh;
-      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat;
     }
-    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px
+    }
 
     /* ===== HEADER ===== */
-    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
-    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
-    .header-center{ display:flex; align-items:center; gap:18px }
-    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
-    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
-    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
-    .brand-block > a:hover{ color:var(--gold) }
-    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
-    .brand-sub a{ color:#fff; transition:color .25s ease }
-    .brand-sub a:hover{ color:var(--gold) }
-    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark)
+    }
+
+    .header-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 18px
+    }
+
+    .header-logo {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .1))
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff
+    }
+
+    .brand-block>a {
+      color: #fff;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: .5px;
+      transition: color .25s ease
+    }
+
+    .brand-block>a:hover {
+      color: var(--gold)
+    }
+
+    .brand-sub {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .brand-sub a {
+      color: #fff;
+      transition: color .25s ease
+    }
+
+    .brand-sub a:hover {
+      color: var(--gold)
+    }
+
+    @media (max-width:640px) {
+      .header-logo {
+        height: 48px
+      }
+
+      .brand-block>a {
+        font-size: 20px
+      }
+
+      .brand-sub {
+        font-size: 12px
+      }
+    }
 
     /* ===== MAIN CARD ===== */
-    .container{
-      width:90%; height:80vh; max-width:1000px;
-      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
-      overflow:hidden; display:flex; flex-direction:column;
+    .container {
+      width: 90%;
+      height: 80vh;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     /* Tabs */
-    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
-    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease; user-select:none }
-    .tab:hover{ background:#eaeaea }
-    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+      background: #f9f9f9
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      transition: all .3s ease;
+      user-select: none
+    }
+
+    .tab:hover {
+      background: #eaeaea
+    }
+
+    .tab.active {
+      background: var(--maroon);
+      color: #fff;
+      font-weight: bold
+    }
 
     /* Content */
-    .content{ padding:20px; min-height:0; overflow-y:auto; flex:1 }
-    .content-section{ display:none }
-    .content-section.active{ display:block }
+    .content {
+      padding: 20px;
+      min-height: 0;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .content-section {
+      display: none
+    }
+
+    .content-section.active {
+      display: block
+    }
 
     /* Table */
-    table{ width:100%; border-collapse:collapse; margin-top:15px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.05); table-layout:fixed }
-    thead{ background:var(--maroon); color:#fff }
-    thead th{ padding:12px; font-size:14px; text-align:left; letter-spacing:.5px }
-    tbody td{ padding:12px; border-bottom:1px solid #ddd; font-size:14px; color:#333 }
-    tbody tr:hover{ background:rgba(128,0,0,.08); transition:.3s }
-    tbody tr:last-child td{ border-bottom:none }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+      table-layout: fixed
+    }
+
+    thead {
+      background: var(--maroon);
+      color: #fff
+    }
+
+    thead th {
+      padding: 12px;
+      font-size: 14px;
+      text-align: left;
+      letter-spacing: .5px
+    }
+
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+      color: #333
+    }
+
+    tbody tr:hover {
+      background: rgba(128, 0, 0, .08);
+      transition: .3s
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none
+    }
 
     /* Buttons */
-    .btn{ border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; transition:background .3s ease; margin-right:6px }
-    .btn:last-child{ margin-right:0 }
-    .btn-verify{ background:var(--maroon); color:#fff }
-    .btn-verify:hover{ background:#4d0000 }
-    .btn-reject{ background:#333; color:#fff }
-    .btn-reject:hover{ background:#b30000 }
+    .btn {
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background .3s ease;
+      margin-right: 6px
+    }
+
+    .btn:last-child {
+      margin-right: 0
+    }
+
+    .btn-verify {
+      background: var(--maroon);
+      color: #fff
+    }
+
+    .btn-verify:hover {
+      background: #4d0000
+    }
+
+    .btn-reject {
+      background: #333;
+      color: #fff
+    }
+
+    .btn-reject:hover {
+      background: #b30000
+    }
 
     /* ===== FOOTER ===== */
-    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
-    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
-    .footer-wrap img{ max-height:48px; width:auto }
+    .site-footer {
+      background: #fff;
+      border-top: 1px solid #000;
+      outline: 1px solid #000;
+      outline-offset: -1px
+    }
+
+    .footer-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .footer-wrap img {
+      max-height: 48px;
+      width: auto
+    }
   </style>
 </head>
 
@@ -114,6 +313,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Batch</th>
+                <th>View Info</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -130,6 +330,7 @@
                 <th>Name</th>
                 <th>Batch Year</th>
                 <th>Barangay</th>
+                <th>View Info</th>
               </tr>
             </thead>
             <tbody id="recordsTableRegular"><!-- rows via JS --></tbody>
@@ -145,6 +346,7 @@
                 <th>Name</th>
                 <th>Batch Year</th>
                 <th>Barangay</th>
+                <th>View Info</th>
               </tr>
             </thead>
             <tbody id="recordsTableSpecial"><!-- rows via JS --></tbody>
@@ -160,6 +362,7 @@
                 <th>Name</th>
                 <th>Batch Year</th>
                 <th>Barangay</th>
+                <th>View Info</th>
               </tr>
             </thead>
             <tbody id="recordsTablePostgrad"><!-- rows via JS --></tbody>
@@ -167,6 +370,104 @@
         </div>
       </div>
     </div>
+
+    <!-- Verify Scholar Type Modal -->
+    <div id="verifyTypeModal"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2000; align-items:center; justify-content:center;">
+      <div
+        style="background:#fff; width:90%; max-width:420px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); overflow:hidden;">
+        <div style="background:var(--maroon); color:#fff; padding:12px 16px; font-weight:bold;">Verify Scholar</div>
+        <div style="padding:16px;">
+          <p style="margin-bottom:10px; font-weight:600;">Select scholar type:</p>
+          <label style="display:flex; gap:10px; align-items:center; margin:8px 0;">
+            <input type="radio" name="scholarType" value="Regular" checked> Regular
+          </label>
+          <label style="display:flex; gap:10px; align-items:center; margin:8px 0;">
+            <input type="radio" name="scholarType" value="Special"> Special
+          </label>
+          <label style="display:flex; gap:10px; align-items:center; margin:8px 0;">
+            <input type="radio" name="scholarType" value="Post-Graduate"> Post-Graduate
+          </label>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+            <button class="btn" id="cancelVerifyBtn" style="background:#eee;">Cancel</button>
+            <button class="btn btn-verify" id="confirmVerifyBtn">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Scholar Modal -->
+    <div id="rejectModal"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2100; align-items:center; justify-content:center;">
+      <div
+        style="background:#fff; width:90%; max-width:480px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); overflow:hidden;">
+        <div style="background:#333; color:#fff; padding:12px 16px; font-weight:bold;">Reject Verification</div>
+        <div style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <label style="font-weight:600;">Reason (optional)</label>
+          <textarea id="rejectReason" rows="3"
+            style="width:100%; padding:8px; border:1px solid #ccc; border-radius:8px;"
+            placeholder="Add a short note for audit (optional)…"></textarea>
+
+          <label style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+            <input type="checkbox" id="rejectDeleteCheck">
+            <span>Also delete this account permanently</span>
+          </label>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button class="btn" id="cancelRejectBtn" style="background:#eee;">Cancel</button>
+            <button class="btn btn-reject" id="confirmRejectBtn">Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Scholar Info Modal -->
+    <div id="infoModal"
+      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2200; align-items:center; justify-content:center;">
+      <div
+        style="background:#fff; width:90%; max-width:620px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.2); overflow:hidden;">
+        <div style="background:var(--maroon); color:#fff; padding:12px 16px; font-weight:bold;">Scholar Information
+        </div>
+
+        <div style="padding:16px;">
+          <div style="display:grid; grid-template-columns:160px 1fr; gap:16px;">
+            <!-- Avatar column -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+              <img id="infoAvatar" src="/assets/default-avatar.png" alt="Profile picture"
+                style="width:140px; height:140px; border-radius:50%; object-fit:cover; border:2px solid #eee;">
+              <div id="infoAvatarNote" style="font-size:12px; color:#666; text-align:center;"></div>
+            </div>
+
+            <!-- Details grid -->
+            <div style="display:grid; grid-template-columns:140px 1fr; gap:10px 12px; align-content:start;">
+              <div style="font-weight:600;">Full Name</div>
+              <div id="infoFullname">-</div>
+              <div style="font-weight:600;">Batch Year</div>
+              <div id="infoBatchYear">-</div>
+              <div style="font-weight:600;">Barangay</div>
+              <div id="infoBarangay">-</div>
+              <div style="font-weight:600;">Course</div>
+              <div id="infoCourse">-</div>
+              <div style="font-weight:600;">School</div>
+              <div id="infoSchool">-</div>
+              <div style="font-weight:600;">Email</div>
+              <div id="infoEmail">-</div>
+              <div style="font-weight:600;">Scholar Type</div>
+              <div id="infoType">-</div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+            <button class="btn" id="closeInfoBtn" style="background:#eee;">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
   </main>
 
   <!-- FOOTER -->
@@ -180,93 +481,94 @@
     /* ---------- Tab wiring ---------- */
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-    tabs.forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        tabs.forEach(t=>t.classList.remove('active'));
-        sections.forEach(s=>s.classList.remove('active'));
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
         tab.classList.add('active');
         const target = document.getElementById(tab.dataset.target);
-        if(target) target.classList.add('active');
+        if (target) target.classList.add('active');
 
         // lazy load per section
-        if(tab.dataset.target==='verification') fetchUnverifiedScholars();
-        if(tab.dataset.target?.startsWith('records')) fetchAndRenderVerified();
+        if (tab.dataset.target === 'verification') fetchUnverifiedScholars();
+        if (tab.dataset.target?.startsWith('records')) fetchAndRenderVerified();
       });
     });
 
     /* ---------- Helpers ---------- */
-    function escapeHtml(str){
+    function escapeHtml(str) {
       return String(str ?? '')
-        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-        .replaceAll('"','&quot;').replaceAll("'","&#039;");
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;').replaceAll("'", "&#039;");
     }
-    function typeOfScholar(s){
+    function typeOfScholar(s) {
       // Try several fields; default "Regular"
       return (s.type || s.category || s.scholarType || 'Regular').toString().toLowerCase();
     }
 
     /* ---------- Verification list ---------- */
-    async function fetchUnverifiedScholars(){
-      try{
-        const res = await fetch("/api/unverified-scholars",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to fetch unverified scholars");
+    async function fetchUnverifiedScholars() {
+      try {
+        const res = await fetch("/api/unverified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch unverified scholars");
         const scholars = await res.json();
         const tbody = document.querySelector("#verificationTable tbody");
         tbody.innerHTML = "";
 
-        if(!Array.isArray(scholars) || !scholars.length){
-          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#666;">No accounts pending verification.</td></tr>`;
+        if (!Array.isArray(scholars) || !scholars.length) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#666;">No accounts pending verification.</td></tr>`;
           return;
         }
 
-        scholars.forEach(s=>{
+        scholars.forEach(s => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${escapeHtml(s.fullname)}</td>
-            <td>${escapeHtml(s.email)}</td>
-            <td>${escapeHtml(s.batchYear ?? '-')}</td>
-            <td>
-              <button class="btn btn-verify" onclick="verifyScholar('${s._id}')">Verify</button>
-              <button class="btn btn-reject" onclick="rejectScholar('${s._id}')">Reject</button>
-            </td>`;
+    <td>${escapeHtml(s.fullname)}</td>
+    <td>${escapeHtml(s.email)}</td>
+    <td>${escapeHtml(s.batchYear ?? '-')}</td>
+    <td><button class="btn" onclick="openInfoModal('${s._id}')">View Info</button></td>
+    <td>
+      <button class="btn btn-verify" onclick="openVerifyModal('${s._id}')">Verify</button>
+      <button class="btn btn-reject" onclick="openRejectModal('${s._id}')">Reject</button>
+    </td>`;
           tbody.appendChild(tr);
         });
-      }catch(err){ console.error(err); }
+      } catch (err) { console.error(err); }
     }
 
-    async function verifyScholar(id){
-      try{
-        const res = await fetch(`/api/verified-scholar/${id}`,{
-          method:"PUT",
-          headers:{ "Content-Type":"application/json" },
-          credentials:"include",
-          body:JSON.stringify({ verified:true })
+    async function verifyScholar(id) {
+      try {
+        const res = await fetch(`/api/verified-scholar/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ verified: true })
         });
-        if(!res.ok){ throw new Error("Verification failed"); }
+        if (!res.ok) { throw new Error("Verification failed"); }
         fetchUnverifiedScholars();
-      }catch(err){ console.error("Error verifying scholar:",err); }
+      } catch (err) { console.error("Error verifying scholar:", err); }
     }
 
-    async function rejectScholar(id){
-      try{
-        const res = await fetch(`/api/reject-scholar/${id}`,{ method:"DELETE", credentials:"include" });
-        if(!res.ok){ throw new Error("Reject failed"); }
+    async function rejectScholar(id) {
+      try {
+        const res = await fetch(`/api/reject-scholar/${id}`, { method: "DELETE", credentials: "include" });
+        if (!res.ok) { throw new Error("Reject failed"); }
         fetchUnverifiedScholars();
-      }catch(err){ console.error("Error rejecting scholar:",err); }
+      } catch (err) { console.error("Error rejecting scholar:", err); }
     }
 
     /* ---------- Verified records (all three lists) ---------- */
-    async function fetchAndRenderVerified(){
-      try{
-        const res = await fetch("/api/verified-scholars",{credentials:"include"});
-        if(!res.ok) throw new Error("Failed to fetch verified scholars");
+    async function fetchAndRenderVerified() {
+      try {
+        const res = await fetch("/api/verified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch verified scholars");
         const scholars = await res.json();
 
-        const byType = { regular:[], special:[], postgrad:[] };
-        (Array.isArray(scholars) ? scholars : []).forEach(s=>{
+        const byType = { regular: [], special: [], postgrad: [] };
+        (Array.isArray(scholars) ? scholars : []).forEach(s => {
           const t = typeOfScholar(s);
-          if(t.includes('post')) byType.postgrad.push(s);
-          else if(t.includes('special')) byType.special.push(s);
+          if (t.includes('post')) byType.postgrad.push(s);
+          else if (t.includes('special')) byType.special.push(s);
           else byType.regular.push(s);
         });
 
@@ -276,26 +578,146 @@
           { list: byType.postgrad, el: document.getElementById("recordsTablePostgrad") },
         ];
 
-        buckets.forEach(({list, el})=>{
+        buckets.forEach(({ list, el }) => {
           el.innerHTML = "";
-          if(!list.length){
+          if (!list.length) {
             el.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#666;">No records found.</td></tr>`;
             return;
           }
-          list.forEach(s=>{
+          list.forEach(s => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${escapeHtml(s.fullname)}</td>
-              <td>${escapeHtml(s.batchYear ?? '-')}</td>
-              <td>${escapeHtml(s.barangay ?? '-')}</td>`;
+  <td>${escapeHtml(s.fullname)}</td>
+  <td>${escapeHtml(s.batchYear ?? '-')}</td>
+  <td>${escapeHtml(s.barangay ?? '-')}</td>
+  <td><button class="btn" onclick="openInfoModal('${s._id}')">View Info</button></td>`;
             el.appendChild(tr);
+
           });
         });
-      }catch(err){ console.error("Error fetching verified scholars:",err); }
+      } catch (err) { console.error("Error fetching verified scholars:", err); }
     }
+
+    // --- Modal logic for "Verify as..." ---
+    let pendingRejectId = null;
+
+    function openRejectModal(id) {
+      pendingRejectId = id;
+      document.getElementById('rejectReason').value = "";
+      document.getElementById('rejectDeleteCheck').checked = false;
+      document.getElementById('rejectModal').style.display = 'flex';
+    }
+    function closeRejectModal() {
+      pendingRejectId = null;
+      document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    (function wireRejectModal() {
+      const modal = document.getElementById('rejectModal');
+      const cancelBtn = document.getElementById('cancelRejectBtn');
+      const confirmBtn = document.getElementById('confirmRejectBtn');
+      const reasonEl = document.getElementById('rejectReason');
+      const deleteCheck = document.getElementById('rejectDeleteCheck');
+
+      // backdrop click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeRejectModal();
+      });
+
+      cancelBtn.addEventListener('click', closeRejectModal);
+
+      confirmBtn.addEventListener('click', async () => {
+        if (!pendingRejectId) return;
+
+        try {
+          const res = await fetch(`/api/reject-scholar/${pendingRejectId}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              deleteAccount: !!deleteCheck.checked,
+              reason: reasonEl.value || ""
+            })
+          });
+          if (!res.ok) throw new Error("Reject failed");
+          closeRejectModal();
+          fetchUnverifiedScholars(); // refresh the queue
+        } catch (err) {
+          console.error("Error rejecting scholar:", err);
+          alert("Reject failed. Please try again.");
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeRejectModal();
+      });
+    })();
+
+    function showInfo(data) {
+      const set = (id, val) => document.getElementById(id).textContent = val ?? '-';
+      set('infoFullname', data.fullname || '-');
+      set('infoBatchYear', data.batchYear || '-');
+      set('infoBarangay', data.barangay || '-');
+      set('infoCourse', data.course || '-');
+      set('infoSchool', data.schoolName || '-');
+      set('infoEmail', data.email || '-');
+      set('infoType', data.scholarType || '-');
+
+      // avatar
+      const avatarEl = document.getElementById('infoAvatar');
+      const noteEl = document.getElementById('infoAvatarNote');
+      const url = data.profilePicUrl || '/assets/default-avatar.png';
+      avatarEl.src = url;
+
+      // Optional small note if default is shown
+      if (!data.profilePicUrl || /default-avatar\.png$/.test(url)) {
+        noteEl.textContent = "No profile picture uploaded";
+      } else {
+        noteEl.textContent = "";
+      }
+
+      // Ensure broken images fall back to default
+      avatarEl.onerror = () => { avatarEl.src = '/assets/default-avatar.png'; };
+    }
+
+     async function openInfoModal(id) {
+    try {
+      const res = await fetch(`/api/scholars/${id}`, { credentials: 'include' });
+      if (!res.ok) throw new Error(`Failed to fetch scholar info (${res.status})`);
+      const info = await res.json();
+      showInfo(info);
+      document.getElementById('infoModal').style.display = 'flex';
+    } catch (err) {
+      console.error(err);
+      alert('Could not load scholar info.');
+    }
+  }
+
+  function closeInfoModal() {
+    document.getElementById('infoModal').style.display = 'none';
+  }
+
+  // Wire close button, backdrop, and Esc key
+  (function wireInfoModal() {
+    const modal = document.getElementById('infoModal');
+    const closeBtn = document.getElementById('closeInfoBtn');
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeInfoModal();
+      });
+    }
+    if (closeBtn) closeBtn.addEventListener('click', closeInfoModal);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeInfoModal();
+    });
+  })();
+
 
     // Initial load
     fetchUnverifiedScholars();
   </script>
 </body>
+
 </html>

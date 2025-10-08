@@ -279,36 +279,68 @@ app.post("/auth/logout", (req, res) => {
 });
 
 
-
-
-// Fetch all unverified scholars
-app.get("/api/unverified-scholars", async (req, res) => {
+// Verify scholar by ID + set scholar type
+app.put("/api/verified-scholar/:id", authMiddleware, async (req, res) => {
   try {
-    const scholars = await User.find({ role: "scholar", verified: false });
-    res.json(scholars);
+    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+    const { scholarType, course, schoolName } = req.body;
+
+    // Normalize and map to our three buckets
+    const norm = String(scholarType || "").trim().toLowerCase();
+    let finalType = "";
+    if (norm.startsWith("post")) finalType = "Post-Graduate";
+    else if (norm.startsWith("special")) finalType = "Special";
+    else finalType = "Regular"; // default
+
+    const updates = {
+      verified: true,
+      scholarType: finalType,
+      type: finalType,          // mirror field for FE grouping
+    };
+
+    if (course) updates.course = course;
+    if (schoolName) updates.schoolName = schoolName;
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    return res.json(user);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch scholars" });
+    console.error("PUT /api/verified-scholar/:id error:", err);
+    return res.status(500).json({ msg: "Error updating user", error: err.message });
   }
 });
 
-// Verify scholar by ID
-app.put("/api/verified-scholar/:id", async (req, res) => { 
+
+// Reject (keep or delete) an unverified scholar
+app.delete("/api/reject-scholar/:id", authMiddleware, async (req, res) => {
   try {
-    const updates = { verified: true };
+    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
-    if (req.body.course) updates.course = req.body.course;
-    if (req.body.schoolName) updates.schoolName = req.body.schoolName;
+    const { id } = req.params;
+    const { deleteAccount = false, reason = "" } = req.body || {};
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updates,
-      { new: true }
-    );
-    res.json(user);
+    // Only for unverified scholars
+    const user = await User.findOne({ _id: id, role: "scholar", verified: false });
+    if (!user) return res.status(404).json({ msg: "Scholar not found or already processed" });
+
+    if (deleteAccount) {
+      await User.deleteOne({ _id: user._id });
+      return res.json({ msg: "Scholar rejected and account deleted" });
+    } else {
+      user.isRejected = true;
+      user.rejectedAt = new Date();
+      user.rejectionReason = String(reason || "").trim();
+      await user.save();
+      return res.json({ msg: "Scholar marked as rejected (kept in database)" });
+    }
   } catch (err) {
-    res.status(500).json({ msg: "Error updating user" });
+    console.error("DELETE /api/reject-scholar/:id error:", err);
+    return res.status(500).json({ msg: "Server error while rejecting scholar", error: err.message });
   }
 });
+
 
 
 
@@ -322,6 +354,22 @@ app.get("/api/verified-scholars", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch verified scholars" });
   }
 });
+
+// ✅ Fetch all unverified accounts
+app.get("/api/unverified-scholars", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+    // exclude isRejected from the queue
+    const scholars = await User.find({ role: "scholar", verified: false, isRejected: { $ne: true } })
+      .sort({ fullname: 1 });
+    res.json(scholars);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch scholars" });
+  }
+});
+
+
 
 // Get logged-in user profile
 app.get("/api/users/me", authMiddleware, async (req, res) => {
@@ -380,6 +428,34 @@ app.put("/api/users/me", authMiddleware, upload.single("profilePic"), async (req
     res.status(500).json({ msg: "Error updating profile", error: err.message });
   }
 });
+
+// Admin: get a single scholar's profile (minimal fields)
+app.get("/api/scholars/:id", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
+    const user = await User.findById(req.params.id)
+      .select("fullname batchYear barangay course schoolName email scholarType verified profilePicId profilePicBucket profilePic");
+    if (!user) return res.status(404).json({ msg: "Scholar not found" });
+
+    // Build a URL for the avatar, falling back to default
+    const profilePicUrl =
+      (user.profilePicBucket && user.profilePicId)
+        ? `/files/${user.profilePicBucket}/${user.profilePicId}`
+        : (user.profilePic || "/assets/default-avatar.png");
+
+    // send the fields + the computed url
+    res.json({ 
+      ...user.toObject({ virtuals: true }),
+      profilePicUrl
+    });
+
+  } catch (err) {
+    console.error("GET /api/scholars/:id error:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+});
+
 
 
 
@@ -1059,18 +1135,21 @@ app.get("/api/admin/documents", authMiddleware, async (req, res) => {
   try {
     const docs = await SubmittedDocument.find()
       .populate("scholar", "fullname batchYear email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1, _id: -1 })
+      .lean({ virtuals: true });
 
     const shaped = docs.map(d => ({
-      ...d.toObject(),
+      ...d,
       fileUrl: d.fileId && d.bucket ? `/files/${d.bucket}/${d.fileId}` : d.filePath || null
     }));
 
     res.json(shaped);
   } catch (err) {
+    console.error("GET /api/admin/documents error:", err);
     res.status(500).json({ msg: "Error fetching documents", error: err.message });
   }
 });
+
 
 
 
