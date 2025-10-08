@@ -599,6 +599,76 @@
     }
 
     // --- Modal logic for "Verify as..." ---
+  let pendingVerifyId = null;
+
+  function openVerifyModal(id) {
+    pendingVerifyId = id;
+    document.getElementById('verifyTypeModal').style.display = 'flex';
+  }
+  function closeVerifyModal() {
+    pendingVerifyId = null;
+    document.getElementById('verifyTypeModal').style.display = 'none';
+  }
+
+  (function wireVerifyModal() {
+    const modal = document.getElementById('verifyTypeModal');
+    const cancelBtn = document.getElementById('cancelVerifyBtn');
+    const confirmBtn = document.getElementById('confirmVerifyBtn');
+
+    // Close when clicking backdrop
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeVerifyModal();
+    });
+
+    // Cancel
+    cancelBtn.addEventListener('click', closeVerifyModal);
+
+    // Confirm -> call API with selected scholar type
+    confirmBtn.addEventListener('click', async () => {
+      if (!pendingVerifyId) return;
+
+      const selected = document.querySelector('input[name="scholarType"]:checked');
+      const scholarType = selected ? selected.value : 'Regular';
+
+      try {
+        const res = await fetch(`/api/verified-scholar/${pendingVerifyId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ scholarType })
+        });
+
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          throw new Error(payload.msg || `HTTP ${res.status}`);
+        }
+
+        closeVerifyModal();
+
+        // Refresh the Unverified list
+        await fetchUnverifiedScholars();
+
+        // If user is on any of the records tabs, refresh verified buckets too
+        const active = document.querySelector('.tab.active')?.dataset?.target || '';
+        if (active.startsWith('records')) {
+          fetchAndRenderVerified();
+        }
+
+        alert(`Scholar verified as ${scholarType}`);
+      } catch (err) {
+        console.error('Verification failed:', err);
+        alert('Verification failed: ' + err.message);
+      }
+    });
+
+    // Esc to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeVerifyModal();
+    });
+  })();
+
+  // Reject User Modal
+
     let pendingRejectId = null;
 
     function openRejectModal(id) {

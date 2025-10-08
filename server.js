@@ -296,7 +296,7 @@ app.put("/api/verified-scholar/:id", authMiddleware, async (req, res) => {
     const updates = {
       verified: true,
       scholarType: finalType,
-      type: finalType,          // mirror field for FE grouping
+      // type: finalType,          // mirror field for FE grouping
     };
 
     if (course) updates.course = course;
@@ -305,7 +305,17 @@ app.put("/api/verified-scholar/:id", authMiddleware, async (req, res) => {
     const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    return res.json(user);
+    return res.json({
+      msg: "ok",
+      user: {
+        _id: String(user._id),
+        fullname: user.fullname,
+        verified: user.verified,
+        scholarType: user.scholarType,
+        course: user.course ?? null,
+        schoolName: user.schoolName ?? null
+      }
+    });
   } catch (err) {
     console.error("PUT /api/verified-scholar/:id error:", err);
     return res.status(500).json({ msg: "Error updating user", error: err.message });

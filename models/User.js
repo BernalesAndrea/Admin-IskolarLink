@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   verified: { type: Boolean, default: false }, // for admin verification later
 
   scholarType: { type: String, default: "" },
-  type:        { type: String, default: "" },
+  // type:        { type: String, default: "" },
   rejectionReason: { type: String, default: "" },
 
   profilePic: { type: String, default: "/assets/default-avatar.png" },
@@ -36,21 +36,36 @@ UserSchema.set("toObject", { virtuals: true });
 
 
 // Automatically create expense record when a scholar is verified
-UserSchema.post("findOneAndUpdate", async function (doc) {
-  if (!doc) return;
+UserSchema.post("findOneAndUpdate", async function (doc, next) {
+  try {
+    if (!doc) return next();
 
-  if (doc.role === "scholar" && doc.verified) {
-    const exists = await Expense.findOne({ scholar: doc._id });
-    if (!exists) {
-      await Expense.create({
-        scholar: doc._id,
-        tuition: 0,
-        bookAllowance: 0,
-        monthlyAllowance: 0,
-        totalSpent: 0,
-        dateModified: new Date()
-      });
+    if (doc.role === "scholar" && doc.verified) {
+      // If your Expense schema requires fullname/batchYear, include them.
+      await Expense.updateOne(
+        { scholar: doc._id },
+        {
+          $setOnInsert: {
+            scholar: doc._id,
+            fullname: doc.fullname || "",
+            batchYear: doc.batchYear || "",
+            tuition: 0,
+            bookAllowance: 0,
+            monthlyAllowance: 0,
+            totalSpent: 0,
+            dateModified: new Date(),
+            history: [] // include if your schema defines it
+          }
+        },
+        { upsert: true }
+      );
     }
+
+    next();
+  } catch (e) {
+    // Do not break the original update; just log and continue.
+    console.warn("User post-update hook (ensure Expense) error:", e.message);
+    next(); // swallow to avoid 500 on user update
   }
 });
 
