@@ -376,7 +376,7 @@
             <option value="">-- Select Document Type --</option>
             <option value="Grades">Grades</option>
             <option value="SOA">SOA</option>
-            <option value="Certificate of Enrollment">Certificate of Enrollment</option>
+            <option value="Certificate of Registration">Certificate of Registration</option>
             <option value="Book Reimbursement">Book Reimbursement</option>
             <option value="Others">Others</option>
           </select>
@@ -419,7 +419,7 @@
       <ul>
         <li><a href="#">📄 Scanned Grades</a></li>
         <li><a href="#">📄 SOA</a></li>
-        <li><a href="#">📄 Certificate of Enrollment</a></li>
+        <li><a href="#">📄 Certificate of Registration</a></li>
         <li><a href="#">📄 Book Reimbursement</a></li>
         <li><a href="#">📄 Others</a></li>
       </ul>
@@ -884,9 +884,12 @@
       const form = e.target;
       const formData = new FormData(form);
 
+      const scholarName = formData.get("scholarName");
       const scholarId = formData.get("scholarId");
-      if (!scholarId) {
-        alert("Please select a valid scholar from the list.");
+
+      // ensure name → id mapping is valid
+      if (!scholarName || !scholarMap[scholarName] || scholarMap[scholarName] !== scholarId) {
+        alert("Please pick a scholar from the list.");
         return;
       }
 
@@ -919,4 +922,5 @@
     document.querySelector("[data-target='uploads']").addEventListener("click", fetchScholarsForUpload);
   </script>
 </body>
+
 </html>
