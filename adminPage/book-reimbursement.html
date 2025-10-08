@@ -201,12 +201,10 @@
       <td>${s.batchYear || '-'}</td>
 
       <td>
-        <div>₱ ${Number(s.allottedBudget || 0).toFixed(2)}</div>
         <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
       </td>
 
       <td>
-        <div>₱ ${Number(s.total || 0).toFixed(2)}</div>
         <button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button>
       </td>
 

@@ -2,112 +2,296 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Scholar Tasks</title>
   <style>
-    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-    body{
-      margin:0;background-image:url('/assets/iskolarbg.png');background-size:cover;background-position:center;background-repeat:no-repeat;
-      display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;color:#333;overflow:hidden
+    * { margin:0; padding:0; outline:none; border:none; text-decoration:none; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif }
+
+    body {
+      margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+      overflow: hidden
     }
-    .task-container{
-      display:grid;grid-template-columns:1fr 2fr;width:100%;max-width:1200px;margin:auto;height:500px;
-      background:rgba(255,255,255,.9);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1);overflow:hidden
+
+    .task-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      width: 100%;
+      max-width: 1200px;
+      margin: auto;
+      height: 500px;
+      background: rgba(255, 255, 255, .9);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+      overflow: hidden
     }
-    .task-list{background:rgba(255,255,255,.9);border-right:1px solid #ddd;overflow-y:auto;padding:40px}
-    .task-list::before{content:"📝 Task List";display:block;font-size:1.1rem;font-weight:bold;margin-bottom:15px;color:#800000}
-    .task-card{
-      background:#fdfdfd;border-left:5px solid #800000;border-radius:10px;padding:15px 20px;box-shadow:0 2px 6px rgba(0,0,0,.1);
-      transition:transform .2s ease;margin-bottom:12px;cursor:pointer
+
+    .task-list {
+      background: rgba(255, 255, 255, .9);
+      border-right: 1px solid #ddd;
+      overflow: hidden; /* tabs are sticky; internal list scrolls */
+      display: flex;
+      flex-direction: column;
     }
-    .task-card:hover{transform:translateY(-4px)}
-    .task-card.active{background:#f0f0f0}
-    .task-title{font-weight:bold;font-size:1.1em;color:#800000;margin-bottom:5px}
-    .task-dates{font-size:.9em;color:#555;margin-bottom:8px}
-    .task-description{font-size:.95em;color:#333;line-height:1.4em}
-    .task-details{display:flex;justify-content:center;align-items:center;height:100%;overflow-y:auto;padding:24px}
-    .task-detail-card{background:#fdfdfd;padding:20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);max-width:600px;width:100%}
-    .task-detail-title{margin-bottom:15px;color:#800000;font-size:1.4rem;font-weight:bold}
-    .task-meta p{margin:5px 0;font-size:.95em;color:#444}
-    .task-description-box{margin-top:20px;padding:15px;background:#fafafa;border-left:4px solid #800000;border-radius:8px}
-    .task-description-box h3{margin:0 0 10px 0;font-size:1rem;color:#800000}
-    .upload-box{margin-top:25px}
-    .upload-box h3{margin-bottom:10px;font-size:1rem;color:#800000}
-    .upload-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .upload-box input[type="file"]{display:none}
-    .custom-file-label{display:inline-block;background:#800000;color:#fff;padding:10px 15px;border-radius:6px;cursor:pointer;font-size:.95em;transition:background .2s ease}
-    .custom-file-label:hover{background:#5e0000}
-    .file-preview{margin-top:8px;font-size:.9em;color:#555;font-style:italic}
-    .submit-btn{background:#800000;color:#fff;padding:10px 15px;border:none;border-radius:6px;cursor:pointer}
-    .submit-btn:hover{background:#5e0000}
-    .submit-btn[disabled]{opacity:.6;cursor:not-allowed}
-    .status-line{margin-top:8px;font-size:.9em;color:#555}
-    .empty-state{color:#666;font-style:italic}
+
+    /* Tabs inside left column */
+    .task-tabs {
+      display: flex;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .task-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      transition: background .2s;
+      user-select: none;
+    }
+    .task-tab:hover { background: #f0f0f0; }
+    .task-tab.active { background: #800000; color: #fff; }
+
+    .task-list-scroll {
+      overflow-y: auto;
+      padding: 16px 20px 40px;
+      height: 100%;
+    }
+    .task-list-scroll::before {
+      content: attr(data-title);
+      display: block;
+      font-size: 1.05rem;
+      font-weight: bold;
+      margin: 5px 0 12px;
+      color: #800000;
+    }
+
+    .task-card {
+      background: #fdfdfd;
+      border-left: 5px solid #800000;
+      border-radius: 10px;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+      transition: transform .2s ease;
+      margin-bottom: 12px;
+      cursor: pointer
+    }
+    .task-card:hover { transform: translateY(-4px) }
+    .task-card.active { background: #f0f0f0 }
+
+    .task-title { font-weight: bold; font-size: 1.1em; color: #800000; margin-bottom: 5px }
+    .task-dates { font-size: .9em; color: #555; margin-bottom: 8px }
+    .task-description { font-size: .95em; color: #333; line-height: 1.4em }
+
+    .task-details {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      overflow-y: auto;
+      padding: 24px
+    }
+
+    .task-detail-card {
+      background: #fdfdfd;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+      max-width: 600px;
+      width: 100%
+    }
+
+    .task-detail-title { margin-bottom: 15px; color: #800000; font-size: 1.4rem; font-weight: bold }
+    .task-meta p { margin: 5px 0; font-size: .95em; color: #444 }
+
+    .task-description-box { margin-top: 20px; padding: 15px; background: #fafafa; border-left: 4px solid #800000; border-radius: 8px }
+    .task-description-box h3 { margin: 0 0 10px 0; font-size: 1rem; color: #800000 }
+
+    .upload-box { margin-top: 25px }
+    .upload-box h3 { margin-bottom: 10px; font-size: 1rem; color: #800000 }
+    .upload-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+    .upload-box input[type="file"] { display: none }
+    .custom-file-label { display: inline-block; background: #800000; color: #fff; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-size: .95em; transition: background .2s ease }
+    .custom-file-label:hover { background: #5e0000 }
+    .file-preview { margin-top: 8px; font-size: .9em; color: #555; font-style: italic }
+    .submit-btn { background: #800000; color: #fff; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer }
+    .submit-btn:hover { background: #5e0000 }
+    .submit-btn[disabled] { opacity: .6; cursor: not-allowed }
+
+    .status-line { margin-top: 8px; font-size: .9em; color: #555 }
+    .empty-state { color: #666; font-style: italic }
   </style>
 </head>
+
 <body>
   <div class="task-container">
-    <!-- Task List -->
-    <div class="task-list" id="taskList"></div>
+    <!-- LEFT: Task List with Tabs -->
+    <div class="task-list">
+      <div class="task-tabs">
+        <div class="task-tab active" data-target="currentList">Current Tasks</div>
+        <div class="task-tab" data-target="submittedList">Submitted</div>
+      </div>
 
-    <!-- Task Details -->
+      <div id="currentList" class="task-list-scroll" data-title="📝 Current Tasks"></div>
+      <div id="submittedList" class="task-list-scroll" data-title="📦 Submitted / Archive" style="display:none;"></div>
+    </div>
+
+    <!-- RIGHT: Task Details -->
     <div class="task-details" id="taskDetails">
       <p class="empty-state">Select a task to view details</p>
     </div>
   </div>
 
   <script>
-    let tasks = [];
+    let tasks = [];                // all tasks from /api/tasks (open list baseline)
+    let submittedTaskIds = new Set(); // ids of tasks already submitted (from server if available, else local-only)
     let currentTaskId = null;
 
-    // Load tasks (requires auth; your backend protects /api/tasks)
+    /* ----------------- Tabs wiring ----------------- */
+    document.querySelectorAll('.task-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const target = tab.dataset.target;
+        document.getElementById('currentList').style.display = target === 'currentList' ? '' : 'none';
+        document.getElementById('submittedList').style.display = target === 'submittedList' ? '' : 'none';
+
+        // Clear right pane when switching lists to avoid stale submit UI
+        document.getElementById('taskDetails').innerHTML =
+          '<p class="empty-state">Select a task to view details</p>';
+      });
+    });
+
+    /* ----------------- Load Tasks ----------------- */
     async function loadTasks() {
       try {
+        // baseline tasks (open list source)
         const res = await fetch("/api/tasks", { credentials: "include" });
-        if (res.status === 401) {
-          // not logged in / token expired -> send to login
-          window.location.href = "/";
-          return;
-        }
+        if (res.status === 401) { window.location.href = "/"; return; }
         if (!res.ok) throw new Error("Failed to load tasks");
         tasks = await res.json();
 
-        const taskList = document.getElementById("taskList");
-        taskList.innerHTML = "";
+        // try to fetch submitted tasks for THIS scholar (if your backend provides it)
+        // Recommended endpoint to add later: GET /api/my-submissions  -> [{ task: <taskId>, ... }]
+        await tryLoadSubmittedIds();
 
-        if (!Array.isArray(tasks) || tasks.length === 0) {
-          taskList.innerHTML = "<p class='empty-state'>No tasks available.</p>";
-          document.getElementById("taskDetails").innerHTML = "<p class='empty-state'>No task selected.</p>";
-          return;
-        }
-
-        tasks.forEach((task, index) => {
-          const div = document.createElement("div");
-          div.className = "task-card";
-          div.innerHTML = `
-            <div class="task-title">${escapeHtml(task.title || "")}</div>
-            <div class="task-dates">${escapeHtml(task.startDate || "")} → ${escapeHtml(task.dueDate || "")}</div>
-            <div class="task-description">${escapeHtml(task.description || "")}</div>
-          `;
-          div.onclick = () => showTaskDetails(task, div);
-          taskList.appendChild(div);
-          if (index === 0) div.click(); // auto-select first
-        });
+        renderLists();
       } catch (e) {
         console.error(e);
         alert("Could not load tasks.");
       }
     }
 
-    // Detail panel
-    function showTaskDetails(task, element) {
+    async function tryLoadSubmittedIds() {
+      // Graceful fallback if no endpoint exists yet.
+      // Try common possibilities. If all fail, we keep submittedTaskIds as-is.
+      const candidates = ["/api/my-submissions", "/api/submissions/me"];
+      for (const url of candidates) {
+        try {
+          const r = await fetch(url, { credentials: "include" });
+          if (!r.ok) continue;
+          const arr = await r.json();
+          if (Array.isArray(arr)) {
+            submittedTaskIds = new Set(
+              arr.map(s => s.task?._id || s.taskId || s.task).filter(Boolean).map(String)
+            );
+            break;
+          }
+        } catch (_) {}
+      }
+    }
+
+    function renderLists() {
+      const currentWrap = document.getElementById("currentList");
+      const submittedWrap = document.getElementById("submittedList");
+      currentWrap.innerHTML = "";
+      submittedWrap.innerHTML = "";
+
+      const currentTasks = tasks.filter(t => !submittedTaskIds.has(String(t._id)));
+      const submittedTasks = tasks.filter(t => submittedTaskIds.has(String(t._id)));
+
+      if (!currentTasks.length) {
+        currentWrap.innerHTML = "<p class='empty-state'>No current tasks.</p>";
+      } else {
+        currentTasks.forEach((task, index) => {
+          const card = makeTaskCard(task);
+          card.onclick = () => showTaskDetails(task, card, /*isSubmitted*/ false);
+          currentWrap.appendChild(card);
+          if (index === 0) card.click();
+        });
+      }
+
+      if (!submittedTasks.length) {
+        submittedWrap.innerHTML = "<p class='empty-state'>No submitted tasks yet.</p>";
+      } else {
+        submittedTasks.forEach(task => {
+          const card = makeTaskCard(task, /*submittedBadge*/ true);
+          card.onclick = () => showTaskDetails(task, card, /*isSubmitted*/ true);
+          submittedWrap.appendChild(card);
+        });
+      }
+    }
+
+    function makeTaskCard(task, submittedBadge = false) {
+      const div = document.createElement("div");
+      div.className = "task-card";
+      div.innerHTML = `
+        <div class="task-title">${escapeHtml(task.title || "")}${submittedBadge ? " • ✅" : ""}</div>
+        <div class="task-dates">${escapeHtml(task.startDate || "")} → ${escapeHtml(task.dueDate || "")}</div>
+        <div class="task-description">${escapeHtml(task.description || "")}</div>
+      `;
+      return div;
+    }
+
+    /* ----------------- Detail panel ----------------- */
+    function showTaskDetails(task, element, isSubmitted) {
       currentTaskId = task._id;
 
-      document.querySelectorAll(".task-card").forEach(el => el.classList.remove("active"));
+      // Activate card in the visible list only
+      const visibleList = document.getElementById(
+        document.querySelector('.task-tab.active').dataset.target
+      );
+      visibleList.querySelectorAll(".task-card").forEach(el => el.classList.remove("active"));
       element.classList.add("active");
 
       const details = document.getElementById("taskDetails");
-      const fileInputId = "fileInput"; // stable because we re-render details each time
+
+      if (isSubmitted) {
+        // Read-only view for submitted tasks
+        details.innerHTML = `
+          <div class="task-detail-card">
+            <h2 class="task-detail-title">${escapeHtml(task.title || "")}</h2>
+            <div class="task-meta">
+              <p><strong>📅 Start Date:</strong> ${escapeHtml(task.startDate || "")}</p>
+              <p><strong>⏳ Due Date:</strong> ${escapeHtml(task.dueDate || "")}</p>
+            </div>
+            <div class="task-description-box">
+              <h3>Description</h3>
+              <p>${escapeHtml(task.description || "")}</p>
+            </div>
+            <div class="status-line" style="margin-top:14px;">✅ Already submitted</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Allow upload for current tasks
+      const fileInputId = "fileInput";
       details.innerHTML = `
         <div class="task-detail-card">
           <h2 class="task-detail-title">${escapeHtml(task.title || "")}</h2>
@@ -135,7 +319,6 @@
         </div>
       `;
 
-      // Wire up handlers for the rendered elements
       const fileInput = document.getElementById(fileInputId);
       const filePreview = document.getElementById("filePreview");
       const submitBtn = document.getElementById("submitBtn");
@@ -157,15 +340,12 @@
         }
 
         const file = fileInput.files[0];
-
-        // Optional client-side checks
         const MAX = 20 * 1024 * 1024; // 20MB
         if (file.size > MAX) {
           alert("File too large (max 20MB).");
           return;
         }
 
-        // Build form data; backend expects field name "file"
         const formData = new FormData();
         formData.append("file", file);
 
@@ -175,34 +355,27 @@
         try {
           const res = await fetch(`/api/tasks/${currentTaskId}/submit`, {
             method: "POST",
-            credentials: "include", // cookie auth (scholarToken)
+            credentials: "include",
             body: formData
           });
 
-          // Try to parse JSON, but guard in case of non-JSON error
           let data = {};
           try { data = await res.json(); } catch (_) {}
 
-          if (res.status === 401) {
-            window.location.href = "/";
-            return;
-          }
+          if (res.status === 401) { window.location.href = "/"; return; }
+          if (!res.ok) throw new Error(data?.msg || "Upload failed.");
 
-          if (!res.ok) {
-            const msg = data?.msg || "Upload failed.";
-            throw new Error(msg);
-          }
-
-          // Success
           statusLine.textContent = "✅ Task submitted successfully!";
           fileInput.value = "";
           filePreview.textContent = "";
 
-          // If your API returns a fileUrl (GridFS link), you could show it:
-          // if (data.submission?.fileId && data.submission?.bucket) {
-          //   const url = `/files/${data.submission.bucket}/${data.submission.fileId}`;
-          //   statusLine.innerHTML = `✅ Uploaded. <a href="${url}" target="_blank" rel="noopener">View file</a>`;
-          // }
+          // Move task from Current to Submitted (UI)
+          submittedTaskIds.add(String(currentTaskId));
+          renderLists();
+
+          // Switch to Submitted tab automatically (optional but nice)
+          const submittedTab = document.querySelector('.task-tab[data-target="submittedList"]');
+          submittedTab.click();
 
         } catch (err) {
           console.error(err);
@@ -213,17 +386,17 @@
       });
     }
 
-    // Escape tiny helper to prevent accidental HTML injection in text fields
-    function escapeHtml(str){
+    /* ----------------- Helpers ----------------- */
+    function escapeHtml(str) {
       return String(str)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    // Init
+    /* ----------------- Init ----------------- */
     window.onload = loadTasks;
   </script>
 </body>
