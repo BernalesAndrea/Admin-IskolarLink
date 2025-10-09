@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financial Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --maroon:#800000; --maroon-dark:#5a0000; --gold:#D4A017;
+      --card:#ffffff; --ink:#1d1d1f; --muted:#6b7280; --bg: rgba(255,255,255,.9);
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; min-height:100vh; display:flex; flex-direction:column;
+      font-family: Arial, Helvetica, sans-serif;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat fixed;
+    }
+    .site-header{ background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
+    .header-center{ display:flex; align-items:center; gap:18px }
+    .header-logo{ height:64px; width:auto }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
+    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; text-decoration:none; transition:color .25s ease }
+    .brand-block > a:hover{ color:var(--gold) }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
+    .brand-sub a{ color:#fff; text-decoration:none; transition:color .25s ease }
+    .brand-sub a:hover{ color:var(--gold) }
+    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+
+    main{ flex:1; display:flex; justify-content:center; align-items:flex-start; padding:20px }
+    .container{
+      width:95%; max-width:1200px; background:var(--bg); padding:20px; border-radius:12px;
+      overflow-y:auto; max-height: calc(100vh - 180px); box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+
+    h1{ margin:0 0 6px; color:var(--maroon) }
+    .subtitle{ color:var(--muted); margin-bottom:12px }
+
+    .status{ display:none; margin:0 0 12px; padding:10px 12px; border-radius:8px; font-weight:600 }
+    .status.show{ display:block }
+    .status.success{ background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9 }
+    .status.error{ background:#ffebee; color:#b71c1c; border:1px solid #ffcdd2 }
+
+    /* Tabs */
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 16px }
+    .tab{
+      background:#fff; border:1px solid #ddd; color:#111; border-radius:999px;
+      padding:8px 14px; font-weight:700; cursor:pointer;
+    }
+    .tab[aria-selected="true"]{ background:var(--maroon); color:#fff; border-color:var(--maroon) }
+
+    .kpis{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-bottom:16px }
+    .card{ background:var(--card); border-radius:12px; padding:14px; box-shadow: 0 2px 8px rgba(0,0,0,.08); display:flex; flex-direction:column; gap:6px; }
+    .card h3{ margin:0; font-size:14px; color:var(--muted); font-weight:700; letter-spacing:.3px }
+    .card .value{ font-size:24px; font-weight:800; color:var(--ink) }
+    .pill{ align-self:flex-start; margin-top:4px; font-size:12px; padding:4px 8px; border-radius:999px; background:#f1f5f9; color:#0f172a; font-weight:700; }
+
+    .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; margin-top:6px }
+    @media (max-width:1024px){ .grid{ grid-template-columns: 1fr; } }
+    .panel{ background:var(--card); border-radius:12px; padding:14px; box-shadow: 0 2px 8px rgba(0,0,0,.08) }
+    .panel h2{ margin:0 0 10px; font-size:16px; color:var(--ink) }
+    canvas{ width:100%; height:250px }
+
+    table{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden }
+    th, td{ padding:10px 12px; border-bottom:1px solid #eee; text-align:left; font-size:14px }
+    thead{ background: var(--maroon); color:#fff }
+
+    .list{ display:flex; flex-direction:column; gap:8px; margin-top:8px }
+    .row{ display:flex; justify-content:space-between; gap:8px; padding:8px 10px; border:1px solid #eee; border-radius:10px; background:#fff; }
+    .row .name{ font-weight:700 } .row .amt{ font-weight:800 }
+
+    .btn{ background:var(--maroon); color:#fff; border:0; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; }
+    .btn:hover{ background:#a00000 }
+
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
+    .footer-wrap img{ max-height:48px; width:auto }
+  </style>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <h1>Financial Report</h1>
+      <div class="subtitle">Budget Overview — switch category below.</div>
+
+      <!-- Tabs -->
+      <div class="tabs" role="tablist" aria-label="Expense categories">
+        <button class="tab" role="tab" id="tab-allowance" aria-selected="true" data-key="allowance">Allowance</button>
+        <button class="tab" role="tab" id="tab-tuition" aria-selected="false" data-key="tuition">Tuition</button>
+        <button class="tab" role="tab" id="tab-books" aria-selected="false" data-key="books">Book Reimbursement</button>
+        <button class="tab" role="tab" id="tab-tuitionReimb" aria-selected="false" data-key="tuitionReimb">Tuition Reimbursement</button>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpis">
+        <div class="card">
+          <h3>Total Budget</h3>
+          <div id="kpi-budget" class="value">₱0.00</div>
+          <div id="kpi-scholars" class="pill">0 scholars</div>
+        </div>
+        <div class="card">
+          <h3>Total Given</h3>
+          <div id="kpi-given" class="value">₱0.00</div>
+          <div id="kpi-tx" class="pill">from trackers</div>
+        </div>
+        <div class="card">
+          <h3>Remaining</h3>
+          <div id="kpi-remaining" class="value">₱0.00</div>
+          <div id="kpi-remaining-note" class="pill">as of now</div>
+        </div>
+        <div class="card">
+          <h3>Utilization</h3>
+          <div id="kpi-util" class="value">0%</div>
+          <div id="kpi-util-note" class="pill">spent vs budget</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Chart -->
+        <div class="panel">
+          <h2 id="panel-title">Spent vs Remaining</h2>
+          <canvas id="donutChart" aria-label="Spent vs remaining donut chart" role="img"></canvas>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button id="btnExportCSV" class="btn">Export CSV (Summary)</button>
+          </div>
+        </div>
+
+        <!-- Batch breakdown -->
+        <div class="panel">
+          <h2>Batch Breakdown</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Batch</th>
+                <th>Budget (₱)</th>
+                <th>Given (₱)</th>
+                <th>Remaining (₱)</th>
+              </tr>
+            </thead>
+            <tbody id="batchBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top 10 scholars by total given -->
+      <div class="panel" style="margin-top:16px;">
+        <h2>Top 10 Scholars</h2>
+        <div id="topList" class="list"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <script>
+    /* ========= CONFIG: endpoints + field names per category =========
+       Adjust here only if your route field names differ.
+       The dashboard expects an array of objects (1 per scholar) like:
+       { fullname, batchYear, allottedBudget, totalGiven/totalReimbursed/... }
+    */
+    const CONFIG = {
+      allowance: {
+        title: "Spent vs Remaining (Allowance)",
+        endpoint: "/api/allowances",
+        budgetField: "allottedBudget",
+        givenFields: ["totalGiven"] // choose the first existing field
+      },
+      tuition: {
+        title: "Spent vs Remaining (Tuition)",
+        endpoint: "/api/tuition",             // <-- Confirm your list endpoint
+        budgetField: "allottedBudget",        // <-- Adjust if different
+        givenFields: ["totalPaid","totalGiven","totalTuition","paid","spent"] // try in order
+      },
+      books: {
+        title: "Spent vs Remaining (Book Reimbursement)",
+        endpoint: "/api/book",
+        budgetField: "allottedBudget",
+        givenFields: ["totalReimbursed"]
+      },
+      tuitionReimb: {
+        title: "Spent vs Remaining (Tuition Reimbursement)",
+        endpoint: "/api/tuition-reimbursement", // <-- Confirm your list endpoint
+        budgetField: "allottedBudget",
+        givenFields: ["totalReimbursed","totalGiven"]
+      }
+    };
+
+    /* ========= UI + rendering (shared) ========= */
+    const statusEl = document.getElementById('status');
+    function notify(msg, type='success', timeout=3500){
+      statusEl.textContent = msg;
+      statusEl.className = `status show ${type}`;
+      clearTimeout(statusEl._t);
+      statusEl._t = setTimeout(()=>{ statusEl.className='status'; statusEl.textContent=''; }, timeout);
+    }
+
+    const kBudget = document.getElementById('kpi-budget');
+    const kGiven = document.getElementById('kpi-given');
+    const kRemain = document.getElementById('kpi-remaining');
+    const kUtil = document.getElementById('kpi-util');
+    const kScholars = document.getElementById('kpi-scholars');
+    const batchBody = document.getElementById('batchBody');
+    const topList = document.getElementById('topList');
+    const btnExportCSV = document.getElementById('btnExportCSV');
+    const panelTitle = document.getElementById('panel-title');
+
+    let donut; // Chart.js instance
+    let lastSummaryForCSV = null;
+    let activeKey = "allowance";
+
+    function peso(n){
+      if (!Number.isFinite(n)) n = 0;
+      return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function pickNumber(obj, fields, fallback=0){
+      for (const f of fields){
+        const val = obj?.[f];
+        if (Number.isFinite(val)) return val;
+      }
+      return fallback;
+    }
+
+    function normalizeRecords(data, cfg){
+      const budgetKey = cfg.budgetField;
+      const givenKeys = cfg.givenFields;
+
+      return (data || []).map(x => {
+        const budget = Number(x?.[budgetKey]) || 0;
+        const given  = pickNumber(x, givenKeys, 0);
+        return {
+          _id: String(x?._id || x?.scholar || ''),
+          fullname: x?.fullname || '',
+          batchYear: x?.batchYear || '',
+          budget, given
+        };
+      });
+    }
+
+    function summarize(records){
+      const totalBudget = records.reduce((s,r)=>s + r.budget, 0);
+      const totalGiven  = records.reduce((s,r)=>s + r.given, 0);
+      const remaining   = totalBudget - totalGiven;
+      const utilization = totalBudget > 0 ? (totalGiven / totalBudget) * 100 : 0;
+
+      const byBatch = new Map();
+      records.forEach(r=>{
+        const key = r.batchYear || 'Unspecified';
+        const b = byBatch.get(key) || {budget:0, given:0};
+        b.budget += r.budget; b.given += r.given;
+        byBatch.set(key, b);
+      });
+
+      const top = [...records].sort((a,b)=> b.given - a.given).slice(0,10);
+      return { totalBudget, totalGiven, remaining, utilization, byBatch, top, scholarCount: records.length };
+    }
+
+    function renderKPIs(sum){
+      kBudget.textContent = peso(sum.totalBudget);
+      kGiven.textContent = peso(sum.totalGiven);
+      kRemain.textContent = peso(sum.remaining);
+      kUtil.textContent = (sum.utilization || 0).toFixed(1) + '%';
+      kScholars.textContent = `${sum.scholarCount} scholar${sum.scholarCount===1?'':'s'}`;
+    }
+
+    function renderBatchTable(sum){
+      const rows = [];
+      const sorted = [...sum.byBatch.entries()].sort((a,b)=>{
+        const na = parseInt(a[0],10), nb = parseInt(b[0],10);
+        if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+        return String(a[0]).localeCompare(String(b[0]));
+      });
+      sorted.forEach(([batch,v])=>{
+        const rem = (v.budget||0) - (v.given||0);
+        rows.push(`<tr>
+          <td>${batch}</td>
+          <td>${peso(v.budget||0)}</td>
+          <td>${peso(v.given||0)}</td>
+          <td style="font-weight:700; color:${rem<0?'#b91c1c':'#166534'}">${peso(rem)}</td>
+        </tr>`);
+      });
+      batchBody.innerHTML = rows.join('') || `<tr><td colspan="4" style="text-align:center;color:#666;">No data</td></tr>`;
+    }
+
+    function renderTop(sum){
+      if (!sum.top.length){
+        topList.innerHTML = `<div class="row"><span>No data</span></div>`;
+        return;
+      }
+      topList.innerHTML = sum.top.map(s=>`
+        <div class="row">
+          <span class="name">${s.fullname || '(Unnamed)'}${s.batchYear? ` • Batch ${s.batchYear}`:''}</span>
+          <span class="amt">${peso(s.given || 0)}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderDonut(sum){
+      const ctx = document.getElementById('donutChart');
+      const spent = Math.max(0, sum.totalGiven);
+      const remaining = Math.max(0, sum.totalBudget - sum.totalGiven);
+
+      const data = { labels:['Spent','Remaining'], datasets:[{ data:[spent, remaining] }] };
+      const options = {
+        responsive:true,
+        plugins:{
+          legend:{ position:'bottom' },
+          tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${peso(c.parsed)}` } }
+        }
+      };
+
+      if (donut) donut.destroy();
+      donut = new Chart(ctx, { type:'doughnut', data, options });
+    }
+
+    function exportCSV(sum, key){
+      const lines = [];
+      lines.push('Metric,Amount');
+      lines.push(`Total Budget,${sum.totalBudget.toFixed(2)}`);
+      lines.push(`Total Given,${sum.totalGiven.toFixed(2)}`);
+      lines.push(`Remaining,${sum.remaining.toFixed(2)}`);
+      lines.push(`Utilization (%),${(sum.utilization||0).toFixed(2)}`);
+      lines.push('');
+      lines.push('Batch,Budget,Given,Remaining');
+
+      const rows = [...sum.byBatch.entries()];
+      rows.forEach(([batch,v])=>{
+        const rem = (v.budget||0) - (v.given||0);
+        lines.push(`${batch},${(v.budget||0).toFixed(2)},${(v.given||0).toFixed(2)},${rem.toFixed(2)}`);
+      });
+
+      const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const today = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `${key}-summary-${today}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    btnExportCSV.addEventListener('click', ()=> {
+      if (lastSummaryForCSV) exportCSV(lastSummaryForCSV, activeKey);
+    });
+
+    async function fetchData(key){
+      const cfg = CONFIG[key];
+      const res = await fetch(cfg.endpoint, { credentials:'include' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    async function loadAndRender(key){
+      try{
+        activeKey = key;
+        const cfg = CONFIG[key];
+        panelTitle.textContent = cfg.title;
+
+        const raw = await fetchData(key);
+        const recs = normalizeRecords(raw, cfg);
+        const sum = summarize(recs);
+        lastSummaryForCSV = sum;
+
+        renderKPIs(sum);
+        renderBatchTable(sum);
+        renderTop(sum);
+        renderDonut(sum);
+
+        notify(`${key} overview loaded.`);
+      }catch(err){
+        console.error(err);
+        notify(`Failed to load ${key} data: ${err.message}`, 'error', 6000);
+        // Clear views on error
+        renderKPIs({ totalBudget:0,totalGiven:0,remaining:0,utilization:0,scholarCount:0 });
+        batchBody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#666;">No data</td></tr>`;
+        topList.innerHTML = `<div class="row"><span>No data</span></div>`;
+        if (donut) { donut.destroy(); donut = null; }
+      }
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab').forEach(b=> b.setAttribute('aria-selected','false'));
+        btn.setAttribute('aria-selected','true');
+        loadAndRender(btn.dataset.key);
+      });
+    });
+
+    window.addEventListener('DOMContentLoaded', ()=> loadAndRender('allowance'));
+  </script>
+</body>
+</html>

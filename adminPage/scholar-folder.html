@@ -35,8 +35,9 @@
             margin: 0 auto;
             background: #fff;
             padding: 18px;
-            border-radius: 40px;
+            border-radius: 0px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            overflow-y: auto;
         }
 
         h1,
@@ -137,7 +138,7 @@
         <div class="tabs" id="folderTabs">
             <div class="tab active" data-target="all">All</div>
             <div class="tab" data-target="scanned-grades">Scanned Grades</div>
-            <div class="tab" data-target="soa">SOA</div>
+            <div class="tab" data-target="soa">Statement of Account</div>
             <div class="tab" data-target="coe">Certificate of Enrollment</div>
             <div class="tab" data-target="others">Others</div>
         </div>
@@ -154,7 +155,7 @@
             </div>
 
             <div id="soa" class="folderSection" style="display:none">
-                <h2>SOA</h2>
+                <h2>Statement of Account</h2>
                 <ul id="docsSoa" class="docs"></ul>
             </div>
 
@@ -186,13 +187,24 @@
     document.querySelectorAll('.folderSection').forEach(el => el.style.display='none');
     document.getElementById(selector).style.display='block';
   }
-  function groupByType(doc){
-    const t = (doc.docType || "").toLowerCase();
-    if (t.includes('grade')) return 'scanned-grades';
-    if (t.includes('soa')) return 'soa';
-    if (t.includes('certificate') || t.includes('enrollment') || t.includes('coe')) return 'coe';
-    return 'others';
-  }
+  function groupByType(doc) {
+   // normalize: lowercase, collapse spaces
+   const t = (doc.docType || "")
+     .toLowerCase()
+     .replace(/\s+/g, ' ')
+     .trim();
+
+   // Scanned grades
+   if (t.includes('grade')) return 'scanned-grades';
+
+   // Statement of Account bucket (accepts "SOA" or "Statement of Account")
+   if (t === 'soa' || t.includes('statement of account')) return 'soa';
+
+   // COE/COR bucket – handle both Enrollment & Registration and "COE"
+   if (/(certificate.*(enrollment|registration)|\bcoe\b)/.test(t)) return 'coe';
+
+   return 'others';
+ }
 
   // Build a /files/<bucket>/<id> URL
   function fileUrl(bucket, id){ return (bucket && id) ? `/files/${bucket}/${id}` : null; }
