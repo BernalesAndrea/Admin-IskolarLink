@@ -52,6 +52,38 @@
       color: #333;
     }
 
+    /* (Add these if not present yet) */
+    :root {
+      --maroon: #800000;
+      --maroon-dark: #5a0000;
+      --gold: #D4A017;
+    }
+
+    /* Match the instruction look used in Scholar Sub Doc */
+    .main p {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      background: #f9f9f9;
+      border-left: 4px solid var(--maroon);
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 6px;
+    }
+
+    /* Wrapper for the instruction boxes */
+    .instructions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 12px 0 18px;
+    }
+
+    /* Remove default paragraph margins so gap controls spacing cleanly */
+    .instructions p {
+      margin: 0;
+    }
+
     .termInputs {
       display: flex;
       gap: 12px;
@@ -173,6 +205,15 @@
           <option value="Summer">Summer</option>
         </select>
       </div>
+
+      <div class="instructions">
+        <p>When submitting grades, please upload a <strong>.pdf</strong> (preferred). If you must submit an image,
+        acceptable formats are <strong>.jpg</strong> and <strong>.png</strong>. Maximum file size:
+        <strong>10&nbsp;MB</strong>.
+      </p>
+      <p>File name format for PDFs: <strong>LastNameFirstName.pdf</strong>. For images, use
+        <strong>LastNameFirstName</strong> (e.g., <em>LastNameFirstName.jpg</em> or <em>LastNameFirstName.png</em>).
+      </p>
 
       <!-- Attach grade image/PDF only -->
       <div class="attachmentBox">

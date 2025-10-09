@@ -1,118 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Page</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
   <style>
-    :root{
-      --maroon:#800000;
-      --maroon-dark:#5a0000;
-      --gold:#D4A017;
+    :root {
+      --maroon: #800000;
+      --maroon-dark: #5a0000;
+      --gold: #D4A017;
     }
-    *{margin:0;padding:0;outline:none;border:none;text-decoration:none;box-sizing:border-box;font-family:Arial, Helvetica, sans-serif}
+
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif
+    }
 
     /* ===== LAYOUT ===== */
-    body{
-      display:flex; flex-direction:column; min-height:100vh;
-      background:url('/assets/iskolarbg.png') center/cover no-repeat;
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat;
     }
-    main{ flex:1; display:flex; justify-content:center; align-items:center; padding:20px }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px
+    }
 
     /* ===== HEADER ===== */
-    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark) }
-    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center }
-    .header-center{ display:flex; align-items:center; gap:18px }
-    .header-logo{ height:64px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)) }
-    .brand-block{ display:flex; flex-direction:column; align-items:center; text-align:center; color:#fff }
-    .brand-block > a{ color:#fff; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease }
-    .brand-block > a:hover{ color:var(--gold) }
-    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600 }
-    .brand-sub a{ color:#fff; transition:color .25s ease }
-    .brand-sub a:hover{ color:var(--gold) }
-    @media (max-width:640px){ .header-logo{height:48px} .brand-block > a{font-size:20px} .brand-sub{font-size:12px} }
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark)
+    }
+
+    .header-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 18px
+    }
+
+    .header-logo {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .1))
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff
+    }
+
+    .brand-block>a {
+      color: #fff;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: .5px;
+      transition: color .25s ease
+    }
+
+    .brand-block>a:hover {
+      color: var(--gold)
+    }
+
+    .brand-sub {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .brand-sub a {
+      color: #fff;
+      transition: color .25s ease
+    }
+
+    .brand-sub a:hover {
+      color: var(--gold)
+    }
+
+    @media (max-width:640px) {
+      .header-logo {
+        height: 48px
+      }
+
+      .brand-block>a {
+        font-size: 20px
+      }
+
+      .brand-sub {
+        font-size: 12px
+      }
+    }
 
     /* ===== MAIN CARD ===== */
-    .container{
-      width:90%; height:80vh; max-width:1000px;
-      background:#fff; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,.1);
-      display:flex; flex-direction:column; overflow:hidden;
+    .container {
+      width: 90%;
+      height: 80vh;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    .sectionBox{ background:transparent; max-width:800px; border-radius:12px; padding:20px; margin:auto }
-    .sectionBox h2{ margin-bottom:15px }
+    .sectionBox {
+      background: transparent;
+      max-width: 800px;
+      border-radius: 12px;
+      padding: 20px;
+      margin: auto
+    }
+
+    .sectionBox h2 {
+      margin-bottom: 15px
+    }
 
     /* Tabs */
-    .tabs{ display:flex; border-bottom:2px solid #eee; background:#f9f9f9 }
-    .tab{ flex:1; text-align:center; padding:14px; cursor:pointer; font-size:14px; font-weight:500; color:#333; transition:all .3s ease; user-select:none }
-    .tab:hover{ background:#eaeaea }
-    .tab.active{ background:var(--maroon); color:#fff; font-weight:bold }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #eee;
+      background: #f9f9f9
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      transition: all .3s ease;
+      user-select: none
+    }
+
+    .tab:hover {
+      background: #eaeaea
+    }
+
+    .tab.active {
+      background: var(--maroon);
+      color: #fff;
+      font-weight: bold
+    }
 
     /* Content */
-    .content{ padding:20px; flex:1; min-height:0; overflow:hidden }
-    .content-section{ display:none; height:100% }
-    .content-section.active{ display:block }
-
-    .inputBox{ display:flex; flex-direction:column; gap:8px }
-    .inputBox label{ font-weight:bold; margin-top:5px }
-
-    .inputBox input{
-      background:#c9c9c9; border-radius:20px; padding:8px 12px;
+    .content {
+      overflow: hidden;
+      /* can keep hidden here; inner list will scroll */
+      min-height: 0;
+      /* allow children to shrink inside flex */
     }
 
-    .datetimeRow{ display:flex; gap:20px }
-    .datetimeRow .inputGroup{ display:flex; flex-direction:column; flex:1 }
-    .datetimeRow .inputGroup input{
-      background:#c9c9c9; border-radius:20px; padding:8px 12px; font-weight:bold; border:none; height:38px; width:100%;
+    #list.content-section {
+      display: flex;
+      height: 100%;
     }
 
-    .eventDescription textarea{
-      background:#c9c9c9; margin-top:5px; border-radius:20px; padding:8px 12px; resize:none; width:100%; height:80px;
+    #list .sectionBox {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      margin: auto;
+      /* keep your centering */
+      max-width: 800px;
+      /* keep your width constraint */
     }
 
-    .createButton{ display:flex; justify-content:flex-end; gap:10px; margin-top:10px }
-    .createButton button{ height:35px; padding:0 16px; border-radius:10px; background:rgba(146,59,59); color:#fff; cursor:pointer; font-weight:bold }
-    .createButton button[type="reset"]{ background:#6c757d }
+    .content-section {
+      display: none;
+      height: 100%
+    }
+
+    .content-section.active {
+      display: block
+    }
+
+    .inputBox {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .inputBox label {
+      font-weight: bold;
+      margin-top: 5px
+    }
+
+    .inputBox input {
+      background: #c9c9c9;
+      border-radius: 20px;
+      padding: 8px 12px;
+    }
+
+    .datetimeRow {
+      display: flex;
+      gap: 20px
+    }
+
+    .datetimeRow .inputGroup {
+      display: flex;
+      flex-direction: column;
+      flex: 1
+    }
+
+    .datetimeRow .inputGroup input {
+      background: #c9c9c9;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-weight: bold;
+      border: none;
+      height: 38px;
+      width: 100%;
+    }
+
+    .eventDescription textarea {
+      background: #c9c9c9;
+      margin-top: 5px;
+      border-radius: 20px;
+      padding: 8px 12px;
+      resize: none;
+      width: 100%;
+      height: 80px;
+    }
+
+    .createButton {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px
+    }
+
+    .createButton button {
+      height: 35px;
+      padding: 0 16px;
+      border-radius: 10px;
+      background: rgba(146, 59, 59);
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold
+    }
+
+    .createButton button[type="reset"] {
+      background: #6c757d
+    }
 
     /* Events list */
-    .displayEventContainer{
-      width:100%; max-width:800px; margin:auto; display:flex; flex-direction:column; gap:15px;
-      height:500px; overflow-y:auto; padding-right:10px;
+    /* The events list becomes the ONLY scrollable region. */
+    .displayEventContainer {
+      flex: 1;
+      /* take remaining space under the heading */
+      min-height: 0;
+      /* vital so flex child can actually shrink */
+      overflow-y: auto;
+      /* scroll here */
+      padding-right: 10px;
+      max-height: none;
+      /* remove the hard cap */
+      /* optional nicer scrolling */
+      scrollbar-gutter: stable both-edges;
     }
-    .eventCard{
-      display:flex; align-items:center; background:#fdfdfd; border-radius:10px; padding:10px; gap:15px;
-      box-shadow:0 2px 5px rgba(0,0,0,.1); transition:transform .2s ease;
+
+    .eventCard {
+      display: flex;
+      align-items: center;
+      background: #fdfdfd;
+      border-radius: 10px;
+      padding: 10px;
+      gap: 15px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
+      transition: transform .2s ease;
     }
-    .eventCard:hover{ transform:translateY(-4px) }
 
-    .eventDate{ text-align:center; padding:10px; background:rgba(146,59,59); color:#fff; border-radius:8px; width:60px }
-    .eventDate h2{ font-size:18px; margin:0 }
-    .eventDate h1{ font-size:28px; margin:0 }
+    .eventCard:hover {
+      transform: translateY(-4px)
+    }
 
-    .eventDetails h3{ margin:0 0 6px 0; color:#333 }
-    .viewMoreBtn{ background:none; border:none; color:rgba(146,59,59); cursor:pointer; font-weight:bold; font-size:14px }
+    .eventDate {
+      text-align: center;
+      padding: 10px;
+      background: rgba(146, 59, 59);
+      color: #fff;
+      border-radius: 8px;
+      width: 60px
+    }
+
+    .eventDate h2 {
+      font-size: 18px;
+      margin: 0
+    }
+
+    .eventDate h1 {
+      font-size: 28px;
+      margin: 0
+    }
+
+    .eventDetails h3 {
+      margin: 0 0 6px 0;
+      color: #333
+    }
+
+    .viewMoreBtn {
+      background: none;
+      border: none;
+      color: rgba(146, 59, 59);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px
+    }
 
     /* Modal overlay (above sticky header) */
-    .modal{
-      display:none; position:fixed; z-index:2000; inset:0; background:rgba(0,0,0,.5);
-      justify-content:center; align-items:center; padding:16px;
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
     }
-    .modal-content{
-      background:#fff; padding:20px; border-radius:12px; max-width:600px; width:90%;
-      box-shadow:0 5px 15px rgba(0,0,0,.3); animation:fadeIn .25s ease;
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, .3);
+      animation: fadeIn .25s ease;
     }
-    .close{ color:#aaa; float:right; font-size:24px; font-weight:bold; cursor:pointer }
-    .close:hover{ color:#000 }
-    @keyframes fadeIn{ from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:translateY(0)} }
-    #modalSentence{ white-space:pre-line; line-height:1.6 }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer
+    }
+
+    .close:hover {
+      color: #000
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    #modalSentence {
+      white-space: pre-line;
+      line-height: 1.6
+    }
 
     /* ===== FOOTER ===== */
-    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
-    .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
-    .footer-wrap img{ max-height:48px; width:auto }
+    .site-footer {
+      background: #fff;
+      border-top: 1px solid #000;
+      outline: 1px solid #000;
+      outline-offset: -1px
+    }
+
+    .footer-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .footer-wrap img {
+      max-height: 48px;
+      width: auto
+    }
   </style>
 </head>
+
 <body>
 
   <!-- HEADER -->
@@ -215,13 +514,13 @@
     // Tabs
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
-    tabs.forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        tabs.forEach(t=>t.classList.remove('active'));
-        sections.forEach(s=>s.classList.remove('active'));
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(tab.dataset.target).classList.add('active');
-        if(tab.dataset.target === 'list'){ loadEvents(); }
+        if (tab.dataset.target === 'list') { loadEvents(); }
       });
     });
 
@@ -230,8 +529,8 @@
       field: document.getElementById('pikadayDate'),
       format: 'YYYY-MM-DD',
       minDate: new Date(),
-      toString(date){
-        const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,'0'), d=String(date.getDate()).padStart(2,'0');
+      toString(date) {
+        const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
       }
     });
@@ -239,7 +538,7 @@
     const API_URL = 'http://localhost:3000';
 
     // Create event
-    document.getElementById('eventForm').addEventListener('submit', async function(e){
+    document.getElementById('eventForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const fd = new FormData(this);
       const payload = {
@@ -249,111 +548,132 @@
         duration: fd.get('duration'),
         location: fd.get('location')
       };
-      try{
+      try {
         const res = await fetch(`${API_URL}/api/events`, {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if(res.ok){
+        if (res.ok) {
           alert('Event created successfully!');
           this.reset();
           // if on list tab, refresh; else user can switch to see it
           const activeTab = document.querySelector('.tab.active')?.dataset.target;
-          if(activeTab === 'list') loadEvents();
-        }else{
+          if (activeTab === 'list') loadEvents();
+        } else {
           alert('Error creating event');
         }
-      }catch(err){
+      } catch (err) {
         console.error(err);
         alert('Network error');
       }
     });
 
     // Load events
-    async function loadEvents(){
-      try{
-        const res = await fetch(`${API_URL}/api/events`);
-        const events = await res.json();
-        const container = document.querySelector('.displayEventContainer');
-        container.innerHTML = '';
+    // Load only upcoming events
+async function loadEvents() {
+  try {
+    const res = await fetch(`${API_URL}/api/events`);
+    const events = await res.json();
+    const container = document.querySelector('.displayEventContainer');
+    container.innerHTML = '';
 
-        if(!Array.isArray(events) || !events.length){
-          container.innerHTML = '<div style="color:#555;">No events found.</div>';
-          return;
-        }
-
-        events.forEach(ev=>{
-          const dateObj = new Date(ev.dateTime);
-          const month = dateObj.toLocaleString('default', {month:'short'});
-          const day   = dateObj.getDate();
-
-          const div = document.createElement('div');
-          div.className = 'eventCard';
-          div.innerHTML = `
-            <div class="eventDate">
-              <h2>${month}</h2>
-              <h1>${day}</h1>
-            </div>
-            <div class="eventDetails">
-              <h3>${ev.title}</h3>
-              <button class="viewMoreBtn">View more...</button>
-            </div>
-          `;
-
-          div.querySelector('.viewMoreBtn').addEventListener('click', async ()=>{
-            document.getElementById('modalTitle').textContent = ev.title;
-
-            const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
-              weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'numeric', minute:'2-digit', hour12:true
-            });
-
-            let attend = 0, notAttend = 0;
-            try{
-              const eventId = ev._id || ev.id;
-              if(eventId){
-                const r = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
-                if(r.ok){
-                  const d = await r.json();
-                  attend   = d.attendCount ?? 0;
-                  notAttend= d.notAttendCount ?? 0;
-                }
-              }
-            }catch(e){ console.warn('Attendance API error:', e); }
-
-            const desc = (ev.description || '').trim();
-            const sentence =
-              `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
-              `with a duration of <strong>${ev.duration}</strong>.\n\n` +
-              (desc ? `<strong>Description:</strong>\n${desc}\n\n` : '') +
-              `<strong>Attendance so far:</strong> ${attend} will attend, ${notAttend} will not attend.`;
-
-            document.getElementById('modalSentence').innerHTML = sentence;
-
-            const modal = document.getElementById('eventModal');
-            modal.style.display = 'flex';
-            modal.setAttribute('aria-hidden','false');
-          });
-
-          container.appendChild(div);
-        });
-      }catch(err){
-        console.error(err);
-      }
+    if (!Array.isArray(events) || !events.length) {
+      container.innerHTML = '<div style="color:#555;">No events found.</div>';
+      return;
     }
+
+    // ✅ Filter upcoming events only
+    const now = new Date();
+    const upcoming = events
+      .filter(ev => new Date(ev.dateTime) > now)
+      .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
+    if (!upcoming.length) {
+      container.innerHTML = '<div style="color:#555;">No upcoming events.</div>';
+      return;
+    }
+
+    // ✅ Display only upcoming events
+    upcoming.forEach(ev => {
+      const dateObj = new Date(ev.dateTime);
+      const month = dateObj.toLocaleString('default', { month: 'short' });
+      const day = dateObj.getDate();
+
+      const div = document.createElement('div');
+      div.className = 'eventCard';
+      div.innerHTML = `
+        <div class="eventDate">
+          <h2>${month}</h2>
+          <h1>${day}</h1>
+        </div>
+        <div class="eventDetails">
+          <h3>${ev.title}</h3>
+          <button class="viewMoreBtn">View more...</button>
+        </div>
+      `;
+
+      // ✅ View details modal
+      div.querySelector('.viewMoreBtn').addEventListener('click', async () => {
+        document.getElementById('modalTitle').textContent = ev.title;
+
+        const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        let attend = 0, notAttend = 0;
+        try {
+          const eventId = ev._id || ev.id;
+          if (eventId) {
+            const r = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
+            if (r.ok) {
+              const d = await r.json();
+              attend = d.attendCount ?? 0;
+              notAttend = d.notAttendCount ?? 0;
+            }
+          }
+        } catch (e) { console.warn('Attendance API error:', e); }
+
+        const desc = (ev.description || '').trim();
+        const sentence =
+          `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
+          `with a duration of <strong>${ev.duration}</strong>.\n\n` +
+          (desc ? `<strong>Description:</strong>\n${desc}\n\n` : '') +
+          `<strong>Attendance so far:</strong> ${attend} will attend, ${notAttend} will not attend.`;
+
+        document.getElementById('modalSentence').innerHTML = sentence;
+        const modal = document.getElementById('eventModal');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+      });
+
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 
     // Modal close
-    function closeModal(){
+    function closeModal() {
       const modal = document.getElementById('eventModal');
       modal.style.display = 'none';
-      modal.setAttribute('aria-hidden','true');
+      modal.setAttribute('aria-hidden', 'true');
     }
     document.querySelector('.close').addEventListener('click', closeModal);
-    window.addEventListener('click', (e)=>{ if(e.target === document.getElementById('eventModal')) closeModal(); });
-    window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+    window.addEventListener('click', (e) => { if (e.target === document.getElementById('eventModal')) closeModal(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
     // Initial load: keep Create tab active; prefetch events
     loadEvents();
   </script>
 </body>
+
 </html>

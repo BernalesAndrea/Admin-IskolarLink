@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,7 +66,7 @@
       color: #fff;
     }
 
-    .brand-block > a {
+    .brand-block>a {
       color: #fff;
       text-decoration: none;
       font-weight: 800;
@@ -73,7 +74,9 @@
       transition: color 0.25s ease;
     }
 
-    .brand-block > a:hover { color: var(--gold); }
+    .brand-block>a:hover {
+      color: var(--gold);
+    }
 
     .brand-sub {
       margin-top: 4px;
@@ -87,12 +90,22 @@
       transition: color 0.25s ease;
     }
 
-    .brand-sub a:hover { color: var(--gold); }
+    .brand-sub a:hover {
+      color: var(--gold);
+    }
 
     @media (max-width: 640px) {
-      .header-logo { height: 48px; }
-      .brand-block > a { font-size: 20px; }
-      .brand-sub { font-size: 12px; }
+      .header-logo {
+        height: 48px;
+      }
+
+      .brand-block>a {
+        font-size: 20px;
+      }
+
+      .brand-sub {
+        font-size: 12px;
+      }
     }
 
     /* ===== MAIN ===== */
@@ -118,12 +131,14 @@
       padding: 20px;
     }
 
-    .dashboard p { text-align: center; }
+    .dashboard p {
+      text-align: center;
+    }
 
     .home-section {
       flex: 1;
       min-width: 300px;
-      height: 500px;
+      height: 570px;
       background: rgba(255, 255, 255, 0.9);
       padding: 20px;
       border-radius: 15px;
@@ -148,7 +163,9 @@
       transition: transform 0.2s ease;
     }
 
-    .eventCard:hover { transform: translateY(-4px); }
+    .eventCard:hover {
+      transform: translateY(-4px);
+    }
 
     .eventDate {
       text-align: center;
@@ -159,13 +176,19 @@
       width: 60px;
     }
 
-    .eventDate h2, .eventDate h1 {
+    .eventDate h2,
+    .eventDate h1 {
       margin: 0;
       color: white;
     }
 
-    .eventDate h2 { font-size: 16px; }
-    .eventDate h1 { font-size: 24px; }
+    .eventDate h2 {
+      font-size: 16px;
+    }
+
+    .eventDate h1 {
+      font-size: 24px;
+    }
 
     .eventDetails h3 {
       margin: 0;
@@ -202,7 +225,7 @@
       border-radius: 10px;
       width: 500px;
       max-width: 90%;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
       animation: fadeIn 0.25s ease;
     }
 
@@ -214,11 +237,20 @@
       color: #555;
     }
 
-    .close:hover { color: #000; }
+    .close:hover {
+      color: #000;
+    }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     #modalSentence {
@@ -248,7 +280,70 @@
       max-height: 48px;
       width: auto;
     }
+
+    .dashboard {
+  height: auto;            /* let height grow with content */
+  min-height: 500px;
+  width: 60%;
+  background-color: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+/* tiny grid for the stat cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media (max-width: 960px) {
+  .dashboard { width: 100%; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 520px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+.stat-card {
+  background: #f9f9f9;
+  border-left: 4px solid var(--maroon);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat-label { font-size: 13px; color: #555; }
+.stat-value { font-size: 28px; font-weight: 800; color: #333; }
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 960px) {
+  .chart-grid { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+}
+.chart-title {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+.chart-subtitle {
+  font-weight: 500;
+  color: #666;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -277,8 +372,57 @@
 
       <!-- Dashboard -->
       <div class="dashboard">
-        <p>dashboard</p>
+        <h2 style="color:#333; text-align:center; margin-bottom:12px;">Scholar Statistics</h2>
+
+        <!-- Totals / quick stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Verified</div>
+            <div class="stat-value" id="statTotal">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Regular</div>
+            <div class="stat-value" id="statRegular">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Special</div>
+            <div class="stat-value" id="statSpecial">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Post-Graduate</div>
+            <div class="stat-value" id="statPostGrad">—</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">Scholars by Type</div>
+            <canvas id="typeChart" height="220"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">
+              Scholars by Barangay <span class="chart-subtitle" id="barangaySubtitle"></span>
+            </div>
+            <canvas id="barangayChart" height="220"></canvas>
+
+            <!-- Simple fallback table (shows if Chart.js failed or disabled) -->
+            <div id="barangayFallback" style="display:none; margin-top:10px; max-height:220px; overflow:auto;">
+              <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                  <tr>
+                    <th style="text-align:left; padding:6px;">Barangay</th>
+                    <th style="text-align:right; padding:6px;">#</th>
+                  </tr>
+                </thead>
+                <tbody id="barangayFallbackBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
+
 
       <!-- Upcoming Events -->
       <div class="home-section">
@@ -305,73 +449,236 @@
     </div>
   </div>
 
-<script>
-  const API_URL = "http://localhost:3000/api";
+  <script>
+  const API_URL = "http://localhost:3000/api"; // already present above
 
-  async function loadEvents() {
-    try {
-      const res = await fetch(`${API_URL}/events`);
-      const events = await res.json();
-      const container = document.getElementById("upcomingEvents");
-      container.innerHTML = "";
+  // ---- STATS ----
+  let typeChart, barangayChart;
 
-      if (!events || events.length === 0) {
-        container.innerHTML = "<p>No events found.</p>";
-        return;
+  function normalizeType(raw) {
+    const t = String(raw || "").trim().toLowerCase();
+    if (t.startsWith("post")) return "Post-Graduate";
+    if (t.startsWith("special")) return "Special";
+    if (t) return t[0].toUpperCase() + t.slice(1); // Regular, etc.
+    return "Regular"; // default
+  }
+
+  function groupByType(list) {
+    const counts = { "Regular": 0, "Special": 0, "Post-Graduate": 0 };
+    list.forEach(u => {
+      const t = normalizeType(u.scholarType || u.type);
+      if (!counts[t]) counts[t] = 0;
+      counts[t]++;
+    });
+    return counts;
+  }
+
+  function groupByBarangay(list) {
+    const map = new Map();
+    list.forEach(u => {
+      const b = (u.barangay || "Unknown").trim() || "Unknown";
+      map.set(b, (map.get(b) || 0) + 1);
+    });
+    // Convert to array & sort desc
+    return Array.from(map.entries()).sort((a,b) => b[1] - a[1]);
+  }
+
+  function setQuickStats(typeCounts) {
+    const total = Object.values(typeCounts).reduce((a,b) => a + b, 0);
+    document.getElementById("statTotal").textContent = total;
+    document.getElementById("statRegular").textContent = typeCounts["Regular"] || 0;
+    document.getElementById("statSpecial").textContent = typeCounts["Special"] || 0;
+    document.getElementById("statPostGrad").textContent = typeCounts["Post-Graduate"] || 0;
+  }
+
+  function renderTypeChart(typeCounts) {
+    const ctx = document.getElementById("typeChart");
+    if (!ctx || !window.Chart) return;
+
+    const labels = ["Regular", "Special", "Post-Graduate"];
+    const data = labels.map(l => typeCounts[l] || 0);
+
+    if (typeChart) typeChart.destroy();
+    typeChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [{
+          data,
+          // Chart.js will pick default palette; we keep your brand via hover styles
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: { callbacks: {
+            label: (c) => `${c.label}: ${c.raw}`
+          }}
+        },
+        cutout: "55%"
       }
+    });
+  }
 
-      events.forEach(ev => {
-        const dateObj = new Date(ev.dateTime);
-        const month = dateObj.toLocaleString("default", { month: "short" });
-        const day = dateObj.getDate();
+  function renderBarangayChart(barangayPairs) {
+    const ctx = document.getElementById("barangayChart");
+    const sub = document.getElementById("barangaySubtitle");
+    const fallback = document.getElementById("barangayFallback");
+    const fallbackBody = document.getElementById("barangayFallbackBody");
 
-        const div = document.createElement("div");
-        div.classList.add("eventCard");
-        div.innerHTML = `
-          <div class="eventDate">
-            <h2>${month}</h2>
-            <h1>${day}</h1>
-          </div>
-          <div class="eventDetails">
-            <h3>${ev.title}</h3>
-            <button class="viewMoreBtn">View more...</button>
-          </div>
-        `;
+    const total = barangayPairs.reduce((a, [,n]) => a + n, 0);
 
-        div.querySelector(".viewMoreBtn").addEventListener("click", function () {
-          const modal = document.getElementById("eventModal");
-          const titleEl = document.getElementById("modalTitle");
-          const sentenceEl = document.getElementById("modalSentence");
+    // Show top N + "Others" to keep it readable
+    const TOP_N = 8;
+    const top = barangayPairs.slice(0, TOP_N);
+    const restSum = barangayPairs.slice(TOP_N).reduce((a, [,n]) => a + n, 0);
+    const labels = top.map(([b]) => b).concat(restSum ? ["Others"] : []);
+    const values = top.map(([,n]) => n).concat(restSum ? [restSum] : []);
 
-          titleEl.textContent = ev.title;
+    sub.textContent = total ? `Top ${Math.min(TOP_N, barangayPairs.length)} of ${barangayPairs.length} barangays` : "";
 
-          const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          });
-
-          const desc = (ev.description || '').trim();
-          const sentence =
-            `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
-            `with a duration of <strong>${ev.duration}</strong>.\n\n` +
-            (desc ? `<strong>Description:</strong>\n${desc}` : '');
-
-          sentenceEl.innerHTML = sentence;
-
-          modal.style.display = "flex";
-          modal.setAttribute("aria-hidden", "false");
-        });
-
-        container.appendChild(div);
+    // Fallback (no Chart.js)
+    if (!ctx || !window.Chart) {
+      fallback.style.display = "block";
+      fallbackBody.innerHTML = "";
+      const rows = top.concat(restSum ? [["Others", restSum]] : []);
+      rows.forEach(([b, n]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td style="padding:6px;">${b}</td><td style="padding:6px; text-align:right;">${n}</td>`;
+        fallbackBody.appendChild(tr);
       });
-    } catch (err) {
-      console.error("Error loading events:", err);
+      return;
+    } else {
+      fallback.style.display = "none";
+    }
+
+    if (barangayChart) barangayChart.destroy();
+    barangayChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Scholars",
+          data: values,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { ticks: { color: "#333" } },
+          y: { beginAtZero: true, ticks: { precision:0 } }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            label: (c) => ` ${c.raw} scholar${c.raw===1?"":"s"}`
+          }}
+        }
+      }
+    });
+  }
+
+  async function loadScholarStats() {
+    try {
+      const res = await fetch(`${API_URL}/verified-scholars`, { credentials: "include" });
+      const scholars = await res.json();
+
+      // Guard if API returns something unexpected
+      const safe = Array.isArray(scholars) ? scholars : [];
+
+      const typeCounts = groupByType(safe);
+      const barangayPairs = groupByBarangay(safe);
+
+      setQuickStats(typeCounts);
+      renderTypeChart(typeCounts);
+      renderBarangayChart(barangayPairs);
+    } catch (e) {
+      console.error("Stats load failed:", e);
+      // Soft fallback: show zeros
+      setQuickStats({ "Regular": 0, "Special": 0, "Post-Graduate": 0 });
+      renderBarangayChart([]);
     }
   }
+
+  // ---- EVENTS (your existing code) ----
+  // Load only upcoming events (home page)
+async function loadEvents() {
+  try {
+    const res = await fetch(`${API_URL}/events`);
+    const all = await res.json();
+    const container = document.getElementById("upcomingEvents");
+    container.innerHTML = "";
+
+    if (!Array.isArray(all) || !all.length) {
+      container.innerHTML = "<p>No events found.</p>";
+      return;
+    }
+
+    const now = new Date();
+    const upcoming = all
+      .filter(ev => new Date(ev.dateTime) > now)
+      .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
+    if (!upcoming.length) {
+      container.innerHTML = "<p>No upcoming events.</p>";
+      return;
+    }
+
+    upcoming.forEach(ev => {
+      const dateObj = new Date(ev.dateTime);
+      const month = dateObj.toLocaleString("default", { month: "short" });
+      const day = dateObj.getDate();
+
+      const div = document.createElement("div");
+      div.classList.add("eventCard");
+      div.innerHTML = `
+        <div class="eventDate">
+          <h2>${month}</h2>
+          <h1>${day}</h1>
+        </div>
+        <div class="eventDetails">
+          <h3>${ev.title}</h3>
+          <button class="viewMoreBtn">View more...</button>
+        </div>
+      `;
+
+      div.querySelector(".viewMoreBtn").addEventListener("click", () => {
+        const modal = document.getElementById("eventModal");
+        const titleEl = document.getElementById("modalTitle");
+        const sentenceEl = document.getElementById("modalSentence");
+
+        titleEl.textContent = ev.title;
+
+        const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true
+        });
+
+        const desc = (ev.description || "").trim();
+        const sentence =
+          `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
+          `with a duration of <strong>${ev.duration}</strong>.\n\n` +
+          (desc ? `<strong>Description:</strong>\n${desc}` : "");
+
+        sentenceEl.innerHTML = sentence;
+
+        modal.style.display = "flex";
+        modal.setAttribute("aria-hidden", "false");
+      });
+
+      container.appendChild(div);
+    });
+  } catch (err) {
+    console.error("Error loading events:", err);
+  }
+}
+
 
   function closeModal() {
     const modal = document.getElementById("eventModal");
@@ -387,7 +694,14 @@
     if (e.key === "Escape") closeModal();
   });
 
-  window.onload = loadEvents;
+  // 🔔 Call both on load
+  window.onload = () => {
+    loadEvents();
+    loadScholarStats();
+  };
 </script>
+
+  
 </body>
+
 </html>

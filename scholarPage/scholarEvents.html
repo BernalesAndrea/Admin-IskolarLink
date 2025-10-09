@@ -143,13 +143,37 @@
   </main>
 
   <!-- Event Modal -->
-  <div id="eventModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2 id="modalTitle"></h2>
-      <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
+<div id="eventModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2 id="modalTitle"></h2>
+
+    <!-- attendance status pill -->
+    <p id="myAttendancePill" style="
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:bold;
+        background:#eee;
+        color:#555;
+        margin:6px 0 10px 0;">
+      Status: Unknown
+    </p>
+
+    <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
+
+    <!-- Attendance buttons -->
+    <div style="margin-top: 15px; display:flex; gap:10px;">
+      <button id="attendBtn"
+        style="background:green;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Will
+        Attend</button>
+      <button id="notAttendBtn"
+        style="background:red;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Not
+        Attend</button>
     </div>
   </div>
+</div>
 
   <!-- FOOTER -->
   <footer class="site-footer">
@@ -159,92 +183,163 @@
   </footer>
 
   <!-- FullCalendar JS -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async function () {
+    // 1) Get current user (needed to find my attendance in each event)
+    let me = null;
+    try {
+      const meRes = await fetch('/api/users/me', { credentials: 'include' });
+      if (meRes.ok) me = await meRes.json();
+    } catch (e) {
+      console.warn('Could not load current user:', e);
+    }
 
-  <script>
-    document.addEventListener('DOMContentLoaded', async function () {
-      const calendarEl = document.getElementById('calendar');
+    const calendarEl = document.getElementById('calendar');
+    let currentEventId = null;
+    let currentMyStatus = null;
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        height: 600,
+    // utilities
+    function computeMyStatusForEvent(ev, meId) {
+      if (!meId) return null;
+      const list = Array.isArray(ev.attendees) ? ev.attendees : [];
+      const mine = list.find(a =>
+        String(a.scholar) === String(meId) ||
+        (a.scholar && String(a.scholar._id) === String(meId))
+      );
+      return mine ? mine.status : null; // "attend" | "not_attend" | null
+    }
 
-        eventTimeFormat: {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-          meridiem: 'long'
-        },
-        slotLabelFormat: {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-          meridiem: 'long'
-        },
+    function setStatusPill(status) {
+      const pill = document.getElementById('myAttendancePill');
+      let text = 'Unknown', bg = '#eee', fg = '#555';
+      if (status === 'attend')   { text = 'Will attend'; bg = '#e6ffe6'; fg = '#0a7a0a'; }
+      if (status === 'not_attend'){ text = 'Not attending'; bg = '#ffe6e6'; fg = '#a00'; }
+      pill.textContent = 'Status: ' + text;
+      pill.style.background = bg;
+      pill.style.color = fg;
+    }
 
-        events: async function (fetchInfo, successCallback, failureCallback) {
-          try {
-            const res = await fetch('/api/events');
-            const events = await res.json();
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 600,
 
-            const formattedEvents = events.map(ev => ({
+      eventTimeFormat: { hour: 'numeric', minute: '2-digit', hour12: true, meridiem: 'long' },
+      slotLabelFormat: { hour: 'numeric', minute: '2-digit', hour12: true, meridiem: 'long' },
+
+      // 2) Load events and attach "myStatus" on each
+      events: async function (fetchInfo, successCallback, failureCallback) {
+        try {
+          const res = await fetch('/api/events', { credentials: 'include' });
+          const events = await res.json();
+
+          const meId = me?._id || me?.id; // depending on your /api/users/me payload
+          const formattedEvents = events.map(ev => {
+            const myStatus = computeMyStatusForEvent(ev, meId);
+            // optional: color by status
+            let backgroundColor = undefined;
+            if (myStatus === 'attend') backgroundColor = '#e8f9e8';
+            if (myStatus === 'not_attend') backgroundColor = '#fdeaea';
+
+            return {
               id: ev._id,
               title: ev.title,
               start: ev.dateTime,
+              backgroundColor,
+              borderColor: backgroundColor,
               extendedProps: {
                 location: ev.location,
                 duration: ev.duration,
-                description: ev.description
+                description: ev.description,
+                myStatus,           // <--- carry my status
               }
-            }));
-
-            successCallback(formattedEvents);
-          } catch (err) {
-            console.error('Error fetching events:', err);
-            failureCallback(err);
-          }
-        },
-
-        eventClick: function (info) {
-          const dateNice = new Date(info.event.start).toLocaleString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
+            };
           });
 
-          const loc = info.event.extendedProps.location || 'N/A';
-          const dur = info.event.extendedProps.duration || 'N/A';
-          const desc = (info.event.extendedProps.description || '').trim();
-
-          const sentence =
-            `<strong>${info.event.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${loc}</strong> ` +
-            `with a duration of <strong>${dur}</strong>.\n\n` +
-            (desc ? `<strong>Description:</strong>\n${desc}` : '');
-
-          document.getElementById('modalTitle').textContent = info.event.title;
-          document.getElementById('modalSentence').innerHTML = sentence;
-
-          document.getElementById('eventModal').style.display = 'block';
+          successCallback(formattedEvents);
+        } catch (err) {
+          console.error('Error fetching events:', err);
+          failureCallback(err);
         }
-      });
+      },
 
-      calendar.render();
+      // 3) Open modal and show my status + buttons
+      eventClick: function (info) {
+        currentEventId = info.event.id;
+        currentMyStatus = info.event.extendedProps.myStatus || null;
 
-      // Modal close logic
-      document.querySelector('.close').onclick = () => {
-        document.getElementById('eventModal').style.display = 'none';
-      };
+        const dateNice = new Date(info.event.start).toLocaleString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
 
-      window.onclick = (e) => {
-        const modal = document.getElementById('eventModal');
-        if (e.target === modal) modal.style.display = 'none';
-      };
+        const loc = info.event.extendedProps.location || 'N/A';
+        const dur = info.event.extendedProps.duration || 'N/A';
+        const desc = (info.event.extendedProps.description || '').trim();
+
+        const sentence =
+          `<strong>${info.event.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${loc}</strong> ` +
+          `with a duration of <strong>${dur}</strong>.\n\n` +
+          (desc ? `<strong>Description:</strong>\n${desc}` : '');
+
+        document.getElementById('modalTitle').textContent = info.event.title;
+        document.getElementById('modalSentence').innerHTML = sentence;
+
+        setStatusPill(currentMyStatus);
+        document.getElementById('eventModal').style.display = 'block';
+      }
     });
-  </script>
+
+    calendar.render();
+
+    // 4) Hook up attendance buttons
+    document.getElementById('attendBtn').onclick = async () => {
+      if (!currentEventId) return;
+      await fetch(`/events/${currentEventId}/attendance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'attend' })
+      });
+      currentMyStatus = 'attend';
+      setStatusPill(currentMyStatus);
+      // visually update this event color in the calendar:
+      const ev = calendar.getEventById(currentEventId);
+      if (ev) { ev.setProp('backgroundColor', '#e8f9e8'); ev.setProp('borderColor', '#e8f9e8'); ev.setExtendedProp('myStatus', 'attend'); }
+      alert('Attendance saved!');
+    };
+
+    document.getElementById('notAttendBtn').onclick = async () => {
+      if (!currentEventId) return;
+      await fetch(`/events/${currentEventId}/attendance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'not_attend' })
+      });
+      currentMyStatus = 'not_attend';
+      setStatusPill(currentMyStatus);
+      const ev = calendar.getEventById(currentEventId);
+      if (ev) { ev.setProp('backgroundColor', '#fdeaea'); ev.setProp('borderColor', '#fdeaea'); ev.setExtendedProp('myStatus', 'not_attend'); }
+      alert('Attendance saved!');
+    };
+
+    // 5) Modal close logic
+    document.querySelector('.close').onclick = () => {
+      document.getElementById('eventModal').style.display = 'none';
+    };
+    window.onclick = (e) => {
+      const modal = document.getElementById('eventModal');
+      if (e.target === modal) modal.style.display = 'none';
+    };
+  });
+</script>
+
 </body>
 
 </html>

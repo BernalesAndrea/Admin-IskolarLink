@@ -257,7 +257,7 @@
       <h2 id="modalTitle"></h2>
       <p id="modalSentence" style="white-space: pre-line; line-height: 1.6; text-align: left;"></p>
 
-      <!-- Attendance buttons -->
+      <!-- Attendance buttons
       <div style="margin-top: 15px; display:flex; gap:10px;">
         <button id="attendBtn"
           style="background:green;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Will
@@ -265,68 +265,82 @@
         <button id="notAttendBtn"
           style="background:red;color:white;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;">Not
           Attend</button>
-      </div>
+      </div> -->
     </div>
   </div>
 
   <script>
     let currentEventId = null;
 
-    /* ----------------- Load Events ----------------- */
-    async function loadEvents() {
-      const res = await fetch("/api/events");
-      const events = await res.json();
-      const container = document.getElementById("eventList");
-      container.innerHTML = "";
+  /* ----------------- Load Events (UPCOMING ONLY) ----------------- */
+  async function loadEvents() {
+    const res = await fetch("/api/events?status=upcoming"); // will work if you add the backend change below
+    let events = await res.json();
 
-      events.forEach(ev => {
-        const dateObj = new Date(ev.dateTime);
-        const month = dateObj.toLocaleString('default', { month: 'short' });
-        const day = dateObj.getDate();
+    // Fallback: if backend hasn't implemented ?status=upcoming yet,
+    // do client-side filtering so this still works.
+    const now = new Date();
+    events = (Array.isArray(events) ? events : [])
+      .filter(ev => new Date(ev.dateTime) >= now)
+      .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
 
-        const div = document.createElement("div");
-        div.classList.add("eventCard");
-        div.innerHTML = `
-          <div class="eventDate">
-            <h2>${month}</h2>
-            <h1>${day}</h1>
-          </div>
-          <div class="eventDetails">
-            <h3>${ev.title}</h3>
-            <button class="viewMoreBtn">View more...</button>
-          </div>
-        `;
+    const container = document.getElementById("eventList");
+    container.innerHTML = "";
 
-        div.querySelector(".viewMoreBtn").addEventListener("click", () => {
-          currentEventId = ev._id;
+    if (!events.length) {
+      container.innerHTML = `<p style="margin:0;color:#555;">No upcoming events.</p>`;
+      return;
+    }
 
-          document.getElementById("modalTitle").textContent = ev.title;
+    events.forEach(ev => {
+      const dateObj = new Date(ev.dateTime);
+      const month = dateObj.toLocaleString('default', { month: 'short' });
+      const day = dateObj.getDate();
 
-          const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          });
+      const div = document.createElement("div");
+      div.classList.add("eventCard");
+      div.innerHTML = `
+        <div class="eventDate">
+          <h2>${month}</h2>
+          <h1>${day}</h1>
+        </div>
+        <div class="eventDetails">
+          <h3>${ev.title}</h3>
+          <button class="viewMoreBtn">View more...</button>
+        </div>
+      `;
 
-          const desc = (ev.description || '').trim();
-          const extra = desc ? `${desc}` : '';
+      div.querySelector(".viewMoreBtn").addEventListener("click", () => {
+        currentEventId = ev._id;
 
-          const sentence =
-            `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
-            `with a duration of <strong>${ev.duration}</strong>.\n\n` +
-            (extra ? `<strong>Description:</strong>\n${extra}` : '');
+        document.getElementById("modalTitle").textContent = ev.title;
 
-          document.getElementById("modalSentence").innerHTML = sentence;
-
-          document.getElementById("eventModal").style.display = "block";
+        const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
         });
 
-        container.appendChild(div);
+        const desc = (ev.description || '').trim();
+        const extra = desc ? `${desc}` : '';
+
+        const sentence =
+          `<strong>${ev.title}</strong> will be held on <strong>${dateNice}</strong> at <strong>${ev.location}</strong> ` +
+          `with a duration of <strong>${ev.duration}</strong>.\n\n` +
+          (extra ? `<strong>Description:</strong>\n${extra}` : '');
+
+        document.getElementById("modalSentence").innerHTML = sentence;
+
+        document.getElementById("eventModal").style.display = "block";
       });
-    }
+
+      container.appendChild(div);
+    });
+  }
+
 
     /* ----------------- Load Tasks ----------------- */
     async function loadTasks() {
@@ -389,25 +403,25 @@
     }
 
     /* ----------------- Attendance ----------------- */
-    document.getElementById("attendBtn").onclick = async () => {
-      await fetch(`/events/${currentEventId}/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "attend" }),
-        credentials: "include"
-      });
-      alert("Attendance saved!");
-    };
+    // document.getElementById("attendBtn").onclick = async () => {
+    //   await fetch(`/events/${currentEventId}/attendance`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ status: "attend" }),
+    //     credentials: "include"
+    //   });
+    //   alert("Attendance saved!");
+    // };
 
-    document.getElementById("notAttendBtn").onclick = async () => {
-      await fetch(`/events/${currentEventId}/attendance`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "not_attend" }),
-        credentials: "include"
-      });
-      alert("Attendance saved!");
-    };
+    // document.getElementById("notAttendBtn").onclick = async () => {
+    //   await fetch(`/events/${currentEventId}/attendance`, {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ status: "not_attend" }),
+    //     credentials: "include"
+    //   });
+    //   alert("Attendance saved!");
+    // };
 
     // Close modal handlers
     document.querySelector(".close").onclick = () => {
