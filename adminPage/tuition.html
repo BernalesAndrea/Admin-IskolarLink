@@ -136,8 +136,8 @@
             <th>Scholar</th>
             <th>Batch</th>
             <th>Allotted Budget (₱)</th>
-            <th>Total Paid (₱)</th>
-            <th>Remaining Balance (₱)</th>
+            <th>Balance (₱)</th>
+            <th>Remaining Budget (₱)</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -177,6 +177,45 @@
     </div>
   </div>
 
+  <!-- Reimburse Modal -->
+<div id="reimbModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="reimbTitle">
+    <h3 id="reimbTitle">Add Reimbursement</h3>
+    <input type="number" id="reimbInput" placeholder="Enter amount to reimburse" />
+    <div class="modal-buttons">
+      <button id="saveReimbBtn" class="btn">Save</button>
+      <button id="cancelReimbBtn" class="cancel-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tuition History Modal -->
+<div id="tuitionHistoryModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="tuitionHistoryTitle" style="width:520px; text-align:left">
+    <h3 id="tuitionHistoryTitle" style="margin-bottom:12px;color:#fff;background:#800000;padding:10px;border-radius:6px">
+      Tuition History
+    </h3>
+    <div style="max-height:360px; overflow:auto; border:1px solid #eee; border-radius:8px">
+      <table style="width:100%; border-collapse:collapse">
+        <thead style="position:sticky; top:0; background:#800000; color:#fff; z-index:1">
+          <tr>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:left">Date</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:left">Action</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:right">Amount (₱)</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:right">Remaining (₱)</th>
+          </tr>
+        </thead>
+        <tbody id="tuitionHistoryBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-buttons" style="margin-top:12px; justify-content:flex-end">
+      <button id="closeTuitionHistoryBtn" class="cancel-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+
+
   <script>
     // ===== Elements
     const expenseTable = document.getElementById("expenseTable");
@@ -195,6 +234,14 @@
 
     const cancelBudgetBtn = document.getElementById("cancelBudgetBtn");
     const cancelPayBtn    = document.getElementById("cancelPayBtn");
+
+    const reimbModal   = document.getElementById("reimbModal");
+    const reimbInput   = document.getElementById("reimbInput");
+    const saveReimbBtn = document.getElementById("saveReimbBtn");
+    const cancelReimbBtn = document.getElementById("cancelReimbBtn");
+
+    // helper for remaining budget
+    const rem = (b = 0, p = 0, r = 0) => b - (p + r);
 
     // ===== State
     let currentScholarId = null;
@@ -238,33 +285,49 @@
     }
 
     function renderTable(rows) {
-      expenseTable.innerHTML = "";
-      if (!rows.length) {
-        expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
-        return;
-      }
+  expenseTable.innerHTML = "";
+  if (!rows.length) {
+    expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+    return;
+  }
 
-      rows.forEach(s => {
-        const remaining = (s.allottedBudget || 0) - (s.totalPaid || 0);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${s.fullname}</td>
-          <td>${s.batchYear || '-'}</td>
+  rows.forEach(s => {
+    // Prefer the API's computed remaining; fallback if absent
+     const remaining = Number.isFinite(s.remaining)
+   ? s.remaining
+   : ((s.allottedBudget || 0) - ((s.totalPaid || 0) + (s.totalReimbursed || 0)));
 
-          <td>
-            <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button>
-          </td>
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+  <button class="history-btn" data-id="${s._id}" title="View tuition history"
+    style="background:none;border:0;color:#0645ad;text-decoration:underline;cursor:pointer;padding:0">
+    ${s.fullname}
+  </button>
+</td>
 
-          <td>
-            <button class="btn pay-btn" data-id="${s._id}" data-total="${s.totalPaid || 0}" data-budget="${s.allottedBudget || 0}">Pay</button>
-          </td>
+      <td>${s.batchYear || '-'}</td>
 
-          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
-          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-        `;
-        expenseTable.appendChild(tr);
-      });
-    }
+      <td>
+        <button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">
+          Set Budget
+        </button>
+      </td>
+
+      <td>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn pay-btn" data-id="${s._id}">Pay</button>
+          <button class="btn reimburse-btn" data-id="${s._id}">Reimburse</button> <!-- 👈 NEW -->
+        </div>
+      </td>
+
+      <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
+      <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+    `;
+    expenseTable.appendChild(tr);
+  });
+}
+
 
     function applyFilters() {
       const q  = (searchInput.value || "").toLowerCase();
@@ -292,6 +355,13 @@
         currentScholarId = btn.dataset.id;
         payInput.value = "";
         openModal(payModal);
+        return;
+      }
+
+      if (btn.classList.contains("reimburse-btn")) {
+        currentScholarId = btn.dataset.id;
+        reimbInput.value = "";
+        openModal(reimbModal);
         return;
       }
 
@@ -340,11 +410,14 @@
         allRows = allRows.map(row =>
           row._id === currentScholarId
             ? {
-                ...row,
-                allottedBudget: tracker?.allottedBudget ?? amount,
-                totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
-                remaining: (tracker?.allottedBudget ?? amount) - (tracker?.totalPaid ?? row.totalPaid ?? 0)
-              }
+              ...row,
+              allottedBudget: tracker?.allottedBudget ?? amount,
+              totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
+              remaining:
+                (tracker?.allottedBudget ?? amount) -
+                ((tracker?.totalPaid ?? row.totalPaid ?? 0) +
+                  (tracker?.totalReimbursed ?? row.totalReimbursed ?? 0))
+            }
             : row
         );
         renderTable(allRows);
@@ -378,11 +451,16 @@
         allRows = allRows.map(row =>
           row._id === currentScholarId
             ? {
-                ...row,
-                allottedBudget: tracker?.allottedBudget ?? row.allottedBudget ?? 0,
-                totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
-                remaining: tracker?.remaining ?? ((tracker?.allottedBudget ?? row.allottedBudget ?? 0) - (tracker?.totalPaid ?? row.totalPaid ?? 0))
-              }
+              ...row,
+              allottedBudget: tracker?.allottedBudget ?? row.allottedBudget ?? 0,
+              totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
+              totalReimbursed: tracker?.totalReimbursed ?? row.totalReimbursed ?? 0,
+              remaining:
+                tracker?.remaining ??
+                ((tracker?.allottedBudget ?? row.allottedBudget ?? 0) -
+                  ((tracker?.totalPaid ?? row.totalPaid ?? 0) +
+                    (tracker?.totalReimbursed ?? row.totalReimbursed ?? 0)))
+            }
             : row
         );
         renderTable(allRows);
@@ -394,12 +472,119 @@
       }
     });
 
+    saveReimbBtn.addEventListener("click", async () => {
+  const v = Number(reimbInput.value);
+  if (!currentScholarId || !Number.isFinite(v) || v <= 0) {
+    notify("Enter a positive number.", 'error', 3000);
+    return;
+  }
+  try {
+    const r = await fetch(`/api/tuition/${currentScholarId}/reimburse`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ addAmount: v })
+    });
+    if (!r.ok) {
+      const msg = await r.text().catch(()=> "");
+      notify(`Failed to record reimbursement (HTTP ${r.status})${msg?`: ${msg}`:''}`, 'error', 5000);
+      return;
+    }
+    const { tracker } = await r.json();
+
+    // Update local row
+    allRows = allRows.map(row =>
+      row._id === currentScholarId
+        ? {
+            ...row,
+            allottedBudget: tracker?.allottedBudget ?? row.allottedBudget ?? 0,
+            totalPaid: tracker?.totalPaid ?? row.totalPaid ?? 0,
+            totalReimbursed: tracker?.totalReimbursed ?? row.totalReimbursed ?? 0,
+            remaining: tracker?.remaining ?? row.remaining
+          }
+        : row
+    );
+
+    renderTable(allRows);
+    closeModal(reimbModal);
+    notify("Reimbursement saved.");
+  } catch (err) {
+    console.error(err);
+    notify(`Reimbursement failed: ${err.message}`, 'error', 5000);
+  }
+});
+
+// ===== History modal refs
+const tuitionHistoryModal = document.getElementById("tuitionHistoryModal");
+const tuitionHistoryBody  = document.getElementById("tuitionHistoryBody");
+const closeTuitionHistoryBtn = document.getElementById("closeTuitionHistoryBtn");
+
+function openTuitionHistory() {
+  tuitionHistoryModal.style.display = "flex";
+  tuitionHistoryModal.setAttribute('aria-hidden', 'false');
+}
+function closeTuitionHistory() {
+  tuitionHistoryModal.style.display = "none";
+  tuitionHistoryModal.setAttribute('aria-hidden', 'true');
+}
+closeTuitionHistoryBtn.addEventListener("click", closeTuitionHistory);
+window.addEventListener("click", (e) => {
+  if (e.target === tuitionHistoryModal) closeTuitionHistory();
+});
+
+function fmtMoney(n){ return (Number(n)||0).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+function fmtDate(d){ try { return new Date(d).toLocaleString(); } catch { return d; } }
+
+function renderTuitionHistory(rows){
+  if(!rows.length){
+    tuitionHistoryBody.innerHTML = `<tr><td colspan="4" style="padding:10px; text-align:center; color:#666">No history yet</td></tr>`;
+    return;
+  }
+  tuitionHistoryBody.innerHTML = rows.map(h => `
+    <tr>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${fmtDate(h.date)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${h.action}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">${fmtMoney(h.amount)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">${fmtMoney(h.remaining)}</td>
+    </tr>
+  `).join("");
+}
+
+// Delegate clicks: open history when clicking scholar name
+expenseTable.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if(!btn) return;
+
+  if(btn.classList.contains("history-btn")){
+    const userId = btn.dataset.id;
+    try{
+      const res = await fetch(`/api/tuition/${userId}/history`, { credentials:"include" });
+      if(!res.ok){
+        const t = await res.text().catch(()=> "");
+        notify(`Failed to load history (HTTP ${res.status})${t?`: ${t}`:''}`, 'error', 5000);
+        return;
+      }
+      const data = await res.json();
+      renderTuitionHistory(data);
+      openTuitionHistory();
+    }catch(err){
+      console.error("History fetch failed:", err);
+      notify("Network error while loading history.", 'error', 5000);
+    }
+    return;
+  }
+});
+
+
+
     // Close modals
     cancelBudgetBtn.addEventListener("click", ()=> closeModal(budgetModal));
     cancelPayBtn.addEventListener("click", ()=> closeModal(payModal));
+    cancelReimbBtn.addEventListener("click", ()=> closeModal(reimbModal));
     window.addEventListener("click", (e)=>{
       if(e.target === budgetModal) closeModal(budgetModal);
       if(e.target === payModal)    closeModal(payModal);
+      if(e.target === reimbModal) closeModal(reimbModal);
     });
 
     // Filters

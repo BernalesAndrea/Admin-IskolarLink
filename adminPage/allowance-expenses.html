@@ -117,6 +117,7 @@
       background:#ccc; color:#000; border:0; padding:6px 12px; border-radius:6px; cursor:pointer;
     }
     .cancel-btn:hover{ background:#bbb }
+    
 
     /* ===== FOOTER ===== */
     .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
@@ -172,6 +173,30 @@
         <tbody id="expenseTable"></tbody>
       </table>
     </div>
+
+    <!-- History Modal -->
+<div id="historyModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="historyTitle" style="width:520px; text-align:left">
+    <h3 id="historyTitle" style="margin-bottom:12px;color:#333">Allowance History</h3>
+    <div style="max-height:360px; overflow:auto; border:1px solid #eee; border-radius:8px">
+      <table style="width:100%; border-collapse:collapse">
+        <thead style="position:sticky; top:0; background: var(--maroon)">
+          <tr>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:left">Date</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:left">Action</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:right">Amount (₱)</th>
+            <th style="padding:10px; border-bottom:1px solid #ddd; text-align:right">Remaining (₱)</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-buttons" style="margin-top:12px; justify-content:flex-end">
+      <button id="closeHistoryBtn" class="cancel-btn">Close</button>
+    </div>
+  </div>
+</div>
+
   </main>
 
   <!-- FOOTER -->
@@ -268,26 +293,32 @@
     }
 
     function renderTable(data) {
-      expenseTable.innerHTML = "";
-      if (!data.length) {
-        expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
-        return;
-      }
+  expenseTable.innerHTML = "";
+  if (!data.length) {
+    expenseTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#666;">No scholars found</td></tr>`;
+    return;
+  }
 
-      data.forEach(s => {
-        const remaining = (s.allottedBudget || 0) - (s.totalGiven || 0);
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${s.fullname}</td>
-          <td>${s.batchYear || '-'}</td>
-          <td><button class="set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
-          <td><button class="give-btn" data-id="${s._id}" data-total="${s.totalGiven || 0}" data-budget="${s.allottedBudget || 0}">Give Amount</button></td>
-          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
-          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-        `;
-        expenseTable.appendChild(row);
-      });
-    }
+  data.forEach(s => {
+    const remaining = (s.allottedBudget || 0) - (s.totalGiven || 0);
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>
+        <button class="history-btn" data-id="${s._id}" title="View allowance history"
+          style="background:none;border:0;color:#0645ad;text-decoration:underline;cursor:pointer;padding:0">
+          ${s.fullname}
+        </button>
+      </td>
+      <td>${s.batchYear || '-'}</td>
+      <td><button class="set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
+      <td><button class="give-btn" data-id="${s._id}" data-total="${s.totalGiven || 0}" data-budget="${s.allottedBudget || 0}">Give Amount</button></td>
+      <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">${remaining.toFixed(2)}</td>
+      <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+    `;
+    expenseTable.appendChild(row);
+  });
+}
+
 
     // ===== Modals =====
     function openModal(modalEl) {
@@ -414,6 +445,74 @@
         notify("Network error while updating total given.", 'error', 5000);
       }
     });
+
+    // ===== History modal refs =====
+const historyModal = document.getElementById("historyModal");
+const historyTableBody = document.getElementById("historyTableBody");
+const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+
+function openHistoryModal() {
+  historyModal.style.display = "flex";
+  historyModal.setAttribute('aria-hidden', 'false');
+}
+function closeHistoryModal() {
+  historyModal.style.display = "none";
+  historyModal.setAttribute('aria-hidden', 'true');
+}
+closeHistoryBtn.addEventListener("click", closeHistoryModal);
+window.addEventListener("click", (e) => {
+  if (e.target === historyModal) closeHistoryModal();
+});
+
+function fmtMoney(n) {
+  return (Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtDate(d) {
+  try { return new Date(d).toLocaleString(); } catch { return d; }
+}
+function renderHistory(rows) {
+  if (!rows.length) {
+    historyTableBody.innerHTML = `<tr><td colspan="4" style="padding:10px; text-align:center; color:#666">No history yet</td></tr>`;
+    return;
+  }
+  historyTableBody.innerHTML = rows.map(h => `
+    <tr>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${fmtDate(h.date)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${h.action}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">${fmtMoney(h.amount)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">${fmtMoney(h.remaining)}</td>
+    </tr>
+  `).join("");
+}
+
+// Delegate clicks: open history when clicking scholar name
+expenseTable.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+
+  if (btn.classList.contains("history-btn")) {
+    const userId = btn.dataset.id;
+    try {
+      const res = await fetch(`/api/allowances/${userId}/history`, { credentials: "include" });
+      if (!res.ok) {
+        notify(`Failed to load history (HTTP ${res.status})`, 'error', 5000);
+        return;
+      }
+      const data = await res.json();
+      renderHistory(data);
+      openHistoryModal();
+    } catch (err) {
+      console.error("History fetch failed:", err);
+      notify("Network error while loading history.", 'error', 5000);
+    }
+    return;
+  }
+
+  // ... your existing handlers for set-budget-btn / give-btn / reset-btn remain below ...
+});
+
+
+    
 
     // ===== Init =====
     window.addEventListener("DOMContentLoaded", loadScholars);

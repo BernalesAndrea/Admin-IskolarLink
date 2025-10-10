@@ -177,6 +177,30 @@
     </div>
   </div>
 
+  <!-- History Modal -->
+<div id="historyModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="historyTitle" style="width:520px; text-align:left">
+    <h3 id="historyTitle" style="margin-bottom:12px; color:#fff; background:var(--maroon); padding:10px; border-radius:6px">Book Reimbursement History</h3>
+    <div style="max-height:360px; overflow:auto; border:1px solid #eee; border-radius:8px">
+      <table style="width:100%; border-collapse:collapse">
+        <thead style="position:sticky; top:0; background:var(--maroon); color:#fff">
+          <tr>
+            <th style="padding:10px; border-bottom:1px solid #a00000; text-align:left">Date</th>
+            <th style="padding:10px; border-bottom:1px solid #a00000; text-align:left">Action</th>
+            <th style="padding:10px; border-bottom:1px solid #a00000; text-align:right">Amount (₱)</th>
+            <th style="padding:10px; border-bottom:1px solid #a00000; text-align:right">Remaining (₱)</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-buttons" style="margin-top:12px; justify-content:flex-end">
+      <button id="closeHistoryBtn" class="cancel-btn">Close</button>
+    </div>
+  </div>
+</div>
+
+
   <script>
     const expenseTable = document.getElementById("expenseTable");
     const searchInput  = document.getElementById("searchInput");
@@ -266,13 +290,19 @@
         const remaining = (s.allottedBudget || 0) - (s.total || 0);
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${s.fullname}</td>
-          <td>${s.batchYear || '-'}</td>
-          <td><button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
-          <td><button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button></td>
-          <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
-          <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
-        `;
+  <td>
+    <button class="history-btn" data-id="${s._id}" title="View book reimbursement history"
+      style="background:none; border:0; color:#0645ad; text-decoration:underline; cursor:pointer; padding:0">
+      ${s.fullname}
+    </button>
+  </td>
+  <td>${s.batchYear || '-'}</td>
+  <td><button class="btn set-budget-btn" data-id="${s._id}" data-budget="${s.allottedBudget || 0}">Set Budget</button></td>
+  <td><button class="btn reimb-btn" data-id="${s._id}" data-total="${s.total || 0}" data-budget="${s.allottedBudget || 0}">Reimburse</button></td>
+  <td style="font-weight:bold; color:${remaining < 0 ? 'red' : 'green'};">₱ ${remaining.toFixed(2)}</td>
+  <td><button class="reset-btn" data-id="${s._id}">Reset</button></td>
+`;
+
         expenseTable.appendChild(tr);
       });
     }
@@ -411,6 +441,64 @@
     // Filters
     searchInput.addEventListener("input", applyFilters);
     batchFilter.addEventListener("change", applyFilters);
+
+    // ===== History modal refs =====
+const historyModal = document.getElementById("historyModal");
+const historyTableBody = document.getElementById("historyTableBody");
+const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+
+function openHistoryModal(){
+  historyModal.style.display = "flex";
+  historyModal.setAttribute("aria-hidden","false");
+}
+function closeHistoryModal(){
+  historyModal.style.display = "none";
+  historyModal.setAttribute("aria-hidden","true");
+}
+closeHistoryBtn.addEventListener("click", closeHistoryModal);
+window.addEventListener("click", (e)=>{ if(e.target === historyModal) closeHistoryModal(); });
+
+function fmtMoney(n){
+  return (Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function fmtDate(d){
+  try { return new Date(d).toLocaleString(); } catch { return d; }
+}
+function renderHistory(rows){
+  if(!rows.length){
+    historyTableBody.innerHTML = `<tr><td colspan="4" style="padding:10px; text-align:center; color:#666">No history yet</td></tr>`;
+    return;
+  }
+  historyTableBody.innerHTML = rows.map(h => `
+    <tr>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${fmtDate(h.date)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee">${h.action}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">₱ ${fmtMoney(h.amount)}</td>
+      <td style="padding:8px 10px; border-bottom:1px solid #eee; text-align:right">₱ ${fmtMoney(h.remaining)}</td>
+    </tr>
+  `).join("");
+}
+
+// Delegate click on scholar name -> fetch & show history
+expenseTable.addEventListener("click", async (e)=>{
+  const btn = e.target.closest("button.history-btn");
+  if(!btn) return;
+  const userId = btn.dataset.id;
+  try{
+    const r = await fetch(`/api/book/${userId}/history`, { credentials:"include" });
+    if(!r.ok){
+      notify(`Failed to load history (HTTP ${r.status})`, 'error', 5000);
+      return;
+    }
+    const data = await r.json();
+    renderHistory(data);
+    openHistoryModal();
+  }catch(err){
+    console.error("History fetch failed:", err);
+    notify("Network error while loading history.", 'error', 5000);
+  }
+});
+
 
     // Init
     window.addEventListener("DOMContentLoaded", loadScholars);

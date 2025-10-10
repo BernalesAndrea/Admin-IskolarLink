@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -43,7 +42,6 @@
     .status.success{ background:#e8f5e9; color:#1b5e20; border:1px solid #c8e6c9 }
     .status.error{ background:#ffebee; color:#b71c1c; border:1px solid #ffcdd2 }
 
-    /* Tabs */
     .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 16px }
     .tab{
       background:#fff; border:1px solid #ddd; color:#111; border-radius:999px;
@@ -79,7 +77,6 @@
     .footer-wrap img{ max-height:48px; width:auto }
   </style>
 </head>
-
 <body>
   <!-- HEADER -->
   <header class="site-header">
@@ -106,12 +103,11 @@
       <h1>Financial Report</h1>
       <div class="subtitle">Budget Overview — switch category below.</div>
 
-      <!-- Tabs -->
+      <!-- Tabs (3 only) -->
       <div class="tabs" role="tablist" aria-label="Expense categories">
-        <button class="tab" role="tab" id="tab-allowance" aria-selected="true" data-key="allowance">Allowance</button>
-        <button class="tab" role="tab" id="tab-tuition" aria-selected="false" data-key="tuition">Tuition</button>
-        <button class="tab" role="tab" id="tab-books" aria-selected="false" data-key="books">Book Reimbursement</button>
-        <button class="tab" role="tab" id="tab-tuitionReimb" aria-selected="false" data-key="tuitionReimb">Tuition Reimbursement</button>
+        <button class="tab" role="tab" id="tab-allowance" aria-selected="true"  data-key="allowance">Allowance</button>
+        <button class="tab" role="tab" id="tab-tuition"   aria-selected="false" data-key="tuition">Tuition</button>
+        <button class="tab" role="tab" id="tab-books"     aria-selected="false" data-key="books">Book Reimbursement</button>
       </div>
 
       <!-- KPIs -->
@@ -181,34 +177,32 @@
 
   <script>
     /* ========= CONFIG: endpoints + field names per category =========
-       Adjust here only if your route field names differ.
        The dashboard expects an array of objects (1 per scholar) like:
-       { fullname, batchYear, allottedBudget, totalGiven/totalReimbursed/... }
+       { fullname, batchYear, allottedBudget, totals... }
     */
     const CONFIG = {
       allowance: {
         title: "Spent vs Remaining (Allowance)",
         endpoint: "/api/allowances",
         budgetField: "allottedBudget",
-        givenFields: ["totalGiven"] // choose the first existing field
+        // "given" = total given
+        givenFields: ["totalGiven"]
       },
       tuition: {
         title: "Spent vs Remaining (Tuition)",
-        endpoint: "/api/tuition",             // <-- Confirm your list endpoint
-        budgetField: "allottedBudget",        // <-- Adjust if different
-        givenFields: ["totalPaid","totalGiven","totalTuition","paid","spent"] // try in order
+        endpoint: "/api/tuition",
+        budgetField: "allottedBudget",
+        // If reimbursement is truly gone, only totalPaid exists.
+        // If it still exists, we sum both.
+        sumFields: ["totalPaid", "totalReimbursed"],
+        // fallback (if sum isn't present for any reason)
+        givenFields: ["totalPaid","paid","spent"]
       },
       books: {
         title: "Spent vs Remaining (Book Reimbursement)",
         endpoint: "/api/book",
         budgetField: "allottedBudget",
         givenFields: ["totalReimbursed"]
-      },
-      tuitionReimb: {
-        title: "Spent vs Remaining (Tuition Reimbursement)",
-        endpoint: "/api/tuition-reimbursement", // <-- Confirm your list endpoint
-        budgetField: "allottedBudget",
-        givenFields: ["totalReimbursed","totalGiven"]
       }
     };
 
@@ -241,20 +235,30 @@
     }
 
     function pickNumber(obj, fields, fallback=0){
-      for (const f of fields){
+      for (const f of fields || []){
         const val = obj?.[f];
         if (Number.isFinite(val)) return val;
       }
       return fallback;
     }
 
+    function sumNumbers(obj, fields){
+      let s = 0;
+      for (const f of fields || []){
+        const v = Number(obj?.[f]);
+        if (Number.isFinite(v)) s += v;
+      }
+      return s;
+    }
+
     function normalizeRecords(data, cfg){
       const budgetKey = cfg.budgetField;
-      const givenKeys = cfg.givenFields;
+      const sumKeys   = cfg.sumFields;    // e.g., tuition: totalPaid + totalReimbursed
+      const givenKeys = cfg.givenFields;  // fallback
 
       return (data || []).map(x => {
         const budget = Number(x?.[budgetKey]) || 0;
-        const given  = pickNumber(x, givenKeys, 0);
+        const given  = sumKeys?.length ? sumNumbers(x, sumKeys) : pickNumber(x, givenKeys, 0);
         return {
           _id: String(x?._id || x?.scholar || ''),
           fullname: x?.fullname || '',

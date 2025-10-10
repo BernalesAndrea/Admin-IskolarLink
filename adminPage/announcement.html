@@ -95,6 +95,23 @@
     .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px }
     .footer-wrap{ max-width:1200px; margin:0 auto; padding:14px 16px; display:flex; justify-content:center; align-items:center }
     .footer-wrap img{ max-height:48px; width:auto }
+
+    /* Allow absolute positioning inside card */
+.announcement-card{ position:relative; }
+
+/* Delete (trash) button in upper-right */
+.announcement-delete{
+  position:absolute; top:10px; right:10px;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:50%;
+  background:transparent; border:none; cursor:pointer;
+  transition:transform .15s ease, background .2s ease, opacity .2s ease;
+  opacity:.8;
+}
+.announcement-delete:hover{ opacity:1; background:#f3f3f3; transform:scale(1.06); }
+.announcement-delete svg{ width:18px; height:18px; }
+.announcement-delete .icon{ fill:#b00020; }            /* maroonish red */
+
   </style>
 </head>
 
@@ -236,6 +253,39 @@
           content.className = 'content';
           content.textContent = a.content ?? '';
 
+      const delBtn = document.createElement('button');
+      delBtn.className = 'announcement-delete';
+      delBtn.title = 'Delete announcement';
+      delBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="icon" d="M9 3h6a1 1 0 0 1 1 1v1h4v2h-1v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7H3V5h4V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-3 4h10v11H7V9Zm3 2v7h2v-7H10Zm4 0v7h2v-7h-2Z"/>
+        </svg>
+      `;
+
+      delBtn.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        if(!confirm('Delete this announcement? This cannot be undone.')) return;
+
+        try{
+          const res = await fetch(`/announcements/${a._id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          });
+          if(!res.ok){
+            const j = await res.json().catch(()=>({}));
+            throw new Error(j?.message || 'Failed to delete');
+          }
+          card.remove();
+          if(!list.children.length){
+            list.innerHTML = '<div>No announcements posted yet.</div>';
+          }
+        }catch(err){
+          console.error('Delete failed:', err);
+          alert(`Delete failed: ${err.message}`);
+        }
+      });
+
+          card.appendChild(delBtn);
           card.appendChild(title);
           card.appendChild(meta);
           card.appendChild(content);

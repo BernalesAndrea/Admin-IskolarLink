@@ -20,12 +20,9 @@ const SubmittedDocument = require("./models/SubmittedDocument");
 const messagesRoutes = require("./routes/messages");
 const usersRoutes = require("./routes/users");
 const SubmittedTask = require("./models/SubmittedTask");
-const AllowanceTracker = require("./models/AllowanceTracker");
-const BookReimbursement = require("./models/BookReimbursement");
-const tuitionReimbursementRoutes = require("./routes/tuitionReimbursement");
+const allowancesRoutes = require("./routes/allowances");
+const bookRoutes = require("./routes/book");
 const tuitionTrackerRoutes = require("./routes/tuitionTracker");
-
-
 
 
 
@@ -79,8 +76,10 @@ function authMiddleware(req, res, next) {
 
 app.use("/api/messages", messagesRoutes);
 app.use("/api/users", usersRoutes);
-app.use("/api/tuition-reimbursement", authMiddleware, tuitionReimbursementRoutes);
 app.use("/api/tuition", authMiddleware, tuitionTrackerRoutes);
+app.use("/api/allowances", authMiddleware, allowancesRoutes);
+app.use("/api/book", authMiddleware, bookRoutes);
+
 
 
 // ✅ Force root ("/") to always load login.html
@@ -583,326 +582,6 @@ app.put("/api/scholars/:id/budget", async (req, res) => {
     res.status(500).json({ msg: "Failed to update budget" });
   }
 });
-
-/* ============= ALLOWANCE TRACKER ROUTES ============= */
-// Ensure every verified scholar has an AllowanceTracker doc
-async function ensureAllowanceDocsForVerified() {
-  const verified = await User.find({ role: "scholar", verified: true }).select("_id");
-  const ids = verified.map(s => s._id);  // keep as ObjectId
-
-  const existing = await AllowanceTracker.find({ scholar: { $in: ids } }).select("scholar");
-  const have = new Set(existing.map(e => String(e.scholar)));
-
-  const toInsert = ids
-    .filter(id => !have.has(String(id)))
-    .map(id => ({ scholar: id, allottedBudget: 0, totalGiven: 0 }));
-
-  if (toInsert.length) await AllowanceTracker.insertMany(toInsert);
-}
-
-
-//  * GET /api/allowances
-//  * Admin only: list verified scholars + their allowance tracker
-app.get("/api/allowances", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    await ensureAllowanceDocsForVerified();
-
-    const scholars = await User.find({ role: "scholar", verified: true })
-      .select("_id fullname batchYear")
-      .sort({ fullname: 1 })
-      .lean();
-
-    const ids = scholars.map(s => s._id);
-    const trackers = await AllowanceTracker.find({ scholar: { $in: ids } })
-      .select("scholar allottedBudget totalGiven updatedAt")
-      .lean();
-
-    const map = new Map(trackers.map(t => [String(t.scholar), t]));
-    const merged = scholars.map(s => {
-      const t = map.get(String(s._id)) || { allottedBudget: 0, totalGiven: 0 };
-      const remaining = (t.allottedBudget || 0) - (t.totalGiven || 0);
-      return {
-        _id: String(s._id), // keep using User _id on frontend
-        fullname: s.fullname,
-        batchYear: s.batchYear,
-        allottedBudget: t.allottedBudget || 0,
-        totalGiven: t.totalGiven || 0,
-        remaining,
-        updatedAt: t.updatedAt || null
-      };
-    });
-
-    res.json(merged);
-  } catch (err) {
-    console.error("GET /api/allowances error:", err);
-    res.status(500).json({ msg: "Error fetching allowances", error: err.message });
-  }
-});
-
-// PUT /api/allowances/:userId/budget
-app.put("/api/allowances/:userId/budget", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-    const { allottedBudget } = req.body;
-
-    if (typeof allottedBudget !== "number" || Number.isNaN(allottedBudget) || allottedBudget < 0) {
-      return res.status(400).json({ msg: "Invalid allottedBudget" });
-    }
-
-    const scholar = await User.findOne({ _id: userId, role: "scholar", verified: true }).select("_id");
-    if (!scholar) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await AllowanceTracker.findOneAndUpdate(
-      { scholar: scholar._id },
-      { $set: { allottedBudget } },
-      { upsert: true, new: true }
-    );
-
-    res.json({ msg: "Budget updated", tracker: updated });
-  } catch (err) {
-    console.error("PUT /api/allowances/:userId/budget error:", err);
-    res.status(500).json({ msg: "Failed to update budget", error: err.message });
-  }
-});
-
-// PUT /api/allowances/:userId/given
-// Increments totalGiven by addAmount for a verified scholar
-app.put("/api/allowances/:userId/given", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-    const { addAmount } = req.body;
-
-    const inc = Number(addAmount);
-    if (!Number.isFinite(inc) || inc <= 0) {
-      return res.status(400).json({ msg: "Invalid addAmount" });
-    }
-
-    // Ensure target is a verified scholar
-    const scholar = await User.findOne({ _id: userId, role: "scholar", verified: true }).select("_id");
-    if (!scholar) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    // Increment or create tracker
-    const updated = await AllowanceTracker.findOneAndUpdate(
-      { scholar: scholar._id },
-      { 
-        $inc: { totalGiven: inc },
-        $setOnInsert: { allottedBudget: 0 } // if it doesn't exist yet
-      },
-      { upsert: true, new: true }
-    );
-
-    res.json({ msg: "Amount given recorded", tracker: updated });
-  } catch (err) {
-    console.error("PUT /api/allowances/:userId/given error:", err);
-    res.status(500).json({ msg: "Failed to update total given", error: err.message });
-  }
-});
-
-// PUT /api/allowances/:userId/reset
-// Sets both allottedBudget and totalGiven to 0 for a verified scholar
-app.put("/api/allowances/:userId/reset", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-
-    // ensure verified scholar
-    const scholar = await User.findOne({ _id: userId, role: "scholar", verified: true }).select("_id");
-    if (!scholar) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await AllowanceTracker.findOneAndUpdate(
-      { scholar: scholar._id },
-      { $set: { allottedBudget: 0, totalGiven: 0 } },
-      { upsert: true, new: true }
-    );
-
-    res.json({ msg: "Allowance reset to zero", tracker: updated });
-  } catch (err) {
-    console.error("PUT /api/allowances/:userId/reset error:", err);
-    res.status(500).json({ msg: "Failed to reset allowance", error: err.message });
-  }
-});
-
-/* ============= BOOK REIMBURSEMENT TRACKER ROUTES ============= */
-// Ensure every verified scholar has an bookreimbursement doc
-async function ensureBookReimbDocsForVerified() {
-  const verified = await User.find({ role: "scholar", verified: true })
-    .select("_id fullname batchYear")
-    .lean();
-
-  if (!verified.length) return;
-
-  const existing = await BookReimbursement.find({
-    scholar: { $in: verified.map(v => v._id) }
-  }).select("scholar").lean();
-
-  const have = new Set(existing.map(e => String(e.scholar)));
-
-  const toInsert = verified
-    .filter(u => !have.has(String(u._id)))
-    .map(u => ({
-      scholar: u._id,
-      fullname: u.fullname,
-      batchYear: u.batchYear || "",
-      allottedBudget: 0,
-      totalReimbursed: 0
-    }));
-
-  if (toInsert.length) await BookReimbursement.insertMany(toInsert);
-}
-
-// Get (Fetching) Book Reimbursement
-app.get("/api/book", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    await ensureBookReimbDocsForVerified();
-
-    const scholars = await User.find({ role: "scholar", verified: true })
-      .select("_id fullname batchYear")
-      .sort({ fullname: 1 })
-      .lean();
-
-    const map = new Map(
-      (await BookReimbursement.find({ scholar: { $in: scholars.map(s => s._id) } })
-        .select("scholar allottedBudget totalReimbursed updatedAt")
-        .lean()).map(t => [String(t.scholar), t])
-    );
-
-    const merged = scholars.map(s => {
-      const t = map.get(String(s._id)) || { allottedBudget: 0, totalReimbursed: 0 };
-      const remaining = (t.allottedBudget || 0) - (t.totalReimbursed || 0);
-      return {
-        _id: String(s._id),
-        fullname: s.fullname,
-        batchYear: s.batchYear || "",
-        allottedBudget: t.allottedBudget || 0,
-        totalReimbursed: t.totalReimbursed || 0,
-        remaining,
-        updatedAt: t.updatedAt || null
-      };
-    });
-
-    res.json(merged);
-  } catch (err) {
-    console.error("GET /api/book error:", err);
-    res.status(500).json({ msg: "Error fetching book reimbursements", error: err.message });
-  }
-});
-
-
-// PUT /api/book/:userId/budget
-// Sets the allottedBudget for that scholar
-app.put("/api/book/:userId/budget", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-    const { allottedBudget } = req.body;
-
-    const amount = Number(allottedBudget);
-    if (!Number.isFinite(amount) || amount < 0) {
-      return res.status(400).json({ msg: "Invalid allottedBudget" });
-    }
-
-    const u = await User.findOne({ _id: userId, role: "scholar", verified: true })
-      .select("_id fullname batchYear");
-    if (!u) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await BookReimbursement.findOneAndUpdate(
-      { scholar: u._id },
-      {
-        $set: {
-          scholar: u._id,
-          fullname: u.fullname,
-          batchYear: u.batchYear || "",
-          allottedBudget: amount
-        }
-      },
-      { upsert: true, new: true }
-    );
-
-    const remaining = (updated.allottedBudget || 0) - (updated.totalReimbursed || 0);
-    res.json({ msg: "Budget updated", tracker: { ...updated.toObject(), remaining } });
-  } catch (err) {
-    console.error("PUT /api/book/:userId/budget error:", err);
-    res.status(500).json({ msg: "Failed to update budget", error: err.message });
-  }
-});
-
-
-// PUT /api/book/:userId/reimburse
-// Increments totalReimbursed by addAmount
-app.put("/api/book/:userId/reimburse", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-    const { addAmount } = req.body;
-
-    const inc = Number(addAmount);
-    if (!Number.isFinite(inc) || inc <= 0) {
-      return res.status(400).json({ msg: "Invalid addAmount" });
-    }
-
-    const u = await User.findOne({ _id: userId, role: "scholar", verified: true })
-      .select("_id fullname batchYear");
-    if (!u) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await BookReimbursement.findOneAndUpdate(
-      { scholar: u._id },
-      {
-        $setOnInsert: {
-          scholar: u._id,
-          fullname: u.fullname,
-          batchYear: u.batchYear || "",
-          allottedBudget: 0
-        },
-        $inc: { totalReimbursed: inc }
-      },
-      { upsert: true, new: true }
-    );
-
-    const remaining = (updated.allottedBudget || 0) - (updated.totalReimbursed || 0);
-    res.json({ msg: "Reimbursed", tracker: { ...updated.toObject(), remaining } });
-  } catch (err) {
-    console.error("PUT /api/book/:userId/reimburse error:", err);
-    res.status(500).json({ msg: "Failed to reimburse", error: err.message });
-  }
-});
-
-
-// PUT /api/book/:userId/reset
-// Resets both allottedBudget and totalReimbursed to zero
-app.put("/api/book/:userId/reset", authMiddleware, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
-    const { userId } = req.params;
-
-    const u = await User.findOne({ _id: userId, role: "scholar", verified: true })
-      .select("_id");
-    if (!u) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await BookReimbursement.findOneAndUpdate(
-      { scholar: u._id },
-      { $set: { allottedBudget: 0, totalReimbursed: 0 } },
-      { upsert: true, new: true }
-    );
-
-    res.json({ msg: "Book reimbursement reset to zero", tracker: updated });
-  } catch (err) {
-    console.error("PUT /api/book/:userId/reset error:", err);
-    res.status(500).json({ msg: "Failed to reset book reimbursement", error: err.message });
-  }
-});
-
 
 
 
@@ -1732,6 +1411,22 @@ app.get("/announcements", async (req, res) => {
     res.status(500).json({ message: "Error fetching announcements", error: err.message });
   }
 });
+
+// --- API: Delete Announcement (admin only)
+app.delete("/announcements/:id", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ message: "Access denied" });
+
+    const deleted = await Announcement.findByIdAndDelete(req.params.id);
+    if(!deleted) return res.status(404).json({ message: "Announcement not found" });
+
+    res.json({ message: "Announcement deleted" });
+  } catch (err) {
+    console.error("DELETE /announcements/:id error:", err);
+    res.status(500).json({ message: "Error deleting announcement", error: err.message });
+  }
+});
+
 
 // ================= TASK ROUTES =================
 

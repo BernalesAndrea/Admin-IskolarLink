@@ -475,7 +475,7 @@
             <select id="docType" name="docType" required>
               <option value="">-- Select Document Type --</option>
               <option value="Grades">Grades</option>
-              <option value="SOA">Statement of Account</option>
+              <option value="Statement of Account">Statement of Account</option>
               <option value="Certificate of Registration">Certificate of Registration</option>
               <option value="Book Reimbursement">Book Reimbursement</option>
               <option value="Others">Others</option>
@@ -586,11 +586,18 @@ toShow.forEach(doc => {
   const submittedDate = doc.createdAt
     ? new Date(doc.createdAt).toLocaleDateString()
     : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : "");
+
   const url = doc.fileUrl || resolveDocUrl(doc);
+
+  // 🔁 normalize for display
+  const dtype = (String(doc.docType || '').trim().toLowerCase() === 'soa')
+    ? 'Statement of Account'
+    : (doc.docType || '');
+
   const row = document.createElement("tr");
   row.innerHTML = `
     <td>${doc.scholar ? doc.scholar.fullname : (doc.fullname || '')}</td>
-    <td>${doc.docType || ''}</td>
+    <td>${dtype}</td>
     <td>${submittedDate}</td>
     <td>
       <div class="status-actions">
