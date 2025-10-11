@@ -2,337 +2,585 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scholar Grade</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      outline: none;
-      border: none;
-      text-decoration: none;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    :root{
+      --gold:#D4A017;
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+    }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; margin:0; }
+
+    /* Match scholarSubDoc layout: header at top, footer at bottom */
+    body{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;        /* header, main, footer stack */
+      background-image:url('/assets/iskolarbg.png');
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      font-family:Arial, Helvetica, sans-serif;
+      color:#333;
     }
 
-    body {
-      margin: 0;
-      background-image: url('/assets/iskolarbg.png');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    /* ========= HEADER (copied) ========= */
+    .site-header{
+      position:sticky; top:0; z-index:1000;
+      background:var(--maroon);
+      border-bottom:2px solid var(--maroon-dark);
+    }
+    .header-wrap{
+      max-width:1200px; margin:0 auto;
+      padding:10px 16px;
+      display:flex; justify-content:center; align-items:center;
+    }
+    .header-center{ display:flex; align-items:center; gap:18px; }
+    .header-logo{ height:64px; width:auto; flex:0 0 auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)); }
+    .brand-block{ display:flex; flex-direction:column; align-items:center; line-height:1.15; text-align:center; color:#fff; user-select:none; }
+    .brand-block>a{ color:#fff; text-decoration:none; font-weight:800; font-size:24px; letter-spacing:.5px; transition:color .25s ease; }
+    .brand-block>a:hover{ color:var(--gold); }
+    .brand-sub{ margin-top:4px; font-size:14px; font-weight:600; }
+    .brand-sub a{ color:#fff; text-decoration:none; transition:color .25s ease; }
+    .brand-sub a:hover{ color:var(--gold); }
+    @media (max-width:640px){
+      .header-logo{ height:48px; }
+      .brand-block>a{ font-size:20px; }
+      .brand-sub{ font-size:12px; }
     }
 
-    main {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
+    /* ========= MAIN ========= */
+    main{
+      flex:1;                       /* pushes footer down */
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:40px 20px;
+      width:100%;
+    }
+    .page{
+      display:flex; gap:16px; width:100%;
+      max-width:1200px; align-items:flex-start; justify-content:center; flex-wrap:wrap;
+    }
+    @media (max-width:1100px){ .page{ gap:12px; } }
+    @media (max-width:640px){
+      .page{ gap:10px; }
+      .main, .viewGrades{ width:100%; max-width:640px; }
     }
 
-    .main {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      max-width: 650px;
-      width: 100%;
-      text-align: center;
+    /* Left card */
+    .main{
+      background:rgba(255,255,255,0.95);
+      padding:30px;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+      max-width:650px; width:100%;
+      text-align:center;
+    }
+    h2{ margin-bottom:16px; color:#333; }
+
+    .main p{
+      font-size:16px; line-height:1.5; color:#333;
+      background:#f9f9f9; border-left:4px solid var(--maroon);
+      padding:8px 12px; margin:5px 0; border-radius:6px;
+    }
+    .instructions{ display:flex; flex-direction:column; gap:12px; margin:12px 0 18px; }
+    .instructions p{ margin:0; }
+
+    .termInputs{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+    .termInputs input, .termInputs select{
+      padding:10px 14px; border:2px solid var(--maroon);
+      border-radius:50px; width:260px; background:#fff; color:#000;
+    }
+    .termInputs select{ appearance:none; background-image:none; }
+
+    .attachmentBox{ display:flex; flex-direction:column; align-items:center; }
+    .attachmentBox input[type="file"]{ display:none; }
+    .custom-file-label{
+      display:inline-block; background:var(--maroon); color:#fff;
+      padding:10px 20px; border-radius:50px; cursor:pointer; transition:.3s ease;
+    }
+    .custom-file-label:hover{ background:#a52a2a; }
+    .previewWrap{ margin-top:12px; }
+    .previewWrap img{
+      width:220px; height:220px; object-fit:cover;
+      border-radius:12px; border:2px solid var(--maroon);
+    }
+    .previewWrap iframe{
+      width:220px; height:220px; border:2px solid var(--maroon); border-radius:12px;
     }
 
-    h2 {
-      margin-bottom: 16px;
-      color: #333;
+    .buttons{ display:flex; justify-content:center; gap:12px; margin-top:16px; }
+    .buttons button{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 16px; border-radius:10px; color:#fff; background:var(--maroon); cursor:pointer;
     }
+    #message{ margin-top:12px; font-weight:bold; text-align:center; }
+    .error{ color:red; } .success{ color:green; }
 
-    /* (Add these if not present yet) */
-    :root {
-      --maroon: #800000;
-      --maroon-dark: #5a0000;
-      --gold: #D4A017;
+    /* Right card */
+    .viewGrades{
+      background:rgba(255,255,255,0.95);
+      padding:20px; border-radius:12px; width:500px; min-height:500px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2); overflow:auto;
     }
+    .viewGrades h3{ margin-bottom:15px; text-align:center; color:black; }
 
-    /* Match the instruction look used in Scholar Sub Doc */
-    .main p {
-      font-size: 16px;
-      line-height: 1.5;
-      color: #333;
-      background: #f9f9f9;
-      border-left: 4px solid var(--maroon);
-      padding: 8px 12px;
-      margin: 5px 0;
-      border-radius: 6px;
+    /* Back bar */
+    .backbar{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .backbtn{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+      border-radius:10px; background:transparent; color:var(--maroon);
+      border:1.5px solid var(--maroon); cursor:pointer; font-weight:600;
     }
+    .backbtn:hover{ background:#fdf3f3; }
+    .backbtn svg{ width:16px; height:16px; }
 
-    /* Wrapper for the instruction boxes */
-    .instructions {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin: 12px 0 18px;
+    /* Folders */
+    .folder{ margin-bottom:10px; border:1px solid #ccc; border-radius:12px; overflow:hidden; }
+    .folder-header{
+      border:2px dotted var(--maroon); color:var(--maroon);
+      padding:10px; cursor:pointer; font-weight:bold; border-radius:12px;
     }
+    .folder-empty{ color:#555; font-size:13px; text-align:center; padding:6px 0; }
 
-    /* Remove default paragraph margins so gap controls spacing cleanly */
-    .instructions p {
-      margin: 0;
-    }
+    /* Breadcrumb */
+    #gradesBreadcrumb{ margin-bottom:10px; font-size:14px; color:#333; }
+    #gradesBreadcrumb a{ color:var(--maroon); text-decoration:none; cursor:pointer; }
+    #gradesBreadcrumb a:hover{ text-decoration:underline; }
 
-    .termInputs {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
+    /* Items */
+    .gradeItem{ padding:10px; border-bottom:1px solid #eee; }
+    .gradeItem:last-child{ border-bottom:none; }
 
-    .termInputs input,
-    .termInputs select {
-      padding: 10px 14px;
-      border: 2px solid #800000;
-      border-radius: 50px;
-      width: 260px;
-      background: #fff;
-      color: #000;
-    }
+    .status{ display:inline-block; margin-top:5px; padding:4px 8px; border-radius:6px; font-size:12px; font-weight:bold; }
+    .status.pending{ background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+    .status.accepted{ background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+    .status.rejected{ background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
 
-    /* optional: remove native select arrow look for consistency */
-    .termInputs select {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-image: none;
+    .deleteBtn{
+      float:right; margin-top:-4px; margin-right:4px; width:32px; height:32px;
+      border-radius:8px; background:transparent; color:#b00020;
+      display:inline-flex; align-items:center; justify-content:center; cursor:pointer; opacity:.8; transition:.15s ease-in-out;
     }
+    .deleteBtn:hover{ background:#fdecec; opacity:1; }
+    .deleteBtn[disabled]{ opacity:.35; cursor:not-allowed; }
+    .deleteBtn svg{ width:20px; height:20px; display:block; }
 
-    .attachmentBox {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    /* ===== TOASTS ===== */
+    #toast-root{
+      position:fixed; bottom:16px; right:16px;
+      display:flex; flex-direction:column; gap:10px; z-index:9999;
     }
+    .toast{
+      min-width:260px; max-width:340px; background:#fff; color:#222;
+      border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,.18);
+      border-left:6px solid #999; padding:10px 12px;
+      display:grid; grid-template-columns:22px 1fr auto; gap:10px; align-items:center;
+      animation:toast-in .2s ease-out;
+    }
+    .toast .icon{ font-size:16px; line-height:1; }
+    .toast .title{ font-weight:700; font-size:14px; }
+    .toast .msg{ font-size:13px; color:#444; margin-top:2px; }
+    .toast .close{ appearance:none; background:transparent; border:0; font-size:18px; line-height:1; color:#666; cursor:pointer; padding:2px 6px; border-radius:8px; }
+    .toast .close:hover{ background:#f1f1f1; }
+    .toast.success{ border-left-color:#2e7d32; } .toast.success .icon{ color:#2e7d32; }
+    .toast.error{ border-left-color:#b00020; } .toast.error .icon{ color:#b00020; }
+    .toast.info{ border-left-color:#1565c0; } .toast.info .icon{ color:#1565c0; }
+    .toast.warn{ border-left-color:#b38600; } .toast.warn .icon{ color:#b38600; }
+    @keyframes toast-in{ from{ transform:translateY(8px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+    @keyframes toast-out{ from{ transform:translateY(0); opacity:1; } to{ transform:translateY(8px); opacity:0; } }
 
-    .attachmentBox input[type="file"] {
-      display: none;
+    /* ========= FOOTER (copied) ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000;
+      outline-offset:-1px;
     }
-
-    .custom-file-label {
-      display: inline-block;
-      background: #800000;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: 0.3s ease;
+    .footer-wrap{
+      max-width:1200px; margin:0 auto; padding:14px 16px;
+      display:flex; justify-content:center; align-items:center;
     }
-
-    .custom-file-label:hover {
-      background: #a52a2a;
-    }
-
-    .previewWrap {
-      margin-top: 12px;
-    }
-
-    .previewWrap img {
-      width: 220px;
-      height: 220px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 2px solid #800000;
-    }
-
-    .previewWrap iframe {
-      width: 220px;
-      height: 220px;
-      border: 2px solid #800000;
-      border-radius: 12px;
-    }
-
-    .buttons {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .buttons button {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 10px;
-      color: #fff;
-      background: #800000;
-      cursor: pointer;
-    }
-
-    #message {
-      margin-top: 12px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .error {
-      color: red;
-    }
-
-    .success {
-      color: green;
-    }
+    .footer-wrap img{ max-height:48px; width:auto; display:block; }
   </style>
 </head>
 
 <body>
-  <main>
-    <div class="main">
-      <h2>Submit Grades</h2>
-
-      <!-- Term Inputs (kept as metadata) -->
-      <div class="termInputs">
-        <input type="text" id="schoolYear" placeholder="School Year (e.g., 2025-2026)" required>
-
-        <!-- Semester dropdown -->
-        <select id="semester" required>
-          <option value="" disabled selected>Select Semester</option>
-          <option value="1st Semester">1st Semester</option>
-          <option value="2nd Semester">2nd Semester</option>
-          <option value="Trimester">Trimester</option>
-          <option value="Summer">Summer</option>
-        </select>
-      </div>
-
-      <div class="instructions">
-        <p>When submitting grades, please upload a <strong>.pdf</strong> (preferred). If you must submit an image,
-        acceptable formats are <strong>.jpg</strong> and <strong>.png</strong>. Maximum file size:
-        <strong>10&nbsp;MB</strong>.
-      </p>
-      <p>File name format for PDFs: <strong>LastNameFirstName.pdf</strong>. For images, use
-        <strong>LastNameFirstName</strong> (e.g., <em>LastNameFirstName.jpg</em> or <em>LastNameFirstName.png</em>).
-      </p>
-
-      <!-- Attach grade image/PDF only -->
-      <div class="attachmentBox">
-        <input type="file" id="gradePicture" accept="image/*,application/pdf" required>
-        <label for="gradePicture" class="custom-file-label">
-          <i class="fa fa-upload"></i> Attach Scanned Grade (Image/PDF)
-        </label>
-
-        <div class="previewWrap">
-          <img id="previewImage" src="" alt="Preview" style="display:none;">
-          <iframe id="previewPdf" style="display:none;"></iframe>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener noreferrer">
+            CITY OF KORONADAL
+          </a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener noreferrer">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
         </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
       </div>
-
-      <!-- Upload button only -->
-      <div class="buttons">
-        <button id="uploadBtn"><i class="fa fa-upload"></i> Upload</button>
-      </div>
-
-      <div id="message"></div>
     </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="page">
+      <!-- Left: Submit Grades -->
+      <div class="main">
+        <h2>Submit Grades</h2>
+
+        <div class="termInputs">
+          <input type="text" id="schoolYear" placeholder="School Year (e.g., 2025-2026)" required>
+          <select id="semester" required>
+            <option value="" disabled selected>Select Semester</option>
+            <option value="1st Semester">1st Semester</option>
+            <option value="2nd Semester">2nd Semester</option>
+            <option value="Trimester">Trimester</option>
+            <option value="Summer">Summer</option>
+          </select>
+          <select id="academicTerm" required>
+            <option value="" disabled selected>Select Academic Term</option>
+            <option value="Preliminary Grades">Preliminary Grades</option>
+            <option value="Mid-Semester Grades">Mid-Semester Grades</option>
+            <option value="Final Grades">Final Grades</option>
+          </select>
+        </div>
+
+        <div class="instructions">
+          <p>When submitting grades, please upload a <strong>.pdf</strong> (preferred). If you must submit an image,
+            acceptable formats are <strong>.jpg</strong> and <strong>.png</strong>. Maximum file size:
+            <strong>10&nbsp;MB</strong>.
+          </p>
+          <p>File name format for PDFs: <strong>LastNameFirstName.pdf</strong>. For images, use
+            <strong>LastNameFirstName</strong> (e.g., <em>LastNameFirstName.jpg</em> or <em>LastNameFirstName.png</em>).
+          </p>
+        </div>
+
+        <div class="attachmentBox">
+          <input type="file" id="gradePicture" accept="image/*,application/pdf" required>
+          <label for="gradePicture" class="custom-file-label">
+            <i class="fa fa-upload"></i> Attach Scanned Grade (Image/PDF)
+          </label>
+
+          <div class="previewWrap">
+            <img id="previewImage" src="" alt="Preview" style="display:none;">
+            <iframe id="previewPdf" style="display:none;"></iframe>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="uploadBtn"><i class="fa fa-upload"></i> Upload</button>
+        </div>
+
+        <div id="message"></div>
+      </div>
+
+      <!-- Right: My Grades (folders) -->
+      <div class="viewGrades">
+        <h3>My Grades</h3>
+        <div id="gradesBreadcrumb"></div>
+        <div id="gradesFolders"></div>
+      </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-root" aria-live="polite" aria-atomic="true"></div>
   </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
 
   <script>
     const gradePicture = document.getElementById("gradePicture");
     const previewImage = document.getElementById("previewImage");
-    const previewPdf = document.getElementById("previewPdf");
-    const uploadBtn = document.getElementById("uploadBtn");
+    const previewPdf   = document.getElementById("previewPdf");
+    const uploadBtn    = document.getElementById("uploadBtn");
 
-    gradePicture.addEventListener("change", function () {
-      const file = this.files[0];
-      if (!file) return;
+    /* Toasts */
+    function makeToast(type="info", title="", message="", opts={}){
+      const root = document.getElementById("toast-root");
+      if(!root) return;
+      const autoCloseMs = typeof opts.autoCloseMs === "number" ? opts.autoCloseMs : 3000;
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.innerHTML = `
+        <div class="icon">${type==="success"?"✓":type==="error"?"⚠":type==="warn"?"!":"ℹ"}</div>
+        <div>
+          ${title ? `<div class="title">${title}</div>` : ``}
+          ${message ? `<div class="msg">${message}</div>` : ``}
+        </div>
+        <button class="close" aria-label="Close">&times;</button>
+      `;
+      root.appendChild(el);
+      const remove = () => { el.style.animation="toast-out .18s ease-in forwards"; setTimeout(()=>el.remove(),170); };
+      el.querySelector(".close").addEventListener("click", remove);
+      if(autoCloseMs>0) setTimeout(remove, autoCloseMs);
+    }
+    const toastSuccess = (m,t="Success") => makeToast("success",t,m);
+    const toastError   = (m,t="Error")   => makeToast("error",t,m,{autoCloseMs:4500});
+    const toastWarn    = (m,t="Warning") => makeToast("warn",t,m);
 
-      // 10 MB limit (adjust if needed)
-      const MAX = 10 * 1024 * 1024;
-      if (file.size > MAX) {
-        showMessage("File too large (max 10MB).", true);
-        resetPreview();
-        this.value = "";
-        return;
-      }
-
-      const isImage = file.type.startsWith("image/");
-      const isPdf = file.type === "application/pdf";
-      if (!isImage && !isPdf) {
-        showMessage("Please upload an image or PDF.", true);
-        resetPreview();
-        this.value = "";
-        return;
-      }
-
-      // Revoke old object URLs if any
-      if (previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
-      if (previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
-
-      const url = URL.createObjectURL(file);
-
-      if (isImage) {
-        previewPdf.style.display = "none";
-        previewImage.src = url;
-        previewImage.dataset.url = url;
-        previewImage.style.display = "block";
-      } else {
-        previewImage.style.display = "none";
-        previewPdf.src = url;
-        previewPdf.dataset.url = url;
-        previewPdf.style.display = "block";
-      }
-
-      showMessage("", false);
-    });
-
-    function resetPreview() {
-      previewImage.style.display = "none";
-      previewPdf.style.display = "none";
-      if (previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
-      if (previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
-      delete previewImage.dataset.url;
-      delete previewPdf.dataset.url;
+    function resetGradeFormFields(){
+      const schoolYearEl=document.getElementById("schoolYear");
+      const semesterEl  =document.getElementById("semester");
+      const termEl      =document.getElementById("academicTerm");
+      const fileEl      =document.getElementById("gradePicture");
+      if(schoolYearEl) schoolYearEl.value="";
+      if(semesterEl) semesterEl.selectedIndex=0;
+      if(termEl) termEl.selectedIndex=0;
+      if(fileEl) fileEl.value="";
+      resetPreview();
+      showMessage("",false);
     }
 
-    function showMessage(msg, isError) {
-      const messageDiv = document.getElementById("message");
-      messageDiv.textContent = msg;
-      messageDiv.className = isError ? "error" : "success";
+    gradePicture.addEventListener("change", function(){
+      const file=this.files[0]; if(!file) return;
+      const MAX=10*1024*1024;
+      if(file.size>MAX){ showMessage("File too large (max 10MB).",true); toastWarn("File too large (max 10MB)."); resetPreview(); this.value=""; return; }
+      const isImage=file.type.startsWith("image/"); const isPdf=file.type==="application/pdf";
+      if(!isImage && !isPdf){ showMessage("Please upload an image or PDF.",true); toastWarn("Please upload an image or PDF."); resetPreview(); this.value=""; return; }
+      if(previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
+      if(previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
+      const url=URL.createObjectURL(file);
+      if(isImage){ previewPdf.style.display="none"; previewImage.src=url; previewImage.dataset.url=url; previewImage.style.display="block"; }
+      else{ previewImage.style.display="none"; previewPdf.src=url; previewPdf.dataset.url=url; previewPdf.style.display="block"; }
+      showMessage("",false);
+    });
+
+    function resetPreview(){
+      previewImage.style.display="none";
+      previewPdf.style.display="none";
+      if(previewImage.dataset.url) URL.revokeObjectURL(previewImage.dataset.url);
+      if(previewPdf.dataset.url) URL.revokeObjectURL(previewPdf.dataset.url);
+      delete previewImage.dataset.url; delete previewPdf.dataset.url;
+    }
+
+    function showMessage(msg,isError){
+      const el=document.getElementById("message");
+      el.textContent=msg; el.className=isError?"error":"success";
     }
 
     uploadBtn.addEventListener("click", submitGrade);
 
-    async function submitGrade() {
+    async function submitGrade(){
       const schoolYear = document.getElementById("schoolYear").value.trim();
-      const semester = document.getElementById("semester").value.trim();
+      const semester   = document.getElementById("semester").value.trim();
+      const academicTerm = document.getElementById("academicTerm").value.trim();
       const file = gradePicture.files[0];
 
-      if (!schoolYear || !semester) { showMessage("Please enter both School Year and Semester.", true); return; }
-      if (!file) { showMessage("Please attach the grade image/PDF.", true); return; }
+      if(!schoolYear || !semester || !academicTerm){
+        showMessage("Please enter School Year, Semester, and Academic Term.", true);
+        toastWarn("Please complete all fields."); return;
+      }
+      if(!file){ showMessage("Please attach the grade image/PDF.", true); return; }
 
-      const formData = new FormData();
+      const formData=new FormData();
       formData.append("schoolYear", schoolYear);
-      formData.append("semester", semester); // values: "1st Semester", "2nd Semester", "Trimester", "Summer"
-      formData.append("subjects", JSON.stringify([])); // keep empty; backend supports this
-      formData.append("attachment", file); // matches backend field name
+      formData.append("semester", semester);
+      formData.append("academicTerm", academicTerm);
+      formData.append("subjects", JSON.stringify([]));
+      formData.append("attachment", file);
 
-      try {
-        const res = await fetch("/api/grades/me", { method: "POST", body: formData });
+      try{
+        const res = await fetch("/api/grades/me", { method:"POST", body:formData });
         const data = await res.json();
-
-        if (res.ok) {
+        if(res.ok){
           showMessage("✅ " + (data.msg || "Grade uploaded successfully."), false);
-          gradePicture.value = "";
-          resetPreview();
-        } else {
+          toastSuccess(data.msg || "Grade uploaded successfully.");
+          resetGradeFormFields();
+          fetchMyGrades();
+        }else{
           showMessage("❌ " + (data.msg || "Upload failed."), true);
+          toastError(data.msg || "Upload failed.");
         }
-      } catch (err) {
+      }catch(err){
         showMessage("❌ Upload failed: " + err.message, true);
+        toastError("Upload failed: " + err.message);
       }
     }
+
+    /* Helpers */
+    function fileUrl(bucket,id,opts={download:false}){ if(!bucket||!id) return null; return opts.download?`/files/${bucket}/${id}/download`:`/files/${bucket}/${id}`; }
+    function fmtDate(dt){ try{ return new Date(dt).toLocaleString(); }catch{ return ""; } }
+
+    /* State */
+    const gradeState={ all:[], years:{}, crumb:[] };
+
+    function buildTree(list){
+      const map={};
+      list.forEach(g=>{
+        const y=g.schoolYear||"Unknown Year";
+        const s=g.semester||"Unknown Semester";
+        if(!map[y]) map[y]={};
+        if(!map[y][s]) map[y][s]=[];
+        map[y][s].push(g);
+      });
+      return map;
+    }
+
+    /* Breadcrumb (kept for reference/links if you still want it) */
+    function setBreadcrumb(parts){
+      gradeState.crumb=parts;
+      const el=document.getElementById("gradesBreadcrumb");
+      if(!el) return;
+      if(parts.length===0){ el.innerHTML=`<strong>Folders:</strong> School Years`; return; }
+      const items=[];
+      items.push(`<a data-level="root">School Years</a>`);
+      if(parts[0]) items.push(`<span>›</span> <a data-level="year">${parts[0]}</a>`);
+      if(parts[1]) items.push(`<span>›</span> <span>${parts[1]}</span>`);
+      el.innerHTML=items.join(" ");
+      el.querySelectorAll("a[data-level]").forEach(a=>{
+        a.addEventListener("click", ()=>{
+          const lvl=a.getAttribute("data-level");
+          if(lvl==="root") renderYears();
+        });
+      });
+      const yearLink=el.querySelector('a[data-level="year"]');
+      if(yearLink){ yearLink.addEventListener("click", ()=>renderSemesters(parts[0])); }
+    }
+
+    /* Back bar helper */
+    function makeBackBar(targetLevel, year=null){
+      const bar=document.createElement("div"); bar.className="backbar";
+      const btn=document.createElement("button"); btn.type="button"; btn.className="backbtn";
+      btn.innerHTML=`
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true" focusable="false" width="16" height="16">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg> Back`;
+      btn.addEventListener("click", ()=>{
+        if(targetLevel==="years") renderYears();
+        else if(targetLevel==="semesters" && year) renderSemesters(year);
+      });
+      bar.appendChild(btn); return bar;
+    }
+
+    /* Rendering */
+    function renderYears(){
+      setBreadcrumb([]);
+      const host=document.getElementById("gradesFolders");
+      host.innerHTML="";
+      const years=Object.keys(gradeState.years).sort().reverse();
+      if(years.length===0){ host.innerHTML=`<div class="folder-empty">No grades yet.</div>`; return; }
+      years.forEach(year=>{
+        const div=document.createElement("div"); div.className="folder";
+        const header=document.createElement("div"); header.className="folder-header"; header.textContent=year;
+        header.addEventListener("click", ()=>renderSemesters(year));
+        div.appendChild(header); host.appendChild(div);
+      });
+    }
+
+    function renderSemesters(year){
+      setBreadcrumb([year]);
+      const host=document.getElementById("gradesFolders");
+      host.innerHTML="";
+      host.appendChild(makeBackBar("years"));
+      const semestersMap=gradeState.years[year]||{};
+      const semesters=Object.keys(semestersMap);
+      if(semesters.length===0){ host.innerHTML+=`<div class="folder-empty">No semesters for ${year}.</div>`; return; }
+      const orderKey=s=>{ const n=s.toLowerCase();
+        if(n.startsWith("1st")) return "0";
+        if(n.startsWith("2nd")) return "1";
+        if(n.includes("trimester")) return "2";
+        if(n.includes("summer")) return "3";
+        return "9-"+n;
+      };
+      semesters.sort((a,b)=>orderKey(a).localeCompare(orderKey(b)));
+      semesters.forEach(sem=>{
+        const div=document.createElement("div"); div.className="folder";
+        const header=document.createElement("div"); header.className="folder-header"; header.textContent=sem;
+        header.addEventListener("click", ()=>renderFiles(year, sem));
+        div.appendChild(header); host.appendChild(div);
+      });
+    }
+
+    function renderFiles(year, semester){
+      setBreadcrumb([year, semester]);
+      const host=document.getElementById("gradesFolders");
+      host.innerHTML="";
+      host.appendChild(makeBackBar("semesters", year));
+      const list=(gradeState.years[year] && gradeState.years[year][semester]) || [];
+      if(list.length===0){ host.innerHTML+=`<div class="folder-empty">No grades in ${semester}, ${year}.</div>`; return; }
+      list.forEach(g=>{
+        const status=(g.status||"Pending").toLowerCase();
+        const url=g.fileUrl || fileUrl(g.attachmentBucket, g.attachmentId);
+        const name=g.fullname || "Open File";
+        const div=document.createElement("div");
+        const canDelete=status==="pending" || status==="rejected";
+        div.className="gradeItem";
+        div.innerHTML=`
+          <div>
+            ${url ? `<a href="${url}" target="_blank" rel="noopener">${name}</a>` : `<em>${name}</em>`}
+            ${canDelete ? `
+              <button class="deleteBtn" title="Delete this submission" data-gradeid="${g._id}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                </svg>
+              </button>` : ``}
+            <br><small>Submitted: ${fmtDate(g.dateSubmitted || g.createdAt)}</small>
+            <br><small>Term: ${g.academicTerm || "—"}</small>
+            <br><span class="status ${status}">Status: ${g.status || "Pending"}</span>
+          </div>`;
+        host.appendChild(div);
+      });
+    }
+
+    /* Data fetch */
+    async function fetchMyGrades(){
+      try{
+        const res = await fetch("/api/grades/me", { credentials:"include" });
+        if(res.status===401){ window.location.href="/"; return; }
+        const list = await res.json();
+        if(!Array.isArray(list)) throw new Error("Unexpected response");
+        gradeState.all = list;
+        gradeState.years = buildTree(list);
+        renderYears();
+      }catch(err){
+        console.error("Error fetching grades:", err);
+        const host=document.getElementById("gradesFolders");
+        host.innerHTML = `<div class="folder-empty">Failed to load grades.</div>`;
+      }
+    }
+
+    /* Delete handler */
+    document.getElementById("gradesFolders").addEventListener("click", async (e)=>{
+      const btn = e.target.closest(".deleteBtn"); if(!btn) return;
+      const gradeId = btn.getAttribute("data-gradeid"); if(!gradeId) return;
+      const ok = confirm("Delete this submitted grade? This cannot be undone."); if(!ok) return;
+      btn.disabled = true;
+      try{
+        const res = await fetch(`/api/grades/${gradeId}`, { method:"DELETE", credentials:"include" });
+        const data = await res.json().catch(()=>({}));
+        if(!res.ok){ toastError(data.msg || "Delete failed."); btn.disabled=false; return; }
+        await fetchMyGrades();
+        toastSuccess("Deleted.");
+      }catch(err){
+        console.error("Delete grade error:", err);
+        toastError("Delete error. Please try again."); btn.disabled=false;
+      }
+    });
+
+    window.addEventListener("load", fetchMyGrades);
   </script>
 </body>
-
 </html>

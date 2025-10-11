@@ -559,6 +559,10 @@
   </div>
 
   <script>
+
+    // cache the latest pulls so we can compute "Last Updated" per scholar
+    const cache = { docs: [], grades: [] };
+
     /* ---------- URL helpers ---------- */
     function fileUrl(bucket, id, opts = { download: false }) {
       if (!bucket || !id) return null;
@@ -573,6 +577,7 @@
         const res = await fetch("/api/admin/documents", { credentials: "include" });
         if (!res.ok) throw new Error("Failed to fetch documents");
         const docs = await res.json();
+        cache.docs = Array.isArray(docs) ? docs : [];
 const tbody = document.getElementById("docs-table-body");
 tbody.innerHTML = "";
 
@@ -621,6 +626,7 @@ toShow.forEach(doc => {
         const res = await fetch("/api/admin/grades", { credentials: "include" });
         if (!res.ok) throw new Error("Failed to fetch grades");
         const grades = await res.json();
+        cache.grades = Array.isArray(grades) ? grades : [];
 const tbody = document.getElementById("grades-table-body");
 tbody.innerHTML = "";
 
@@ -669,22 +675,51 @@ toShow.forEach(grade => {
 
     /* ---------- Fetch & render: scholar folders ---------- */
     async function fetchScholarFolders() {
-      try {
-        const res = await fetch("/api/verified-scholars", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to fetch scholars");
-        const scholars = await res.json();
-        const tbody = document.getElementById("folders-tbody");
-        tbody.innerHTML = "";
-        scholars.forEach(s => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${s.fullname}</td>
-            <td><a href="scholar-folder.html?scholarId=${s._id}" class="view-folder">View Folder</a></td>
-            <td>${s.updatedAt ? new Date(s.updatedAt).toLocaleDateString() : "N/A"}</td>`;
-          tbody.appendChild(tr);
-        });
-      } catch (err) { console.error("Error fetching scholar folders:", err); }
-    }
+  try {
+    const res = await fetch("/api/verified-scholars", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch scholars");
+    const scholars = await res.json();
+
+    // Build a map: scholarId -> latest millis of any doc/grade
+    const latestByScholar = Object.create(null);
+    const bump = (sid, dt) => {
+      if (!sid || !dt) return;
+      const t = new Date(dt).getTime();
+      if (!Number.isFinite(t)) return;
+      if (!latestByScholar[sid] || t > latestByScholar[sid]) latestByScholar[sid] = t;
+    };
+
+    // From documents
+    (cache.docs || []).forEach(d => {
+      const sid = d.scholar?._id || d.scholar; // populated or raw id
+      bump(String(sid || ""), d.createdAt || d.uploadDate || d.date || d._id); // prefer createdAt
+    });
+
+    // From grades
+    (cache.grades || []).forEach(g => {
+      const sid = g.scholar?._id || g.scholar;
+      bump(String(sid || ""), g.dateSubmitted || g.createdAt);
+    });
+
+    const tbody = document.getElementById("folders-tbody");
+    tbody.innerHTML = "";
+    scholars.forEach(s => {
+      const sid = String(s._id);
+      const ts = latestByScholar[sid];
+      const lastUpdated = ts ? new Date(ts).toLocaleString() : "No uploads yet";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${s.fullname}</td>
+        <td><a href="scholar-folder.html?scholarId=${s._id}" class="view-folder">View Folder</a></td>
+        <td>${lastUpdated}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Error fetching scholar folders:", err);
+  }
+}
+
 
     /* ---------- Status updates ---------- */
     async function updateStatus(id, status) {

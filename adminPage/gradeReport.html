@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grade Submission Compliance Report</title>
+
+  <style>
+    :root{
+      --maroon:#800000; --maroon-dark:#5a0000; --gold:#D4A017;
+      --card:#ffffff; --ink:#1d1d1f; --muted:#6b7280; --bg: rgba(255,255,255,.92);
+      --ok:#1b5e20; --warn:#b38600; --err:#b00020;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; min-height:100vh; display:flex; flex-direction:column;
+      font-family:Arial, Helvetica, sans-serif;
+      background:url('/assets/iskolarbg.png') center/cover no-repeat fixed;
+      color:var(--ink);
+    }
+
+    /* HEADER (matches your style) */
+    .site-header{ position:sticky; top:0; z-index:1000; background:var(--maroon); border-bottom:2px solid var(--maroon-dark); }
+    .header-wrap{ max-width:1200px; margin:0 auto; padding:10px 16px; display:flex; justify-content:center; align-items:center; gap:18px;}
+    .header-logo{ height:54px; width:auto; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1)); }
+    .brand{ display:flex; flex-direction:column; align-items:center; line-height:1.1; }
+    .brand a{ color:#fff; text-decoration:none; font-weight:800; font-size:22px; letter-spacing:.3px; }
+    .brand small a{ font-size:13px; font-weight:600; }
+    .brand a:hover{ color:var(--gold); }
+
+    /* LAYOUT */
+    main{ flex:1; }
+    .container{ max-width:1200px; margin:24px auto; padding:0 16px; display:grid; gap:16px; }
+
+    /* FILTER BAR */
+    .filters{
+      background:var(--bg); border:1px solid #ddd; border-radius:14px; padding:12px;
+      display:grid; grid-template-columns: repeat(5, minmax(140px,1fr)) auto; gap:10px; align-items:end;
+      backdrop-filter: blur(3px);
+    }
+    .filters label{ font-size:12px; color:#333; display:block; margin-bottom:6px; font-weight:700; }
+    .filters input, .filters select{
+      width:100%; padding:10px 12px; border:1.5px solid var(--maroon);
+      border-radius:10px; background:#fff; color:#000;
+    }
+    .filters .btn{
+      white-space:nowrap; padding:10px 14px; border-radius:10px; cursor:pointer; border:none; color:#fff; background:var(--maroon);
+    }
+    .filters .btn.secondary{ background:#fff; color:var(--maroon); border:1.5px solid var(--maroon); }
+    .filters .btn:hover{ filter:brightness(.98); }
+
+    /* KPIs */
+    .kpis{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+    .kpi{
+      background:var(--bg); border:1px solid #e5e7eb; border-radius:14px; padding:16px;
+    }
+    .kpi-title{ font-size:12px; color:#444; font-weight:700; }
+    .kpi-value{ font-size:26px; font-weight:800; margin-top:4px; }
+    .kpi-foot{ font-size:12px; color:var(--muted); margin-top:4px; }
+
+    /* CARDS + TABLES */
+    .card{ background:var(--bg); border:1px solid #e5e7eb; border-radius:14px; }
+    .card h3{ margin:0; padding:14px 16px; border-bottom:1px solid #e5e7eb; }
+    .card .body{ padding:12px; }
+    table{ width:100%; border-collapse:collapse; }
+    thead th{ background:#fafafa; font-size:13px; text-align:left; padding:10px; border-bottom:1px solid #e5e7eb; }
+    tbody td{ padding:10px; border-bottom:1px solid #f0f0f0; font-size:14px; }
+    tbody tr:hover{ background:#fff; }
+
+    .status{ display:inline-block; padding:3px 8px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid }
+    .status.pending{ color:#856404; border-color:#ffe08a; background:#fff7da; }
+    .status.Accepted{ color:var(--ok); border-color:#cdeccd; background:#eaf7ea; }
+    .status.Rejected{ color:var(--err); border-color:#f7c7cc; background:#fdecee; }
+
+    /* FOOTER */
+    .site-footer{ background:#fff; border-top:1px solid #000; outline:1px solid #000; outline-offset:-1px; }
+    .footer-wrap{ max-width:1200px; margin:0 auto; padding:12px 16px; display:flex; justify-content:center; align-items:center; }
+    .footer-wrap img{ max-height:46px; }
+
+    /* UTIL */
+    .row{ display:grid; gap:16px; }
+    @media (max-width:900px){
+      .filters{ grid-template-columns: repeat(2, 1fr) auto; }
+      .kpis{ grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal">
+      <div class="brand">
+        <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+        <small><a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+          Iskolar ng Koronadal – Kabugwason Paglaum Program
+        </a></small>
+      </div>
+      <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <!-- FILTERS -->
+      <section class="filters">
+        <div>
+          <label for="fAY">Academic Year</label>
+          <input id="fAY" placeholder="e.g., 2025-2026" />
+        </div>
+        <div>
+          <label for="fSem">Semester</label>
+          <select id="fSem">
+            <option value="">All</option>
+            <option>1st Semester</option>
+            <option>2nd Semester</option>
+            <option>Trimester</option>
+            <option>Summer</option>
+          </select>
+        </div>
+        <div>
+          <label for="fTerm">Academic Term</label>
+          <select id="fTerm">
+            <option value="">All</option>
+            <option>Preliminary Grades</option>
+            <option>Mid-Semester Grades</option>
+            <option>Final Grades</option>
+          </select>
+        </div>
+        <div>
+          <label for="fBatch">Batch Year</label>
+          <select id="fBatch"><!-- populated --></select>
+        </div>
+        <div>
+          <label for="fStatus">Status</label>
+          <select id="fStatus">
+            <option value="">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+
+        <button id="btnApply" class="btn">Apply</button>
+        <button id="btnReset" class="btn secondary">Reset</button>
+      </section>
+
+      <!-- KPIs -->
+      <section class="kpis" id="kpiWrap">
+        <div class="kpi"><div class="kpi-title">Submission Rate</div><div class="kpi-value" id="kpiSubmission">—</div><div class="kpi-foot" id="kpiSubmissionFoot"></div></div>
+        <div class="kpi"><div class="kpi-title">Verification Rate</div><div class="kpi-value" id="kpiVerified">—</div><div class="kpi-foot" id="kpiVerifiedFoot"></div></div>
+        <div class="kpi"><div class="kpi-title">Pending</div><div class="kpi-value" id="kpiPending">—</div><div class="kpi-foot" id="kpiPendingFoot"></div></div>
+        <div class="kpi"><div class="kpi-title">Rejected</div><div class="kpi-value" id="kpiRejected">—</div><div class="kpi-foot" id="kpiRejectedFoot"></div></div>
+      </section>
+
+      <section class="row">
+        <!-- Compliance by Batch -->
+        <div class="card">
+          <h3>Compliance by Batch</h3>
+          <div class="body">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <button id="btnExportSummary" class="btn">Export Summary (CSV)</button>
+            </div>
+            <div class="table-wrap">
+              <table id="tblCompliance">
+                <thead>
+                  <tr>
+                    <th style="width:120px">Batch</th>
+                    <th>Total Scholars</th>
+                    <th>Submitted</th>
+                    <th>Accepted</th>
+                    <th>Pending</th>
+                    <th>Rejected</th>
+                    <th>Submission %</th>
+                    <th>Verification %</th>
+                  </tr>
+                </thead>
+                <tbody><!-- rows --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Missing scholars -->
+        <div class="card">
+          <h3>Missing Submissions (based on current filters)</h3>
+          <div class="body">
+            <div style="display:flex; gap:8px; margin-bottom:10px;">
+              <button id="btnExportMissing" class="btn">Export Missing (CSV)</button>
+            </div>
+            <div class="table-wrap">
+              <table id="tblMissing">
+                <thead>
+                  <tr>
+                    <th style="width:220px">Scholar</th>
+                    <th>Batch</th>
+                  </tr>
+                </thead>
+                <tbody><!-- rows --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actual submissions -->
+        <div class="card">
+          <h3>Submitted Records</h3>
+          <div class="body">
+            <div class="table-wrap">
+              <table id="tblSubmitted">
+                <thead>
+                  <tr>
+                    <th style="width:220px">Scholar</th>
+                    <th>Batch</th>
+                    <th>AY</th>
+                    <th>Semester</th>
+                    <th>Term</th>
+                    <th>Status</th>
+                    <th>File</th>
+                    <th>Submitted At</th>
+                  </tr>
+                </thead>
+                <tbody><!-- rows --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Data State ----------
+    const state = {
+      scholars: [],    // verified scholars
+      grades: [],      // all grades (admin)
+      filters: { ay:"", sem:"", term:"", batch:"", status:"" },
+    };
+
+    // ---------- Utilities ----------
+    const byStr = (a,b)=> String(a).localeCompare(String(b));
+    const fmtDT = s => s ? new Date(s).toLocaleString() : "";
+    const fileURL = (g) => (g.attachmentBucket && g.attachmentId)
+        ? `/files/${g.attachmentBucket}/${g.attachmentId}`
+        : (g.fileUrl || null);
+
+    function unique(arr){ return [...new Set(arr)]; }
+
+    function downloadCSV(filename, rows){
+      const esc = v => {
+        const s = (v ?? "").toString();
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+      };
+      const csv = rows.map(r => r.map(esc).join(",")).join("\n");
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    // ---------- Fetch ----------
+    async function fetchAll(){
+      // Scholars
+      const s = await fetch("/api/verified-scholars", {credentials:"include"});
+      if(s.status===401 || s.status===403){ location.href="/"; return; }
+      state.scholars = await s.json();
+
+      // Grades
+      const g = await fetch("/api/admin/grades", {credentials:"include"});
+      if(g.status===401 || g.status===403){ location.href="/"; return; }
+      state.grades = await g.json();
+
+      populateBatchFilter();
+      render();
+    }
+
+    function populateBatchFilter(){
+      const sel = document.getElementById("fBatch");
+      const batches = unique(state.scholars.map(s => s.batchYear || "Unspecified")).sort(byStr);
+      sel.innerHTML = `<option value="">All</option>` + batches.map(b => `<option>${b}</option>`).join("");
+    }
+
+    // ---------- Filter & Compute ----------
+    function applyFilters(list){
+      const { ay, sem, term, batch, status } = state.filters;
+
+      return list.filter(g => {
+        if(ay && (g.schoolYear||"") !== ay) return false;
+        if(sem && (g.semester||"") !== sem) return false;
+        if(term && (g.academicTerm||"") !== term) return false;
+        if(batch && ((g.scholar?.batchYear)||g.batchYear||"") !== batch) return false;
+        if(status){
+          const st = (g.status || "Pending");
+          if(st !== status) return false;
+        }
+        return true;
+      });
+    }
+
+    function computeCompliance(){
+      // Establish scholar universe under current AY/Sem/Term/Batch
+      const { ay, sem, term, batch } = state.filters;
+
+      // Filter scholars by batch only (AY/sem/term limits apply to grades, not who is a scholar)
+      const scholars = state.scholars.filter(s => {
+        if(batch && (s.batchYear||"") !== batch) return false;
+        return true;
+      });
+
+      // Filter grades by the selected AY/Sem/Term (+optional status)
+      const grades = applyFilters(state.grades);
+
+      // Index: for each scholar, does a matching submission exist?
+      const byScholar = new Map();
+      grades.forEach(g => {
+        const sid = (g.scholar && g.scholar._id) ? g.scholar._id : (g.scholar || g.scholarId);
+        if(!sid) return;
+        const arr = byScholar.get(String(sid)) || [];
+        arr.push(g);
+        byScholar.set(String(sid), arr);
+      });
+
+      // Group by batch
+      const batches = unique(scholars.map(s=>s.batchYear||"Unspecified"));
+      const rows = batches.sort(byStr).map(b => {
+        const members = scholars.filter(s => (s.batchYear||"Unspecified") === b);
+        const total = members.length;
+
+        let submitted = 0, accepted = 0, pending = 0, rejected = 0;
+
+        members.forEach(s => {
+          const arr = byScholar.get(String(s._id)) || [];
+          if(arr.length>0){
+            submitted++;
+            // Count latest status among matches (or just aggregate all)
+            arr.forEach(g => {
+              const st = (g.status||"Pending");
+              if(st==="Accepted") accepted++;
+              else if(st==="Rejected") rejected++;
+              else pending++;
+            });
+          }
+        });
+
+        const submissionRate = total ? Math.round((submitted/total)*100) : 0;
+        const verificationRate = submitted ? Math.round((accepted/ (accepted+pending+rejected))*100) : 0;
+
+        return { batch:b, total, submitted, accepted, pending, rejected, submissionRate, verificationRate };
+      });
+
+      // Missing list = scholars with no matching grade
+      const missing = scholars
+        .filter(s => !(byScholar.has(String(s._id))))
+        .map(s => ({ fullname:s.fullname, batch:s.batchYear||"Unspecified" }))
+        .sort((a,b) => byStr(a.batch,b.batch) || byStr(a.fullname,b.fullname));
+
+      // For Submitted table we simply show filtered grade rows
+      const submittedRows = grades
+        .map(g => ({
+          fullname: g.scholar?.fullname || g.fullname || "—",
+          batch: g.scholar?.batchYear || g.batchYear || "—",
+          ay: g.schoolYear || "—",
+          sem: g.semester || "—",
+          term: g.academicTerm || "—",
+          status: g.status || "Pending",
+          fileUrl: fileURL(g),
+          submittedAt: g.dateSubmitted || g.createdAt
+        }))
+        .sort((a,b) => byStr(a.fullname,b.fullname));
+
+      // KPIs (overall across selected scholars)
+      const totalScholars = state.scholars.filter(s => (!batch || (s.batchYear||"")===batch)).length;
+      const scholarsWithSubmission = totalScholars - missing.length;
+      const kpiSubmissionRate = totalScholars ? Math.round((scholarsWithSubmission/totalScholars)*100) : 0;
+
+      const allStatuses = submittedRows.length ? {
+        accepted: submittedRows.filter(r=>r.status==="Accepted").length,
+        pending:  submittedRows.filter(r=>r.status==="Pending").length,
+        rejected: submittedRows.filter(r=>r.status==="Rejected").length,
+      } : {accepted:0,pending:0,rejected:0};
+
+      const kpiVerificationRate = submittedRows.length
+        ? Math.round((allStatuses.accepted / (allStatuses.accepted+allStatuses.pending+allStatuses.rejected))*100)
+        : 0;
+
+      return {
+        summaryRows: rows,
+        missingRows: missing,
+        submittedRows,
+        kpis: {
+          submissionRate: kpiSubmissionRate,
+          submissionFoot: `${scholarsWithSubmission}/${totalScholars} scholars`,
+          verificationRate: kpiVerificationRate,
+          pending: allStatuses.pending,
+          rejected: allStatuses.rejected,
+          pendingFoot: `${allStatuses.pending} pending`,
+          rejectedFoot: `${allStatuses.rejected} rejected`
+        }
+      };
+    }
+
+    // ---------- Render ----------
+    function render(){
+      const { summaryRows, missingRows, submittedRows, kpis } = computeCompliance();
+
+      // KPIs
+      document.getElementById("kpiSubmission").textContent = kpis.submissionRate + "%";
+      document.getElementById("kpiSubmissionFoot").textContent = kpis.submissionFoot;
+      document.getElementById("kpiVerified").textContent = kpis.verificationRate + "%";
+      document.getElementById("kpiVerifiedFoot").textContent = "of submitted";
+      document.getElementById("kpiPending").textContent = kpis.pending;
+      document.getElementById("kpiPendingFoot").textContent = kpis.pendingFoot;
+      document.getElementById("kpiRejected").textContent = kpis.rejected;
+      document.getElementById("kpiRejectedFoot").textContent = kpis.rejectedFoot;
+
+      // Compliance table
+      const tb1 = document.querySelector("#tblCompliance tbody");
+      tb1.innerHTML = summaryRows.map(r => `
+        <tr>
+          <td>${r.batch}</td>
+          <td>${r.total}</td>
+          <td>${r.submitted}</td>
+          <td>${r.accepted}</td>
+          <td>${r.pending}</td>
+          <td>${r.rejected}</td>
+          <td>${r.submissionRate}%</td>
+          <td>${r.verificationRate}%</td>
+        </tr>
+      `).join("") || `<tr><td colspan="8" style="text-align:center;color:#666">No data</td></tr>`;
+
+      // Missing table
+      const tb2 = document.querySelector("#tblMissing tbody");
+      tb2.innerHTML = missingRows.map(r => `
+        <tr><td>${r.fullname}</td><td>${r.batch}</td></tr>
+      `).join("") || `<tr><td colspan="2" style="text-align:center;color:#666">No missing scholars based on current filters</td></tr>`;
+
+      // Submitted table
+      const tb3 = document.querySelector("#tblSubmitted tbody");
+      tb3.innerHTML = submittedRows.map(r => `
+        <tr>
+          <td>${r.fullname}</td>
+          <td>${r.batch}</td>
+          <td>${r.ay}</td>
+          <td>${r.sem}</td>
+          <td>${r.term}</td>
+          <td><span class="status ${r.status}">${r.status}</span></td>
+          <td>${r.fileUrl ? `<a href="${r.fileUrl}" target="_blank" rel="noopener">Open</a>` : "—"}</td>
+          <td>${fmtDT(r.submittedAt)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="8" style="text-align:center;color:#666">No submissions</td></tr>`;
+    }
+
+    // ---------- Events ----------
+    document.getElementById("btnApply").addEventListener("click", () => {
+      state.filters.ay = document.getElementById("fAY").value.trim();
+      state.filters.sem = document.getElementById("fSem").value;
+      state.filters.term = document.getElementById("fTerm").value;
+      state.filters.batch = document.getElementById("fBatch").value;
+      state.filters.status = document.getElementById("fStatus").value;
+      render();
+    });
+
+    document.getElementById("btnReset").addEventListener("click", () => {
+      document.getElementById("fAY").value = "";
+      document.getElementById("fSem").selectedIndex = 0;
+      document.getElementById("fTerm").selectedIndex = 0;
+      document.getElementById("fBatch").selectedIndex = 0;
+      document.getElementById("fStatus").selectedIndex = 0;
+      state.filters = { ay:"", sem:"", term:"", batch:"", status:"" };
+      render();
+    });
+
+    // Export CSVs
+    document.getElementById("btnExportSummary").addEventListener("click", () => {
+      const { summaryRows } = computeCompliance();
+      const rows = [
+        ["Batch","TotalScholars","Submitted","Accepted","Pending","Rejected","Submission%","Verification%"],
+        ...summaryRows.map(r => [r.batch,r.total,r.submitted,r.accepted,r.pending,r.rejected,r.submissionRate,r.verificationRate])
+      ];
+      downloadCSV("grade-compliance-summary.csv", rows);
+    });
+
+    document.getElementById("btnExportMissing").addEventListener("click", () => {
+      const { missingRows } = computeCompliance();
+      const rows = [["Scholar","Batch"], ...missingRows.map(x => [x.fullname, x.batch])];
+      downloadCSV("grade-missing-scholars.csv", rows);
+    });
+
+    // ---------- Init ----------
+    window.addEventListener("load", fetchAll);
+  </script>
+</body>
+</html>

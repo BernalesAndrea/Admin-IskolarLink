@@ -2,389 +2,483 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Scholar Folder</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            outline: none;
-            border: none;
-            text-decoration: none;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scholar Folder</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --maroon: #800000;
+      --maroon-dark: #5a0000;
+      --gold: #D4A017;
+    }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-image: url('/assets/iskolarbg.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            overflow: hidden;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      outline: none;
+      border: none;
+      text-decoration: none;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-        .card {
-            max-width: 1000px;
-            height: 500px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 18px;
-            border-radius: 0px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-            overflow-y: auto;
-        }
+    /* ===== LAYOUT (match reference) ===== */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: url('/assets/iskolarbg.png') center/cover no-repeat;
+    }
 
-        h1,
-        h2 {
-            color: #800000
-        }
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-        .meta {
-            margin-bottom: 12px;
-            color: #333
-        }
+    /* ===== HEADER (from reference) ===== */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--maroon);
+      border-bottom: 2px solid var(--maroon-dark);
+    }
 
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
+    .header-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        .tab {
-            padding: 8px 12px;
-            border-radius: 8px;
-            background: #eee;
-            cursor: pointer
-        }
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
 
-        .tab.active {
-            background: #800000;
-            color: #fff
-        }
+    .header-logo {
+      height: 64px;
+      width: auto;
+      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .1));
+    }
 
-        ul.docs {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #fff;
+      user-select: none;
+    }
 
-        ul.docs li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .brand-block>a {
+      color: #fff;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: .5px;
+      transition: color .25s ease;
+    }
 
-        a.preview {
-            text-decoration: none;
-            color: #007bff
-        }
+    .brand-block>a:hover {
+      color: var(--gold);
+    }
 
-        .small {
-            font-size: 13px;
-            color: #666
-        }
+    .brand-sub {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
 
-        .btn {
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: #800000;
-            color: #fff;
-            text-decoration: none
-        }
+    .brand-sub a {
+      color: #fff;
+      transition: color .25s ease;
+    }
 
-        /* modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .5);
-            z-index: 9999;
-        }
+    .brand-sub a:hover {
+      color: var(--gold);
+    }
 
-        .modal .inner {
-            width: 90%;
-            max-width: 1000px;
-            height: 85vh;
-            margin: 3% auto;
-            background: #fff;
-            border-radius: 10px;
-            padding: 8px;
-        }
+    @media (max-width:640px) {
+      .header-logo {
+        height: 48px
+      }
 
-        .close {
-            float: right;
-            cursor: pointer;
-            font-size: 20px;
-            color: #333;
-            padding: 6px;
-        }
-    </style>
+      .brand-block>a {
+        font-size: 20px
+      }
+
+      .brand-sub {
+        font-size: 12px
+      }
+    }
+
+    /* ===== MAIN CARD (your page content) ===== */
+    .container {
+      width: 90%;
+      height: 80vh;
+      max-width: 1000px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+    }
+
+    /* keep your inner styles */
+    h1, h2 { color: var(--maroon); }
+
+    .meta { margin-bottom: 12px; color: #333 }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .tab {
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #eee;
+      cursor: pointer
+    }
+
+    .tab.active {
+      background: var(--maroon);
+      color: #fff
+    }
+
+    ul.docs { list-style: none; padding: 0; margin: 0; }
+
+    ul.docs li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    a.preview { text-decoration: none; color: #007bff }
+
+    .small { font-size: 13px; color: #666 }
+
+    .btn {
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--maroon);
+      color: #fff;
+      text-decoration: none
+    }
+
+    /* ===== FOOTER (from reference) ===== */
+    .site-footer {
+      background: #fff;
+      border-top: 1px solid #000;
+      outline: 1px solid #000;
+      outline-offset: -1px;
+    }
+
+    .footer-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center
+    }
+
+    .footer-wrap img {
+      max-height: 48px;
+      width: auto
+    }
+
+    /* ===== Modal (unchanged) ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+      z-index: 9999;
+    }
+
+    .modal .inner {
+      width: 90%;
+      max-width: 1000px;
+      height: 85vh;
+      margin: 3% auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .close {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      color: #333;
+      padding: 6px;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="card">
-        <a href="javascript:history.back()" class="btn small" style="float:right">Back</a>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-wrap">
+      <div class="header-center">
+        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <div class="brand-block">
+          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
+          <div class="brand-sub">
+            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
+              Iskolar ng Koronadal - Kabugwason Paglaum Program
+            </a>
+          </div>
+        </div>
+        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
         <h1>Scholar Folder</h1>
-        <div id="scholarMeta" class="meta">Loading scholar...</div>
+        <a href="javascript:history.back()" class="btn small">Back</a>
+      </div>
 
-        <div class="tabs" id="folderTabs">
-            <div class="tab active" data-target="all">All</div>
-            <div class="tab" data-target="scanned-grades">Scanned Grades</div>
-            <div class="tab" data-target="soa">Statement of Account</div>
-            <div class="tab" data-target="coe">Certificate of Enrollment</div>
-            <div class="tab" data-target="others">Others</div>
+      <div id="scholarMeta" class="meta">Loading scholar...</div>
+
+      <div class="tabs" id="folderTabs">
+        <div class="tab active" data-target="all">All</div>
+        <div class="tab" data-target="scanned-grades">Scanned Grades</div>
+        <div class="tab" data-target="soa">Statement of Account</div>
+        <div class="tab" data-target="coe">Certificate of Enrollment</div>
+        <div class="tab" data-target="others">Others</div>
+      </div>
+
+      <div id="contentArea" style="overflow:auto;">
+        <div id="all" class="folderSection">
+          <h2>All Documents</h2>
+          <ul id="docsAll" class="docs"></ul>
         </div>
 
-        <div id="contentArea">
-            <div id="all" class="folderSection">
-                <h2>All Documents</h2>
-                <ul id="docsAll" class="docs"></ul>
-            </div>
-
-            <div id="scanned-grades" class="folderSection" style="display:none">
-                <h2>Scanned Grades</h2>
-                <ul id="docsGrades" class="docs"></ul>
-            </div>
-
-            <div id="soa" class="folderSection" style="display:none">
-                <h2>Statement of Account</h2>
-                <ul id="docsSoa" class="docs"></ul>
-            </div>
-
-            <div id="coe" class="folderSection" style="display:none">
-                <h2>Certificate of Enrollment</h2>
-                <ul id="docsCoe" class="docs"></ul>
-            </div>
-
-            <div id="others" class="folderSection" style="display:none">
-                <h2>Others</h2>
-                <ul id="docsOthers" class="docs"></ul>
-            </div>
+        <div id="scanned-grades" class="folderSection" style="display:none">
+          <h2>Scanned Grades</h2>
+          <ul id="docsGrades" class="docs"></ul>
         </div>
-    </div>
 
-    <!-- Preview Modal -->
-    <div id="previewModal" class="modal">
-        <div class="inner">
-            <span id="closePreview" class="close">&times;</span>
-            <iframe id="previewFrame" src="" style="width:100%; height:calc(100% - 30px); border:none;"></iframe>
+        <div id="soa" class="folderSection" style="display:none">
+          <h2>Statement of Account</h2>
+          <ul id="docsSoa" class="docs"></ul>
         </div>
+
+        <div id="coe" class="folderSection" style="display:none">
+          <h2>Certificate of Enrollment</h2>
+          <ul id="docsCoe" class="docs"></ul>
+        </div>
+
+        <div id="others" class="folderSection" style="display:none">
+          <h2>Others</h2>
+          <ul id="docsOthers" class="docs"></ul>
+        </div>
+      </div>
     </div>
+  </main>
 
-    <script>
-(async function () {
-  /* -------------------- helpers -------------------- */
-  function qs(name){ return new URLSearchParams(window.location.search).get(name); }
-  function show(selector){
-    document.querySelectorAll('.folderSection').forEach(el => el.style.display='none');
-    document.getElementById(selector).style.display='block';
-  }
-  function groupByType(doc) {
-   // normalize: lowercase, collapse spaces
-   const t = (doc.docType || "")
-     .toLowerCase()
-     .replace(/\s+/g, ' ')
-     .trim();
-
-   // Scanned grades
-   if (t.includes('grade')) return 'scanned-grades';
-
-   // Statement of Account bucket (accepts "SOA" or "Statement of Account")
-   if (t === 'soa' || t.includes('statement of account')) return 'soa';
-
-   // COE/COR bucket – handle both Enrollment & Registration and "COE"
-   if (/(certificate.*(enrollment|registration)|\bcoe\b)/.test(t)) return 'coe';
-
-   return 'others';
- }
-
-  // Build a /files/<bucket>/<id> URL
-  function fileUrl(bucket, id){ return (bucket && id) ? `/files/${bucket}/${id}` : null; }
-
-  // For SubmittedDocument rows coming from admin endpoints
-  function resolveDocUrl(d){
-    return (
-      d.fileUrl ||                                   // server-shaped
-      fileUrl(d.bucket, d.fileId) ||                 // gridfs pair
-      d.filePath ||                                  // legacy path
-      null
-    );
-  }
-
-  // For Grade rows from /api/admin/grades/:scholarId
-  function resolveGradeAttachmentUrl(g){
-    return (
-      fileUrl(g.attachmentBucket, g.attachmentId) || // gridfs pair
-      g.attachment ||                                 // legacy path
-      null
-    );
-  }
-
-  /* -------------------- UI els -------------------- */
-  const scholarMeta = document.getElementById('scholarMeta');
-  const docsAll    = document.getElementById('docsAll');
-  const docsGrades = document.getElementById('docsGrades');
-  const docsSoa    = document.getElementById('docsSoa');
-  const docsCoe    = document.getElementById('docsCoe');
-  const docsOthers = document.getElementById('docsOthers');
-
-  /* -------------------- guards -------------------- */
-  const scholarId = qs('scholarId');
-  if (!scholarId){
-    scholarMeta.textContent = 'No scholar selected. Go back and choose a scholar.';
-    return;
-  }
-
-  /* -------------------- tabs -------------------- */
-  document.getElementById('folderTabs').addEventListener('click', (e)=>{
-    const t = e.target.closest('.tab'); if(!t) return;
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active'); show(t.dataset.target);
-  });
-
-  /* -------------------- fetchers -------------------- */
-  async function fetchScholarInfo(){
-    try{
-      const r = await fetch(`/api/scholars/${scholarId}`, { credentials:'include' });
-      if(!r.ok) throw 0;
-      return await r.json();
-    }catch{
-      try{
-        const r2 = await fetch('/api/verified-scholars', { credentials:'include' });
-        const list = await r2.json();
-        return list.find(x=>x._id === scholarId) || null;
-      }catch{ return null; }
-    }
-  }
-
-  async function fetchScholarDocs(){
-  try{
-    // prefer dedicated endpoint if you add one later
-    let r = await fetch(`/api/admin/scholars/${scholarId}/documents`, { credentials:'include' });
-    if (!r.ok){
-      const all = await (await fetch('/api/admin/documents', { credentials:'include' })).json();
-      return all
-        .filter(d => {
-          const sameScholar = d.scholar && d.scholar._id
-            ? d.scholar._id === scholarId
-            : String(d.scholar) === String(scholarId);
-          const statusNorm = String(d.status || '').trim().toLowerCase();
-          return sameScholar && statusNorm === 'accepted';   // ✅ only VERIFIED docs
-        })
-        .map(d => ({ ...d, url: resolveDocUrl(d) }));
-    }
-    const list = await r.json();
-    return list
-      .filter(d => String(d.status || '').trim().toLowerCase() === 'accepted')
-      .map(d => ({ ...d, url: resolveDocUrl(d) }));
-  }catch(err){
-    console.error('Error fetching scholar docs:', err);
-    return [];
-  }
-}
-
-
-  async function fetchScholarGrades(){
-  try{
-    const r = await fetch(`/api/admin/grades/${scholarId}`, { credentials:'include' });
-    if(!r.ok) return [];
-    const list = await r.json();
-    // normalize: add _url and _statusNorm
-    return list.map(g => ({
-      ...g,
-      _url: (
-        (g.attachmentBucket && g.attachmentId) ? `/files/${g.attachmentBucket}/${g.attachmentId}` :
-        (g.attachment || null)
-      ),
-      _statusNorm: String(g.status || '').trim().toLowerCase()
-    }));
-  }catch(err){
-    console.error('Error fetching grades:', err);
-    return [];
-  }
-}
-
-
-  /* -------------------- render -------------------- */
- function addDocToList(listEl, doc){
-  const li = document.createElement('li');
-  const fileLabel = doc.docType || (doc.url ? decodeURIComponent(doc.url.split('/').pop()) : 'File');
-  const date = (doc.dateSubmitted || doc.createdAt)
-    ? new Date(doc.dateSubmitted || doc.createdAt).toLocaleDateString()
-    : '';
-  const href = doc.url || '';
-
-  li.innerHTML = `
-    <div>
-      <strong>${fileLabel}</strong>
-      <div class="small">${date}</div>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
     </div>
-    <div>
-      ${href ? `<a href="#" class="preview" data-file="${href}"><i class="fa fa-eye"></i> Preview</a>` : ''}
-      ${href ? `&nbsp;<a href="${href}" target="_blank" class="small">Open</a>` : ''}
+  </footer>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal">
+    <div class="inner">
+      <span id="closePreview" class="close">&times;</span>
+      <iframe id="previewFrame" src="" style="width:100%; height:calc(100% - 30px); border:none;"></iframe>
     </div>
-  `;
-  listEl.appendChild(li);
-}
+  </div>
 
+  <script>
+    (async function () {
+      /* -------------------- helpers -------------------- */
+      function qs(name) { return new URLSearchParams(window.location.search).get(name); }
+      function show(selector) {
+        document.querySelectorAll('.folderSection').forEach(el => el.style.display = 'none');
+        document.getElementById(selector).style.display = 'block';
+      }
+      function groupByType(doc) {
+        const t = (doc.docType || "").toLowerCase().replace(/\s+/g, ' ').trim();
+        if (t.includes('grade')) return 'scanned-grades';
+        if (t === 'soa' || t.includes('statement of account')) return 'soa';
+        if (/(certificate.*(enrollment|registration)|\bcoe\b)/.test(t)) return 'coe';
+        return 'others';
+      }
+      function fileUrl(bucket, id) { return (bucket && id) ? `/files/${bucket}/${id}` : null; }
+      function resolveDocUrl(d) { return d.fileUrl || fileUrl(d.bucket, d.fileId) || d.filePath || null; }
+      function resolveGradeAttachmentUrl(g) { return fileUrl(g.attachmentBucket, g.attachmentId) || g.attachment || null; }
 
-  const scholar = await fetchScholarInfo();
-  if (!scholar){
-    scholarMeta.textContent = 'Scholar not found or you are not authorized to view this. (Make sure you are logged in as admin.)';
-    return;
-  }
-  scholarMeta.innerHTML = `<strong>${scholar.fullname}</strong> <span class="small"> • Batch: ${scholar.batchYear || 'N/A'} • ${scholar.email || ''}</span>`;
+      /* -------------------- UI els -------------------- */
+      const scholarMeta = document.getElementById('scholarMeta');
+      const docsAll = document.getElementById('docsAll');
+      const docsGrades = document.getElementById('docsGrades');
+      const docsSoa = document.getElementById('docsSoa');
+      const docsCoe = document.getElementById('docsCoe');
+      const docsOthers = document.getElementById('docsOthers');
 
-  const docs   = await fetchScholarDocs();          // already has .url
-  const grades = await fetchScholarGrades();        // has ._url and ._statusNorm
+      /* -------------------- guards -------------------- */
+      const scholarId = qs('scholarId');
+      if (!scholarId) {
+        scholarMeta.textContent = 'No scholar selected. Go back and choose a scholar.';
+        return;
+      }
 
-  // Push ACCEPTED grades as "Scanned Grades" entries
-  grades.forEach(g => {
-    if (g._statusNorm === 'accepted' && g._url){
-      docs.push({
-        docType: 'Scanned Grades',
-        url: g._url,
-        dateSubmitted: g.dateSubmitted || g.createdAt
+      /* -------------------- tabs -------------------- */
+      document.getElementById('folderTabs').addEventListener('click', (e) => {
+        const t = e.target.closest('.tab'); if (!t) return;
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active'); show(t.dataset.target);
       });
-    }
-  });
 
-  // Render
-  docs.forEach(doc => {
-    const entry = { ...doc, url: doc.url || resolveDocUrl(doc) };
-    addDocToList(docsAll, entry);
-    const group = groupByType(entry);
-    if (group === 'scanned-grades') addDocToList(docsGrades, entry);
-    else if (group === 'soa')      addDocToList(docsSoa, entry);
-    else if (group === 'coe')      addDocToList(docsCoe, entry);
-    else                           addDocToList(docsOthers, entry);
-  });
+      /* -------------------- fetchers -------------------- */
+      async function fetchScholarInfo() {
+        try {
+          const r = await fetch(`/api/scholars/${scholarId}`, { credentials: 'include' });
+          if (!r.ok) throw 0;
+          return await r.json();
+        } catch {
+          try {
+            const r2 = await fetch('/api/verified-scholars', { credentials: 'include' });
+            const list = await r2.json();
+            return list.find(x => x._id === scholarId) || null;
+          } catch { return null; }
+        }
+      }
 
-  /* -------------------- preview modal -------------------- */
-  document.body.addEventListener('click', (e) => {
-    const a = e.target.closest('a.preview');
-    if (!a) return;
-    e.preventDefault();
-    const href = a.dataset.file;
-    if (!href) return;
-    document.getElementById('previewFrame').src = href;
-    document.getElementById('previewModal').style.display = 'block';
-  });
+      async function fetchScholarDocs() {
+        try {
+          let r = await fetch(`/api/admin/scholars/${scholarId}/documents`, { credentials: 'include' });
+          if (!r.ok) {
+            const all = await (await fetch('/api/admin/documents', { credentials: 'include' })).json();
+            return all
+              .filter(d => {
+                const sameScholar = d.scholar && d.scholar._id
+                  ? d.scholar._id === scholarId
+                  : String(d.scholar) === String(scholarId);
+                const statusNorm = String(d.status || '').trim().toLowerCase();
+                return sameScholar && statusNorm === 'accepted';
+              })
+              .map(d => ({ ...d, url: resolveDocUrl(d) }));
+          }
+          const list = await r.json();
+          return list
+            .filter(d => String(d.status || '').trim().toLowerCase() === 'accepted')
+            .map(d => ({ ...d, url: resolveDocUrl(d) }));
+        } catch (err) {
+          console.error('Error fetching scholar docs:', err);
+          return [];
+        }
+      }
 
-  document.getElementById('closePreview').onclick = () => {
-    document.getElementById('previewFrame').src = '';
-    document.getElementById('previewModal').style.display = 'none';
-  };
-})();
-</script>
+      async function fetchScholarGrades() {
+        try {
+          const r = await fetch(`/api/admin/grades/${scholarId}`, { credentials: 'include' });
+          if (!r.ok) return [];
+          const list = await r.json();
+          return list.map(g => ({
+            ...g,
+            _url: (g.attachmentBucket && g.attachmentId) ? `/files/${g.attachmentBucket}/${g.attachmentId}` : (g.attachment || null),
+            _statusNorm: String(g.status || '').trim().toLowerCase()
+          }));
+        } catch (err) {
+          console.error('Error fetching grades:', err);
+          return [];
+        }
+      }
+
+      /* -------------------- render -------------------- */
+      function addDocToList(listEl, doc) {
+        const li = document.createElement('li');
+        const fileLabel = doc.docType || (doc.url ? decodeURIComponent(doc.url.split('/').pop()) : 'File');
+        const date = (doc.dateSubmitted || doc.createdAt)
+          ? new Date(doc.dateSubmitted || doc.createdAt).toLocaleDateString()
+          : '';
+        const href = doc.url || '';
+
+        li.innerHTML = `
+          <div>
+            <strong>${fileLabel}</strong>
+            <div class="small">${date}</div>
+          </div>
+          <div>
+            ${href ? `<a href="#" class="preview" data-file="${href}"><i class="fa fa-eye"></i> Preview</a>` : ''}
+            ${href ? `&nbsp;<a href="${href}" target="_blank" class="small">Open</a>` : ''}
+          </div>
+        `;
+        listEl.appendChild(li);
+      }
+
+      const scholar = await fetchScholarInfo();
+      if (!scholar) {
+        scholarMeta.textContent = 'Scholar not found or you are not authorized to view this. (Make sure you are logged in as admin.)';
+        return;
+      }
+      scholarMeta.innerHTML = `<strong>${scholar.fullname}</strong> <span class="small"> • Batch: ${scholar.batchYear || 'N/A'} • ${scholar.email || ''}</span>`;
+
+      const docs = await fetchScholarDocs();
+      const grades = await fetchScholarGrades();
+
+      grades.forEach(g => {
+        if (g._statusNorm === 'accepted' && g._url) {
+          docs.push({
+            docType: 'Scanned Grades',
+            url: g._url,
+            dateSubmitted: g.dateSubmitted || g.createdAt
+          });
+        }
+      });
+
+      docs.forEach(doc => {
+        const entry = { ...doc, url: doc.url || resolveDocUrl(doc) };
+        addDocToList(docsAll, entry);
+        const group = groupByType(entry);
+        if (group === 'scanned-grades') addDocToList(docsGrades, entry);
+        else if (group === 'soa') addDocToList(docsSoa, entry);
+        else if (group === 'coe') addDocToList(docsCoe, entry);
+        else addDocToList(docsOthers, entry);
+      });
+
+      /* -------------------- preview modal -------------------- */
+      document.body.addEventListener('click', (e) => {
+        const a = e.target.closest('a.preview');
+        if (!a) return;
+        e.preventDefault();
+        const href = a.dataset.file;
+        if (!href) return;
+        document.getElementById('previewFrame').src = href;
+        document.getElementById('previewModal').style.display = 'block';
+      });
+
+      document.getElementById('closePreview').onclick = () => {
+        document.getElementById('previewFrame').src = '';
+        document.getElementById('previewModal').style.display = 'none';
+      };
+    })();
+  </script>
 </body>
 
 </html>

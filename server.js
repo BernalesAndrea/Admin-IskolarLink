@@ -593,7 +593,13 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
       return res.status(400).json({ msg: "Scholar not verified or not found" });
     }
 
-    const { schoolYear, semester, subjects } = req.body;
+    const { schoolYear, semester, academicTerm, subjects } = req.body; // <- include academicTerm
+
+    // (Optional) quick validation; UI already enforces required fields
+    if (!schoolYear || !semester || !academicTerm) {
+      return res.status(400).json({ msg: "Missing schoolYear, semester, or academicTerm" });
+    }
+
     let attachmentId = null, attachmentBucket = null;
 
     if (req.file) {
@@ -614,6 +620,7 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
       batchYear: user.batchYear,
       schoolYear,
       semester,
+      academicTerm,                         // <- save it
       subjects: JSON.parse(subjects || '[]'),
       attachmentId,
       attachmentBucket
@@ -627,23 +634,99 @@ app.post("/api/grades/me", authMiddleware, upload.single("attachment"), async (r
   }
 });
 
+// ✅ Scholar fetches their own grades (flat list; FE will group into folders)
+app.get("/api/grades/me", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "scholar") return res.status(403).json({ msg: "Access denied" });
+
+    // Optional filters ?schoolYear=2025-2026&semester=1st%20Semester
+    const { schoolYear, semester } = req.query;
+    const q = { scholar: req.user.id };
+    if (schoolYear) q.schoolYear = schoolYear;
+    if (semester) q.semester = semester;
+
+    const grades = await Grade.find(q)
+      .sort({ schoolYear: -1, semester: -1, createdAt: -1 })
+      .lean();
+
+    // Attach a fileUrl for convenience
+    const shaped = grades.map(g => ({
+      ...g,
+      fileUrl:
+        g.attachmentId && g.attachmentBucket
+          ? `/files/${g.attachmentBucket}/${g.attachmentId}`
+          : (g.attachment || null)
+    }));
+
+    res.json(shaped);
+  } catch (err) {
+    console.error("GET /api/grades/me error:", err);
+    res.status(500).json({ msg: "Error fetching grades", error: err.message });
+  }
+});
+
+// DELETE a submitted grade (scholar can delete only if Pending or Rejected and owner)
+app.delete("/api/grades/:id", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "scholar") {
+      return res.status(403).json({ msg: "Access denied" });
+    }
+
+    const grade = await Grade.findById(req.params.id);
+    if (!grade) return res.status(404).json({ msg: "Grade not found" });
+
+    // owner check
+    const isOwner =
+      grade.scholar && typeof grade.scholar.equals === "function"
+        ? grade.scholar.equals(req.user.id)
+        : String(grade.scholar) === String(req.user.id);
+
+    if (!isOwner) return res.status(403).json({ msg: "Forbidden" });
+
+    const status = (grade.status || "Pending").trim().toLowerCase();
+    if (status !== "pending" && status !== "rejected") {
+      return res.status(400).json({ msg: "Only Pending or Rejected grades can be deleted" });
+    }
+
+    // Delete GridFS file if present
+    if (grade.attachmentId && grade.attachmentBucket) {
+      try {
+        const db = mongoose.connection.db;
+        const bucket = new mongoose.mongo.GridFSBucket(db, { bucketName: grade.attachmentBucket });
+        await bucket.delete(new mongoose.Types.ObjectId(grade.attachmentId));
+      } catch (e) {
+        console.warn("GridFS delete warning:", e?.message || e);
+      }
+    }
+
+    await Grade.findByIdAndDelete(grade._id);
+    return res.json({ msg: "Deleted" });
+  } catch (err) {
+    console.error("Delete grade error:", err);
+    return res.status(500).json({ msg: "Server error", error: err.message });
+  }
+});
+
+
+
+
 
 
 
 // ✅ Admin fetch all submitted grades
+// Admin: all submitted grades
 app.get("/api/admin/grades", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-
   try {
     const grades = await Grade.find()
       .populate("scholar", "fullname batchYear email")
-      .sort({ schoolYear: -1, semester: -1 });
-
+      .sort({ schoolYear: -1, semester: -1, academicTerm: 1, createdAt: -1 }); // added academicTerm
     res.json(grades);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching grades", error: err.message });
   }
 });
+
 
 // ✅ Admin fetch grades of a specific scholar
 app.get("/api/admin/grades/:scholarId", authMiddleware, async (req, res) => {

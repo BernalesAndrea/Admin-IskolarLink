@@ -9,17 +9,21 @@ const gradeSchema = new mongoose.Schema(
     schoolYear: { type: String, required: true },
     semester:  { type: String, required: true },
 
-    // 🔴 New (match what server.js actually saves):
+    // NEW: Academic term drop-down value
+    academicTerm: { 
+      type: String,
+      enum: ["Preliminary Grades", "Mid-Semester Grades", "Final Grades"]
+      // not required to preserve existing data
+    },
+
     attachmentId:     { type: mongoose.Schema.Types.ObjectId },
     attachmentBucket: { type: String }, // e.g. "grades"
-
-    // Optional legacy fallback if you used disk paths before:
-    attachment: { type: String },
+    attachment: { type: String },       // legacy
 
     status: { type: String, enum: ["Pending", "Accepted", "Rejected"], default: "Pending" },
     dateSubmitted: { type: Date, default: Date.now }
   },
-  { timestamps: true } // adds createdAt/updatedAt (useful in admin sorting)
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Grade", gradeSchema);
