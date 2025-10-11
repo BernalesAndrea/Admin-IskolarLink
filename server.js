@@ -1317,28 +1317,91 @@ app.get('/task', authMiddleware, (req, res) => {
 });
 
 
-/* ============= EVENTS + TASKS ============= */
+/* ============= EVENT ROUTES ============= */
 
-// --- API: Get Events
-// ====================== EVENTS API ======================
-app.get("/api/events", async (req, res) => {
+// ✅ Create event (ADMIN only)
+app.post("/api/events", authMiddleware, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+
   try {
-    const events = await Event.find();
-    res.json(events);
+    const { title, description, dateTime, duration, location } = req.body;
+    const newEvent = await Event.create({ title, description, dateTime, duration, location, attendees: [] });
+    res.json(newEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Create event
-app.post("/api/events", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
+// ✅ Fetch events with optional filter (?status=upcoming|past|all)
+app.get("/api/events", async (req, res) => {
   try {
-    const newEvent = await Event.create(req.body);
-    res.json(newEvent);
+    res.set("Cache-Control", "no-store"); // avoid stale cached lists
+
+    const { status = "all" } = req.query;
+    const now = new Date();
+
+    let query = {};
+    let sort = { dateTime: 1 };
+
+    if (status === "upcoming") {
+      query = { dateTime: { $gt: now } };
+      sort = { dateTime: 1 };
+    } else if (status === "past" || status === "finished" || status === "done") {
+      // small buffer to eliminate boundary flakiness
+      const skewMs = 1000;
+      query = { dateTime: { $lte: new Date(now.getTime() - skewMs) } };
+      sort = { dateTime: -1 };
+    }
+
+    const events = await Event.find(query).sort(sort).lean();
+
+    // helpful one-line visibility
+    console.log(`[GET /api/events] status=${status} now=${now.toISOString()} count=${events.length}`);
+
+    res.json(events);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: "Error fetching events", error: err.message });
+  }
+});
+
+// ✅ One-shot partition to avoid any FE mixing/race issues
+app.get("/api/events/partition", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    const now = new Date();
+
+    const [upcoming, past] = await Promise.all([
+      Event.find({ dateTime: { $gt: now } }).sort({ dateTime: 1 }).lean(),
+      // small 1s buffer avoids boundary flicker
+      Event.find({ dateTime: { $lte: new Date(now.getTime() - 1000) } })
+           .sort({ dateTime: -1 }).lean()
+    ]);
+
+    res.json({
+      now: now.toISOString(),
+      upcoming,
+      past
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching events", error: err.message });
+  }
+});
+
+
+
+// Get attendance counts
+app.get("/api/events/:id/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ msg: "Event not found" });
+
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+
+    res.json({ attendCount, notAttendCount });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
   }
 });
 
@@ -1405,55 +1468,6 @@ app.get("/events/:eventId/attendance", async (req, res) => {
       notAttendCount,
       attendees: event.attendees
     });
-  } catch (err) {
-    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
-  }
-});
-
-
-/* ============= EVENT ROUTES ============= */
-
-// Create new event
-app.post("/api/events", async (req, res) => {
-  try {
-    const { title, description, dateTime, duration, location } = req.body;
-
-    const newEvent = new Event({
-      title,
-      description,
-      dateTime,
-      duration,
-      location,
-      attendees: [] // empty by default
-    });
-
-    await newEvent.save();
-    res.json(newEvent);
-  } catch (err) {
-    res.status(500).json({ msg: "Error creating event", error: err.message });
-  }
-});
-
-// Get all events
-app.get("/api/events", async (req, res) => {
-  try {
-    const events = await Event.find().sort({ dateTime: 1 }); // upcoming first
-    res.json(events);
-  } catch (err) {
-    res.status(500).json({ msg: "Error fetching events", error: err.message });
-  }
-});
-
-// Get attendance counts
-app.get("/api/events/:id/attendance", async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ msg: "Event not found" });
-
-    const attendCount = event.attendees.filter(a => a.status === "attend").length;
-    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
-
-    res.json({ attendCount, notAttendCount });
   } catch (err) {
     res.status(500).json({ msg: "Error fetching attendance", error: err.message });
   }

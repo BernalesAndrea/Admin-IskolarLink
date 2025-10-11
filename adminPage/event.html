@@ -180,21 +180,6 @@
       /* allow children to shrink inside flex */
     }
 
-    #list.content-section {
-      display: flex;
-      height: 100%;
-    }
-
-    #list .sectionBox {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      margin: auto;
-      /* keep your centering */
-      max-width: 800px;
-      /* keep your width constraint */
-    }
-
     .content-section {
       display: none;
       height: 100%
@@ -203,6 +188,11 @@
     .content-section.active {
       display: block
     }
+
+    #create.content-section.active {
+      display: block;
+    }
+
 
     .inputBox {
       display: flex;
@@ -409,6 +399,65 @@
       max-height: 48px;
       width: auto
     }
+
+    /* 1) Let the main content area fill the card */
+    .container>.content {
+      flex: 1;
+      /* <-- THIS is the missing piece */
+      min-height: 0;
+      /* keep children shrinkable */
+      overflow: hidden;
+    }
+
+    /* 2) When a list tab is active, make it a column flex container */
+    .content-section.active {
+      display: flex !important;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* 3) The section box must grow so the inner list can get height */
+    #list .sectionBox,
+    #past .sectionBox {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      /* instead of height:100% */
+      min-height: 0;
+      margin: 0 auto;
+      /* keep your centering */
+      max-width: 800px;
+    }
+
+    /* 4) The scrolling list (you already had most of this) */
+    .displayEventContainer {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+
+    /* Keep Upcoming & Finished sections the same width and centered */
+    #list .sectionBox,
+    #past .sectionBox {
+      max-width: 800px;
+      /* same cap */
+      width: 100%;
+      /* fill available space up to the cap */
+      margin: 0 auto;
+      /* center */
+      padding-left: 20px;
+      /* match Create tab padding */
+      padding-right: 20px;
+    }
+
+    /* Ensure the scroll area doesn't change width between tabs */
+    #list .displayEventContainer,
+    #past .displayEventContainer {
+      width: 100%;
+      scrollbar-gutter: stable both-edges;
+      /* prevents jump when scrollbar appears */
+    }
   </style>
 </head>
 
@@ -439,6 +488,7 @@
       <div class="tabs">
         <div class="tab active" data-target="create">Create Event</div>
         <div class="tab" data-target="list">Upcoming Events</div>
+        <div class="tab" data-target="past">Finished Events</div>
       </div>
 
       <!-- Content -->
@@ -486,7 +536,15 @@
         <div class="content-section" id="list">
           <div class="sectionBox">
             <h2>Upcoming Events</h2>
-            <div class="displayEventContainer"><!-- cards injected here --></div>
+            <div class="displayEventContainer" id="displayUpcoming"><!-- cards injected here --></div>
+          </div>
+        </div>
+
+        <!-- Finished Events List -->
+        <div class="content-section" id="past">
+          <div class="sectionBox">
+            <h2>Finished Events</h2>
+            <div class="displayEventContainer" id="displayPast"><!-- cards injected here --></div>
           </div>
         </div>
       </div>
@@ -514,17 +572,20 @@
     // Tabs
     const tabs = document.querySelectorAll('.tab');
     const sections = document.querySelectorAll('.content-section');
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         sections.forEach(s => s.classList.remove('active'));
         tab.classList.add('active');
         document.getElementById(tab.dataset.target).classList.add('active');
-        if (tab.dataset.target === 'list') { loadEvents(); }
+
+        if (tab.dataset.target === 'list') loadEvents('upcoming');
+        if (tab.dataset.target === 'past') loadEvents('past');
       });
     });
 
-    // Pikaday date picker
+    // Pikaday date picker (keep your config)
     new Pikaday({
       field: document.getElementById('pikadayDate'),
       format: 'YYYY-MM-DD',
@@ -537,14 +598,14 @@
 
     const API_URL = 'http://localhost:3000';
 
-    // Create event
+    // Create Event (unchanged except final refresh)
     document.getElementById('eventForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const fd = new FormData(this);
       const payload = {
         title: fd.get('title'),
         description: fd.get('description'),
-        dateTime: `${fd.get('date')}T${fd.get('time')}`,
+        dateTime: new Date(`${fd.get('date')}T${fd.get('time')}`).toISOString(),
         duration: fd.get('duration'),
         location: fd.get('location')
       };
@@ -557,9 +618,9 @@
         if (res.ok) {
           alert('Event created successfully!');
           this.reset();
-          // if on list tab, refresh; else user can switch to see it
-          const activeTab = document.querySelector('.tab.active')?.dataset.target;
-          if (activeTab === 'list') loadEvents();
+          const active = document.querySelector('.tab.active')?.dataset.target;
+          if (active === 'list') loadEvents('upcoming');
+          if (active === 'past') loadEvents('past');
         } else {
           alert('Error creating event');
         }
@@ -569,40 +630,13 @@
       }
     });
 
-    // Load events
-    // Load only upcoming events
-async function loadEvents() {
-  try {
-    const res = await fetch(`${API_URL}/api/events`);
-    const events = await res.json();
-    const container = document.querySelector('.displayEventContainer');
-    container.innerHTML = '';
-
-    if (!Array.isArray(events) || !events.length) {
-      container.innerHTML = '<div style="color:#555;">No events found.</div>';
-      return;
-    }
-
-    // ✅ Filter upcoming events only
-    const now = new Date();
-    const upcoming = events
-      .filter(ev => new Date(ev.dateTime) > now)
-      .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
-
-    if (!upcoming.length) {
-      container.innerHTML = '<div style="color:#555;">No upcoming events.</div>';
-      return;
-    }
-
-    // ✅ Display only upcoming events
-    upcoming.forEach(ev => {
+    // -------- Rendering helpers --------
+    function eventCardHTML(ev) {
       const dateObj = new Date(ev.dateTime);
       const month = dateObj.toLocaleString('default', { month: 'short' });
       const day = dateObj.getDate();
-
-      const div = document.createElement('div');
-      div.className = 'eventCard';
-      div.innerHTML = `
+      return `
+      <div class="eventCard">
         <div class="eventDate">
           <h2>${month}</h2>
           <h1>${day}</h1>
@@ -611,20 +645,17 @@ async function loadEvents() {
           <h3>${ev.title}</h3>
           <button class="viewMoreBtn">View more...</button>
         </div>
-      `;
+      </div>
+    `;
+    }
 
-      // ✅ View details modal
-      div.querySelector('.viewMoreBtn').addEventListener('click', async () => {
+    function bindCardBehavior(cardEl, ev) {
+      cardEl.querySelector('.viewMoreBtn').addEventListener('click', async () => {
         document.getElementById('modalTitle').textContent = ev.title;
 
         const dateNice = new Date(ev.dateTime).toLocaleString(undefined, {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
         });
 
         let attend = 0, notAttend = 0;
@@ -638,7 +669,9 @@ async function loadEvents() {
               notAttend = d.notAttendCount ?? 0;
             }
           }
-        } catch (e) { console.warn('Attendance API error:', e); }
+        } catch (e) {
+          console.warn('Attendance API error:', e);
+        }
 
         const desc = (ev.description || '').trim();
         const sentence =
@@ -652,13 +685,68 @@ async function loadEvents() {
         modal.style.display = 'flex';
         modal.setAttribute('aria-hidden', 'false');
       });
+    }
 
-      container.appendChild(div);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
+    function renderList(containerId, items, emptyMsg) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      if (!items.length) {
+        container.innerHTML = `<div style="color:#555;">${emptyMsg}</div>`;
+        return;
+      }
+      items.forEach(ev => {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = eventCardHTML(ev);
+        const card = wrapper.firstElementChild;
+        bindCardBehavior(card, ev);
+        container.appendChild(card);
+      });
+    }
+
+    let _lastPartition = null; // simple memo to hold the latest partition payload
+
+    async function fetchPartition() {
+      const url = `${API_URL}/api/events/partition?_=${Date.now()}`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch events');
+      _lastPartition = await res.json();
+      // Optional: quick sanity check while debugging:
+      // console.log('Partition @', _lastPartition.now, {
+      //   upcoming: _lastPartition.upcoming.length,
+      //   past: _lastPartition.past.length
+      // });
+    }
+
+    async function loadEvents(mode = 'upcoming') {
+      try {
+        // Always fetch both sets together so tabs are in sync
+        if (!_lastPartition) await fetchPartition();
+        else await fetchPartition(); // keep fresh; remove this line if you prefer cached between tab clicks
+
+        const list = mode === 'upcoming'
+          ? (_lastPartition.upcoming || [])
+          : (_lastPartition.past || []);
+
+        if (mode === 'past') {
+          console.table(list.map(e => ({ title: e.title, dateTime: e.dateTime })));
+        }
+
+        const sorted = mode === 'upcoming'
+          ? list.slice().sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
+          : list.slice().sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+        if (mode === 'upcoming') {
+          renderList('displayUpcoming', sorted, 'No upcoming events.');
+        } else {
+          renderList('displayPast', sorted, 'No finished events.');
+        }
+      } catch (err) {
+        console.error(err);
+        if (mode === 'upcoming') renderList('displayUpcoming', [], 'Failed to load events.');
+        else renderList('displayPast', [], 'Failed to load events.');
+      }
+    }
+
 
 
     // Modal close
@@ -671,8 +759,9 @@ async function loadEvents() {
     window.addEventListener('click', (e) => { if (e.target === document.getElementById('eventModal')) closeModal(); });
     window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    // Initial load: keep Create tab active; prefetch events
-    loadEvents();
+    // Initial prefetch (stays on Create tab by default)
+    loadEvents('upcoming');
+    loadEvents('past');
   </script>
 </body>
 
