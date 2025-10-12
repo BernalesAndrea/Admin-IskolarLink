@@ -62,4 +62,34 @@ router.get("/list/:id", async (req, res) => {
   }
 });
 
+// Return the first available admin (or one arbitrarily) with minimal fields
+router.get("/admin/first", async (req, res) => {
+  try {
+    const admin = await User.findOne({ role: "admin" })
+      .select("_id fullname email role")
+      .sort({ _id: 1 })
+      .lean();
+    if (!admin) return res.status(404).json({ error: "No admin account found." });
+    res.json(admin);
+  } catch (err) {
+    console.error("users.admin.first error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// List all admins (in case you want multiple admins in future)
+router.get("/admins", async (req, res) => {
+  try {
+    const admins = await User.find({ role: "admin" })
+      .select("_id fullname email role")
+      .sort({ fullname: 1 })
+      .lean();
+    res.json(admins);
+  } catch (err) {
+    console.error("users.admins error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 module.exports = router;
