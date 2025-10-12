@@ -12,6 +12,8 @@ const fs = require("fs");
 
 
 const app = express();
+app.set('trust proxy', parseInt(process.env.TRUST_PROXY || '0', 10));
+
 
 const User = require("./models/User");
 const Expense = require("./models/Expense");
@@ -24,6 +26,43 @@ const allowancesRoutes = require("./routes/allowances");
 const bookRoutes = require("./routes/book");
 const tuitionTrackerRoutes = require("./routes/tuitionTracker");
 
+const TOKEN_TTL = `${process.env.TOKEN_TTL_HOURS || 1}h`;
+
+// --- JWT helpers (smooth rotation ready) ---
+const JWT_ISSUER = process.env.JWT_ISSUER || undefined;
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE || undefined;
+const JWT_ALG = (process.env.JWT_ALG || 'HS256');
+
+const JWT_PRIMARY = process.env.JWT_SECRET_PRIMARY || process.env.JWT_SECRET; // fallback
+const JWT_SECONDARY = process.env.JWT_SECRET_SECONDARY; // optional
+
+function signJwt(payload, opts = {}) {
+  return jwt.sign(payload, JWT_PRIMARY, {
+    ...opts,
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+    algorithm: JWT_ALG
+  });
+}
+
+function verifyJwt(token) {
+  try {
+    return jwt.verify(token, JWT_PRIMARY, {
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+      algorithms: [JWT_ALG]
+    });
+  } catch (e1) {
+    if (JWT_SECONDARY) {
+      return jwt.verify(token, JWT_SECONDARY, {
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE,
+        algorithms: [JWT_ALG]
+      });
+    }
+    throw e1;
+  }
+}
 
 
 // Middleware
@@ -60,7 +99,7 @@ function authMiddleware(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyJwt(token);
     req.user = decoded;
     next();
   } catch (err) {
@@ -143,8 +182,7 @@ const Announcement = mongoose.model("Announcement", announcementSchema);
 // Multer setup
 const upload = multer({
   storage: multer.memoryStorage(),
-  // optional hard caps:
-  // limits: { fileSize: 20 * 1024 * 1024 } // 20 MB
+  limits: { fileSize: 20 * 1024 * 1024 } // 20 MB
 });
 
 const { ObjectId } = mongoose.Types;
@@ -221,38 +259,36 @@ app.post('/auth/login', async (req, res) => {
       return res.status(403).json({ msg: "Your account is awaiting admin verification." });
     }
 
-    const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,   // ✅ use env
-  { expiresIn: "1h" }
-);
+    // replace jwt.sign(... process.env.JWT_SECRET ...)
+    const token = signJwt({ id: user._id, role: user.role }, { expiresIn: TOKEN_TTL });
+
 
     if (user.role === "scholar") {
-  res.cookie("scholarToken", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 1000
-  });
-} 
+      res.cookie("scholarToken", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 1000
+      });
+    }
     if (user.role === "admin") {
-  res.cookie("adminToken", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 1000
-  });
-}
+      res.cookie("adminToken", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 1000
+      });
+    }
 
     let redirectUrl = "/scholar";
     if (user.role === "admin") redirectUrl = "/admin";
 
     res.json({
-  msg: "Login successful",
-  redirect: redirectUrl,
-  userId: user._id.toString(),  // ✅ this is what frontend should store
-  role: user.role
-});
+      msg: "Login successful",
+      redirect: redirectUrl,
+      userId: user._id.toString(),  // ✅ this is what frontend should store
+      role: user.role
+    });
 
 
   } catch (err) {
@@ -454,7 +490,7 @@ app.get("/api/scholars/:id", authMiddleware, async (req, res) => {
         : (user.profilePic || "/assets/default-avatar.png");
 
     // send the fields + the computed url
-    res.json({ 
+    res.json({
       ...user.toObject({ virtuals: true }),
       profilePicUrl
     });
@@ -938,8 +974,8 @@ app.put("/api/admin/documents/:id/status", authMiddleware, async (req, res) => {
     // normalize status
     const norm = String(status).trim().toLowerCase();
     const mappedStatus = norm === "accepted" ? "Accepted"
-                     : norm === "rejected" ? "Rejected"
-                     : status; // fallback (if you add more later)
+      : norm === "rejected" ? "Rejected"
+        : status; // fallback (if you add more later)
 
     // build update payload
     const update = { status: mappedStatus };
@@ -1075,39 +1111,6 @@ app.get("/api/admin/submitted-tasks/:taskId", authMiddleware, async (req, res) =
   }
 });
 
-// Scholar: Submit a task
-app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), async (req, res) => {
-  if (req.user.role !== "scholar") return res.status(403).json({ msg: "Access denied" });
-
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user || !user.verified) return res.status(400).json({ msg: "Scholar not verified or not found" });
-    if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
-
-    const file = await putToGridFS({
-      buffer: req.file.buffer,
-      filename: `${Date.now()}-${req.file.originalname}`,
-      bucketName: 'tasks',
-      contentType: req.file.mimetype,
-      metadata: { userId: req.user.id, taskId: req.params.taskId, field: 'file' }
-    });
-
-    const submission = new SubmittedTask({
-      task: req.params.taskId,
-      scholar: user._id,
-      fullname: user.fullname,
-      batchYear: user.batchYear,
-      fileId: file._id,
-      bucket: 'tasks'
-    });
-
-    await submission.save();
-    res.json({ msg: "Task submitted successfully", submission, fileUrl: `/files/tasks/${file._id}` });
-  } catch (err) {
-    res.status(500).json({ msg: "Error submitting task", error: err.message });
-  }
-});
-
 // ================= MY SUBMISSIONS (SCHOLAR) =================
 
 // Return this scholar's task submissions (minimal payload for left tabs)
@@ -1159,7 +1162,7 @@ app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), asy
     if (!user || !user.verified) return res.status(400).json({ msg: "Scholar not verified or not found" });
     if (!req.file) return res.status(400).json({ msg: "No file uploaded" });
 
-    // Ensure task exists (optional but good)
+    // Ensure task exists
     const task = await mongoose.model("Task").findById(req.params.taskId).lean();
     if (!task) return res.status(404).json({ msg: "Task not found" });
 
@@ -1167,9 +1170,9 @@ app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), asy
     const file = await putToGridFS({
       buffer: req.file.buffer,
       filename: `${Date.now()}-${req.file.originalname}`,
-      bucketName: 'tasks',
+      bucketName: "tasks",
       contentType: req.file.mimetype,
-      metadata: { userId: req.user.id, taskId: req.params.taskId, field: 'file' }
+      metadata: { userId: req.user.id, taskId: req.params.taskId, field: "file" }
     });
 
     // Upsert one submission per (task, scholar)
@@ -1182,38 +1185,39 @@ app.post("/api/tasks/:taskId/submit", authMiddleware, upload.single("file"), asy
           fullname: user.fullname,
           batchYear: user.batchYear,
           fileId: file._id,
-          bucket: 'tasks',
-          status: 'Pending'
+          bucket: "tasks",
+          status: "Pending"
         }
       },
       { upsert: true, new: true, runValidators: true }
     );
 
-    // If a prior submission exists, optionally update the file to the latest upload:
+    // If an older submission existed, update to the latest file
     if (submission && String(submission.fileId) !== String(file._id)) {
       submission.fileId = file._id;
       await submission.save();
     }
 
-    res.json({
+    return res.json({
       msg: "Task submitted successfully",
       submission,
       fileUrl: `/files/tasks/${file._id}`
     });
   } catch (err) {
-    // surface duplicate key error clearly
+    // If you added the compound unique index, this provides a nice conflict signal
     if (err && err.code === 11000) {
       return res.status(409).json({ msg: "You already submitted this task" });
     }
     console.error("Error submitting task:", err);
-    res.status(500).json({ msg: "Error submitting task", error: err.message });
+    return res.status(500).json({ msg: "Error submitting task", error: err.message });
   }
 });
 
 
 
 
-const ALLOWED_BUCKETS = new Set(['grades','submittedDocs','tasks','profilePics']);
+
+const ALLOWED_BUCKETS = new Set(['grades', 'submittedDocs', 'tasks', 'profilePics']);
 
 function assertBucket(name) {
   if (!ALLOWED_BUCKETS.has(name)) throw new Error('Invalid bucket');
@@ -1298,7 +1302,7 @@ app.get('/admin', authMiddleware, (req, res) => {
     // Redirect to login if not admin
     return res.redirect("/");
   }
-  res.sendFile(path.join(__dirname, '/adminPage/navigation.html')); 
+  res.sendFile(path.join(__dirname, '/adminPage/navigation.html'));
 });
 
 // --- Scholar dashboard
@@ -1307,7 +1311,7 @@ app.get('/scholar', authMiddleware, (req, res) => {
     // Redirect to login if not scholar
     return res.redirect("/");
   }
-  res.sendFile(path.join(__dirname, '/scholarPage/scholarNav.html')); 
+  res.sendFile(path.join(__dirname, '/scholarPage/scholarNav.html'));
 });
 
 // --- Task page (example direct link)
@@ -1375,7 +1379,7 @@ app.get("/api/events/partition", async (req, res) => {
       Event.find({ dateTime: { $gt: now } }).sort({ dateTime: 1 }).lean(),
       // small 1s buffer avoids boundary flicker
       Event.find({ dateTime: { $lte: new Date(now.getTime() - 1000) } })
-           .sort({ dateTime: -1 }).lean()
+        .sort({ dateTime: -1 }).lean()
     ]);
 
     res.json({
@@ -1475,18 +1479,18 @@ app.get("/events/:eventId/attendance", async (req, res) => {
 
 
 
-// --- API: Create Task
-app.post('/api/tasks', authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
-  const newTask = await Task.create(req.body);
-  res.status(201).json({ message: 'Task saved', task: newTask });
-});
+// // --- API: Create Task
+// app.post('/api/tasks', authMiddleware, async (req, res) => {
+//   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+//   const newTask = await Task.create(req.body);
+//   res.status(201).json({ message: 'Task saved', task: newTask });
+// });
 
-// --- API: Get Tasks
-app.get('/api/tasks', async (req, res) => {
-  const tasks = await Task.find().sort({ startDate: 1 });
-  res.json(tasks);
-});
+// // --- API: Get Tasks
+// app.get('/api/tasks', async (req, res) => {
+//   const tasks = await Task.find().sort({ startDate: 1 });
+//   res.json(tasks);
+// });
 
 // --- API: Create Announcement
 app.post("/announcements", async (req, res) => {
@@ -1515,7 +1519,7 @@ app.delete("/announcements/:id", authMiddleware, async (req, res) => {
     if (req.user.role !== "admin") return res.status(403).json({ message: "Access denied" });
 
     const deleted = await Announcement.findByIdAndDelete(req.params.id);
-    if(!deleted) return res.status(404).json({ message: "Announcement not found" });
+    if (!deleted) return res.status(404).json({ message: "Announcement not found" });
 
     res.json({ message: "Announcement deleted" });
   } catch (err) {
@@ -1557,7 +1561,7 @@ app.post("/api/tasks", authMiddleware, async (req, res) => {
 
 
 /* ============= START SERVER ============= */
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
