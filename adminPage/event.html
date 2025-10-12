@@ -597,7 +597,7 @@
       }
     });
 
-    const API_URL = 'http://localhost:3000';
+    const API_URL = window.location.origin;
 
     // Create Event (unchanged except final refresh)
     document.getElementById('eventForm').addEventListener('submit', async function (e) {

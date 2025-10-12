@@ -127,9 +127,11 @@ app.get('/', (req, res) => {
 });
 
 // ✅ Serve static files (CSS, JS, images, etc.)
-app.use(express.static(path.join(__dirname)));
+app.use('/assets',     express.static(path.join(__dirname, 'assets')));
+app.use('/adminPage',  express.static(path.join(__dirname, 'adminPage')));
+app.use('/scholarPage',express.static(path.join(__dirname, 'scholarPage')));
+// remove the "/uploads" static unless you actually have a folder for it
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB connection
 mongoose.connect(process.env.MONGO_URL)
