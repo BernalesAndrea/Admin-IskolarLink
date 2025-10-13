@@ -127,10 +127,13 @@ app.get('/', (req, res) => {
 });
 
 // ✅ Serve static files (CSS, JS, images, etc.)
-app.use('/assets',     express.static(path.join(__dirname, 'assets')));
-app.use('/adminPage',  express.static(path.join(__dirname, 'adminPage')));
-app.use('/scholarPage',express.static(path.join(__dirname, 'scholarPage')));
-// remove the "/uploads" static unless you actually have a folder for it
+// ✅ Keep only public folders
+app.use('/assets',      express.static(path.join(__dirname, 'assets')));
+app.use('/adminPage',   express.static(path.join(__dirname, 'adminPage')));
+app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage')));
+
+app.get('/', (req,res)=>res.sendFile(path.join(__dirname, 'login.html')));
+app.get('/signup.html', (req,res)=>res.sendFile(path.join(__dirname, 'signup.html'))); 
 
 
 // ✅ MongoDB connection
