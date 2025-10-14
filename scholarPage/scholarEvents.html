@@ -301,7 +301,7 @@
     // 4) Hook up attendance buttons
     document.getElementById('attendBtn').onclick = async () => {
       if (!currentEventId) return;
-      await fetch(`/api/events/${currentEventId}/attendance`, {
+      await fetch(`/events/${currentEventId}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -317,7 +317,7 @@
 
     document.getElementById('notAttendBtn').onclick = async () => {
       if (!currentEventId) return;
-      await fetch(`/api/events/${currentEventId}/attendance`, {
+      await fetch(`/events/${currentEventId}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

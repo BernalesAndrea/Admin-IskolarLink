@@ -1,74 +1,18 @@
 require("dotenv").config();
 
-["SMTP_HOST","SMTP_USER","SMTP_PASS","SMTP_PORT","SMTP_SECURE","SMTP_FROM"].forEach(k => {
-  const v = process.env[k];
-  const shown = v ? (k.includes("PASS") ? "[set]" : v) : "[missing]";
-  console.log(`ENV ${k}:`, shown);
-}); 
-
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { type } = require('os');
 const multer = require("multer");
 const fs = require("fs");
-const compression = require('compression');
-const helmet = require('helmet');
-const crypto = require("crypto");
-const rateLimit = require("express-rate-limit");
 
 
 const app = express();
-app.set('trust proxy', parseInt(process.env.TRUST_PROXY || '1', 10));
-
-app.use(helmet({
-  contentSecurityPolicy: false, 
-}));
-app.use(compression()); 
-
-// Body & cookie parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// ✅ MongoDB connection
-mongoose.connect(process.env.MONGO_URL, {
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
-  retryWrites: true,
-})
-  .then(async () => {
-    console.log('✅ Mongo connected');
-    verifyAndLog();
-
-    try {
-      const PasswordResetToken = require("./models/PasswordResetToken");
-      await PasswordResetToken.syncIndexes();   // <- drops dup & creates the TTL index
-      console.log("✅ PasswordResetToken indexes synced");
-    } catch (e) {
-      console.error("Index sync error:", e.message);
-    }
-  })
-  .catch(err => {
-    console.error('❌ Mongo connection error', err);
-    process.exit(1);
-  });
-
-// ---- Static assets (cache long) ----
-const staticOpts = { maxAge: '30d', immutable: true, etag: true };
-
-app.use('/assets',      express.static(path.join(__dirname, 'assets'), staticOpts));
-app.use('/adminPage',   express.static(path.join(__dirname, 'adminPage'), staticOpts));
-app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage'), staticOpts));
-
-// ---- Root pages (define ONCE) ----
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'login.html')));
-app.get('/signup.html', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
-app.get('/forgot.html', (req, res) => res.sendFile(path.join(__dirname, 'forgot.html')));
-app.get('/reset.html',  (req, res) => res.sendFile(path.join(__dirname, 'reset.html')));
+app.set('trust proxy', parseInt(process.env.TRUST_PROXY || '0', 10));
 
 
 const User = require("./models/User");
@@ -81,15 +25,8 @@ const SubmittedTask = require("./models/SubmittedTask");
 const allowancesRoutes = require("./routes/allowances");
 const bookRoutes = require("./routes/book");
 const tuitionTrackerRoutes = require("./routes/tuitionTracker");
-const PasswordResetToken = require("./models/PasswordResetToken");
 
-const { send, renderTemplate, verifyAndLog } = require("./services/mailer");
-
-
-// --- Token lifetimes ---
-const TOKEN_HOURS = Number(process.env.TOKEN_TTL_HOURS) || 1;
-const TOKEN_TTL   = `${TOKEN_HOURS}h`;                 // for jwt.sign({..}, { expiresIn })
-const TOKEN_MS    = TOKEN_HOURS * 60 * 60 * 1000;      // for cookie maxAge
+const TOKEN_TTL = `${process.env.TOKEN_TTL_HOURS || 1}h`;
 
 // --- JWT helpers (smooth rotation ready) ---
 const JWT_ISSUER = process.env.JWT_ISSUER || undefined;
@@ -127,25 +64,11 @@ function verifyJwt(token) {
   }
 }
 
-function hashToken(raw) {
-  return crypto.createHash("sha256").update(String(raw)).digest("hex");
-}
-function buildResetLink(userId, rawToken) {
-  const base = process.env.APP_BASE_URL || "http://localhost:3000";
-  return `${base}/reset.html?id=${userId}&token=${rawToken}`;
-}
 
-// Forgot Password Limiter
-const forgotLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 5,                   // 5 attempts per IP per window
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { msg: "If that email exists, we sent a reset link." } // same generic message
-});
-
-// Apply limiter just to this route:
-app.post("/auth/forgot", forgotLimiter, /* your handler */);
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 /* ============= MIDDLEWARE ============= */
 function authMiddleware(req, res, next) {
@@ -189,32 +112,34 @@ function authMiddleware(req, res, next) {
   }
 }
 
-if (process.env.NODE_ENV !== "production") {
-  app.get("/dev/test-email", async (req, res) => {
-    const { send } = require("./services/mailer");
-    try {
-      const r = await send({
-        to: process.env.TEST_EMAIL || "you@example.com",
-        subject: "✅ Brevo SMTP test",
-        html: "<p>If you can read this, Brevo SMTP works. 🎉</p>",
-      });
-      res.json({ ok: true, ...r });
-    } catch (e) {
-      res.status(500).json({ ok: false, error: e.message });
-    }
-  });
-}
 
-
-
-app.use("/api/messages", authMiddleware, messagesRoutes);
-app.use("/api/users", authMiddleware, usersRoutes);
+app.use("/api/messages", messagesRoutes);
+app.use("/api/users", usersRoutes);
 app.use("/api/tuition", authMiddleware, tuitionTrackerRoutes);
 app.use("/api/allowances", authMiddleware, allowancesRoutes);
 app.use("/api/book", authMiddleware, bookRoutes);
-app.use("/api/auth", require("./routes/auth.reset"));
 
 
+
+// ✅ Force root ("/") to always load login.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// ✅ Serve static files (CSS, JS, images, etc.)
+// ✅ Keep only public folders
+app.use('/assets',      express.static(path.join(__dirname, 'assets')));
+app.use('/adminPage',   express.static(path.join(__dirname, 'adminPage')));
+app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage')));
+
+app.get('/', (req,res)=>res.sendFile(path.join(__dirname, 'login.html')));
+app.get('/signup.html', (req,res)=>res.sendFile(path.join(__dirname, 'signup.html'))); 
+
+
+// ✅ MongoDB connection
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
 /* ============= SCHEMAS ============= */
 // Event Schema
@@ -348,7 +273,7 @@ app.post('/auth/login', async (req, res) => {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
-        maxAge: TOKEN_MS
+        maxAge: 60 * 60 * 1000
       });
     }
     if (user.role === "admin") {
@@ -356,7 +281,7 @@ app.post('/auth/login', async (req, res) => {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
-        maxAge: TOKEN_MS
+        maxAge: 60 * 60 * 1000
       });
     }
 
@@ -375,115 +300,6 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
-
-// Request a password reset link (generic response to avoid account enumeration)
-app.post("/auth/forgot", forgotLimiter, async (req, res) => {
-  // super explicit breadcrumbs
-  console.log("[/auth/forgot] body =", req.body, "NODE_ENV =", process.env.NODE_ENV);
-
-  const { email } = req.body || {};
-  const generic = { msg: "If that email exists, we sent a reset link." };
-
-  try {
-    const input = String(email || "").trim();
-    if (!input) {
-      console.log("[/auth/forgot] no email provided");
-      return res.json(generic);
-    }
-
-    // Case-insensitive exact match so mixed-case emails in DB still match
-    const user = await User.findOne({ email: input })
-      .collation({ locale: "en", strength: 2 }); // strength:2 => case-insensitive
-
-    console.log("[/auth/forgot] user found?", !!user, "for", input);
-    if (!user) return res.json(generic);
-
-    // Invalidate any existing active reset tokens for this user
-    await PasswordResetToken.updateMany(
-      { userId: user._id, used: false, expiresAt: { $gt: new Date() } },
-      { $set: { used: true, expiresAt: new Date() } }
-    );
-
-    // Create a new one-time token (valid 15 minutes)
-    const raw = crypto.randomBytes(32).toString("hex");
-    await new PasswordResetToken({
-      userId: user._id,
-      tokenHash: hashToken(raw),
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-      requestedIp: req.ip,
-      userAgent: req.headers["user-agent"] || ""
-    }).save();
-
-    const resetLink = buildResetLink(user._id.toString(), raw);
-
-    // Log while debugging
-    console.log("🔗 RESET LINK:", resetLink);
-
-    const html = renderTemplate({
-      title: "Reset your password",
-      intro: "We received a request to reset your IskolarLink password.",
-      cta: { label: "Reset Password", url: resetLink },
-      footerNote: "This link expires in 15 minutes. If you didn’t request this, you can ignore this email."
-    });
-    await send({ to: user.email, subject: "Reset your password", html });
-
-    return res.json(generic);
-  } catch (e) {
-    console.error("[/auth/forgot] error:", e);
-    return res.json(generic);
-  }
-});
-
-
-// (Optional) Pre-verify token for the UI
-app.get("/auth/reset/verify", async (req, res) => {
-  try {
-    const { id, token } = req.query || {};
-    if (!id || !token) return res.status(400).json({ ok: false });
-
-    const rec = await PasswordResetToken.findOne({
-      userId: id, used: false, expiresAt: { $gt: new Date() }
-    }).lean();
-
-    if (!rec || rec.tokenHash !== hashToken(token)) return res.status(400).json({ ok: false });
-    return res.json({ ok: true });
-  } catch {
-    return res.status(400).json({ ok: false });
-  }
-});
-
-// Complete the reset
-app.post("/auth/reset", async (req, res) => {
-  try {
-    const { userId, token, password } = req.body || {};
-    if (!userId || !token || !password) return res.status(400).json({ msg: "Missing fields" });
-    if (String(password).length < 8) return res.status(400).json({ msg: "Password must be at least 8 characters" });
-
-    const rec = await PasswordResetToken.findOne({
-      userId, used: false, expiresAt: { $gt: new Date() }
-    });
-
-    if (!rec || rec.tokenHash !== hashToken(String(token))) {
-      return res.status(400).json({ msg: "Invalid or expired reset link" });
-    }
-
-    const hashed = await bcrypt.hash(String(password), 10);
-    await User.updateOne({ _id: userId }, { $set: { password: hashed } });
-
-    // Invalidate all outstanding tokens for this user
-    await PasswordResetToken.updateMany({ userId }, { $set: { used: true, expiresAt: new Date() } });
-
-    // Clear any auth cookies just in case (covers both “token” and your role cookies)
-    res.clearCookie("token");
-    res.clearCookie("scholarToken");
-    res.clearCookie("adminToken");
-
-    return res.json({ msg: "Password has been reset. You can now sign in." });
-  } catch (e) {
-    return res.status(500).json({ msg: "Server error" });
-  }
-});
-
 
 // 🔑 Logout (safe for both roles)
 app.post("/auth/logout", (req, res) => {
@@ -1581,32 +1397,22 @@ app.get("/api/events/partition", async (req, res) => {
   }
 });
 
-// 🔁 One handler used for both URLs
-async function adminAttendanceHandler(req, res) {
-  if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
 
-  const event = await Event.findById(req.params.id)
-    .populate("attendees.scholar", "fullname email batchYear");
-  if (!event) return res.status(404).json({ msg: "Event not found" });
 
-  const attendCount = event.attendees.filter(a => a.status === "attend").length;
-  const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+// Get attendance counts
+app.get("/api/events/:id/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ msg: "Event not found" });
 
-  res.json({
-    eventId: event._id,
-    title: event.title,
-    attendCount,
-    notAttendCount,
-    attendees: event.attendees,
-  });
-}
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
 
-// ✅ Keep the original admin route
-app.get("/api/admin/events/:id/attendance", authMiddleware, adminAttendanceHandler);
-
-// ✅ Add this alias so older FE calls to /api/events/:id/attendance work too
-app.get("/api/events/:id/attendance", authMiddleware, adminAttendanceHandler);
-
+    res.json({ attendCount, notAttendCount });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
+  }
+});
 
 // Admin event page
 app.get("/admin/events", authMiddleware, (req, res) => {
@@ -1616,7 +1422,7 @@ app.get("/admin/events", authMiddleware, (req, res) => {
 
 
 // Scholar marks attendance
-app.post("/api/events/:id/attendance", authMiddleware, async (req, res) => {
+app.post("/events/:id/attendance", authMiddleware, async (req, res) => {
   try {
     console.log("Incoming attendance request:", req.params.id, req.user, req.body);
 
@@ -1654,9 +1460,45 @@ app.post("/api/events/:id/attendance", authMiddleware, async (req, res) => {
 });
 
 
+
+// ✅ Admin fetch attendance summary
+app.get("/events/:eventId/attendance", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId).populate("attendees.scholar", "fullname");
+    if (!event) return res.status(404).json({ msg: "Event not found" });
+
+    const attendCount = event.attendees.filter(a => a.status === "attend").length;
+    const notAttendCount = event.attendees.filter(a => a.status === "not_attend").length;
+
+    res.json({
+      eventId: event._id,
+      title: event.title,
+      attendCount,
+      notAttendCount,
+      attendees: event.attendees
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching attendance", error: err.message });
+  }
+});
+
+
+
+// // --- API: Create Task
+// app.post('/api/tasks', authMiddleware, async (req, res) => {
+//   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+//   const newTask = await Task.create(req.body);
+//   res.status(201).json({ message: 'Task saved', task: newTask });
+// });
+
+// // --- API: Get Tasks
+// app.get('/api/tasks', async (req, res) => {
+//   const tasks = await Task.find().sort({ startDate: 1 });
+//   res.json(tasks);
+// });
+
 // --- API: Create Announcement
-app.post("/announcements", authMiddleware, async (req, res) => {
-  if (req.user.role !== "admin") return res.status(403).json({ message: "Access denied" });
+app.post("/announcements", async (req, res) => {
   try {
     const newAnnouncement = new Announcement(req.body);
     await newAnnouncement.save();
