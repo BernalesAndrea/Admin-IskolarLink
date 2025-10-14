@@ -663,7 +663,9 @@
         try {
           const eventId = ev._id || ev.id;
           if (eventId) {
-            const r = await fetch(`${API_URL}/api/events/${eventId}/attendance`);
+            const r = await fetch(`${API_URL}/api/admin/events/${eventId}/attendance`, {
+            credentials: 'include'
+            });
             if (r.ok) {
               const d = await r.json();
               attend = d.attendCount ?? 0;

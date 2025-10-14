@@ -109,30 +109,34 @@
       background-color: #fff;
     }
 
-    .forgot-password {
-      margin: -5px 0 15px 0;
-      cursor: pointer;
-      text-align: center;
-      position: relative;
-      display: inline-block;
-    }
+    /* Forgot link styled like "Sign Up here" */
+.forgot-password {
+  margin: -5px 0 15px 0;
+  color: #923B3B;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  display: inline-block;
+}
 
-    .forgot-password::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      width: 100%;
-      background-color: black;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease-in-out;
-    }
+.forgot-password::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background-color: #923B3B; /* match brand red */
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-in-out;
+}
 
-    .forgot-password:hover::after {
-      transform: scaleX(1);
-    }
+.forgot-password:hover::after { transform: scaleX(1); }
+.forgot-password:visited { color: #923B3B; } /* keep color after visit */
+
 
     .submitButton {
       border: none;
@@ -222,7 +226,7 @@
           <label>Password</label>
         </div>
 
-        <p class="forgot-password">Forgot Password?</p>
+        <a class="forgot-password" href="/forgot.html">Forgot Password?</a>
 
         <a href="#" id="loginBtn" class="submitButton">Sign In</a>
 
