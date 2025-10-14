@@ -109,31 +109,6 @@
       background-color: #fff;
     }
 
-    .forgot-password {
-      margin: -5px 0 15px 0;
-      cursor: pointer;
-      text-align: center;
-      position: relative;
-      display: inline-block;
-    }
-
-    .forgot-password::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      width: 100%;
-      background-color: black;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease-in-out;
-    }
-
-    .forgot-password:hover::after {
-      transform: scaleX(1);
-    }
-
     .submitButton {
       border: none;
       background-color: #923B3B;
@@ -172,31 +147,33 @@
       font-size: 16px;
     }
 
-    .signup-container .continue-text {
-      color: #923B3B;
-      font-weight: bold;
-      text-decoration: none;
-      cursor: pointer;
-      position: relative;
-      display: inline-block;
-    }
+    .continue-text {
+  color: #923B3B;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+.continue-text::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background-color: #923B3B;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-in-out;
+}
+.continue-text:hover::after {
+  transform: scaleX(1);
+}
 
-    .signup-container .continue-text::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 2px;
-      width: 100%;
-      background-color: #923B3B;
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease-in-out;
-    }
+/* optional spacing so it sits nicely above the Sign In button */
+.forgot-link { margin: -5px 0 10px; }
 
-    .signup-container .continue-text:hover::after {
-      transform: scaleX(1);
-    }
   </style>
 </head>
 
@@ -222,7 +199,7 @@
           <label>Password</label>
         </div>
 
-        <p class="forgot-password">Forgot Password?</p>
+        <a href="/forgot.html" class="continue-text forgot-link">Forgot Password?</a>
 
         <a href="#" id="loginBtn" class="submitButton">Sign In</a>
 

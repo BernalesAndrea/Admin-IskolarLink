@@ -10,8 +10,12 @@ router.post("/signup", async (req, res) => {
   try {
     const { fullname, barangay, batchYear, email, password } = req.body;
 
+    email = String(email || "").trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    if (!emailOk) return res.status(400).json({ msg: "Please enter a valid email address" });
+
     // check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email }); // email already normalized
     if (existingUser) return res.status(400).json({ msg: "Email already registered" });
 
     // hash password

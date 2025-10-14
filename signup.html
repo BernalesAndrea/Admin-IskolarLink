@@ -259,7 +259,8 @@
         </div>
 
         <div class="textBox">
-          <input type="email" id="email" required>
+          <input type="email" id="email" required inputmode="email" autocomplete="email"
+            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
           <label>Email</label>
         </div>
 
@@ -282,8 +283,21 @@
       </div>
     </div>
   </div>
-</body>
+
 <script>
+  const emailEl = document.getElementById("email");
+
+  // Live validation message
+  emailEl.addEventListener("input", () => {
+    if (emailEl.validity.valueMissing) {
+      emailEl.setCustomValidity("Email is required");
+    } else if (emailEl.validity.typeMismatch || emailEl.validity.patternMismatch) {
+      emailEl.setCustomValidity("Enter a valid email address (e.g., name@example.com)");
+    } else {
+      emailEl.setCustomValidity("");
+    }
+  });
+
   document.getElementById("signupBtn").addEventListener("click", async function (event) {
     event.preventDefault();
 
@@ -311,5 +325,5 @@
     if (res.ok) window.location.href = "/";
   });
 </script>
-
+</body>
 </html>

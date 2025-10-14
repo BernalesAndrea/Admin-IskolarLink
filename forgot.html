@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forgot Password</title>
+  <style>
+    body {
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; margin: 0;
+      background-image: url('/assets/iskolarbg.png');
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .container1 {
+      height: auto; width: 100%; max-width: 500px;
+      background-image: linear-gradient(to right, rgba(146,59,59,0.6), rgba(255,255,255,0.6));
+      border-radius: 20px; display: flex; justify-content: center; align-items: center;
+      padding: 20px; margin: auto;
+    }
+    .container11 {
+      width: 100%; max-width: 400px; background-color: #fff;
+      border-radius: 20px; padding: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      text-align: center;
+    }
+    .logo { display: flex; justify-content: center; align-items: center; gap: 5px; margin-bottom: 10px; }
+    .logo img { height: 55px; width: auto; }
+    h1 { margin: 10px 0; }
+    .textBox { width: 100%; margin-bottom: 15px; position: relative; border-radius: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .textBox input, .submitButton { width: 100%; height: 45px; font-size: 16px; border-radius: 20px; box-sizing: border-box; }
+    .textBox input { border: 2px solid black; outline: none; padding: 0 12px; color: black; background: #fff; }
+    .textBox label {
+      position: absolute; top: 50%; left: 12px; transform: translateY(-50%);
+      font-size: 16px; color: black; background-color: white; padding: 0 5px; pointer-events: none; transition: 0.3s;
+    }
+    .textBox input:focus ~ label, .textBox input:valid ~ label { top: 0; font-size: 12px; background-color: #fff; }
+    .submitButton {
+      border: none; background-color: #923B3B; color: white; cursor: pointer; margin-bottom: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2); text-decoration: none; line-height: 45px; display: block; text-align: center;
+    }
+    .link { color: #923B3B; font-weight: bold; text-decoration: none; cursor: pointer; }
+    .msg { font-size: 14px; margin: 6px 0 12px; min-height: 18px; }
+    .msg.ok { color: #0a7a2a; }
+    .msg.err { color: #a00000; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container1">
+    <div class="container11">
+      <div class="logo">
+        <img src="/assets/iskolarlink.png" alt="Iskolar Link Logo">
+        <img src="/assets/iskologo.png" alt="Isko Logo">
+        <img src="/assets/citylogo.png" alt="City Logo">
+      </div>
+
+      <h1>Forgot Password</h1>
+      <p>Enter your registered email. If it exists, you can set a new password.</p>
+
+      <!-- Step 1: Email check -->
+      <div id="stepEmail">
+        <div class="textBox">
+          <input type="email" id="fpEmail" required />
+          <label>Email</label>
+        </div>
+        <a href="#" id="checkBtn" class="submitButton">Continue</a>
+        <div id="emailMsg" class="msg"></div>
+      </div>
+
+      <!-- Step 2: New password -->
+      <div id="stepReset" class="hidden">
+        <div class="textBox">
+          <input type="password" id="newPass" required />
+          <label>New Password</label>
+        </div>
+        <div class="textBox">
+          <input type="password" id="confirmPass" required />
+          <label>Confirm New Password</label>
+        </div>
+        <a href="#" id="resetBtn" class="submitButton">Update Password</a>
+        <div id="resetMsg" class="msg"></div>
+      </div>
+
+      <p><a class="link" href="/">Back to Login</a></p>
+    </div>
+  </div>
+
+<script>
+  const stepEmail = document.getElementById('stepEmail');
+  const stepReset = document.getElementById('stepReset');
+  const fpEmail = document.getElementById('fpEmail');
+  const emailMsg = document.getElementById('emailMsg');
+  const resetMsg = document.getElementById('resetMsg');
+
+  document.getElementById('checkBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    emailMsg.className = 'msg';
+    emailMsg.textContent = '';
+
+    const email = fpEmail.value.trim();
+    if (!email) {
+      emailMsg.classList.add('err');
+      emailMsg.textContent = 'Please enter your email.';
+      return;
+    }
+
+    try {
+      const res = await fetch('/auth/forgot-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        emailMsg.classList.add('ok');
+        emailMsg.textContent = 'Email found. You can now set a new password below.';
+        stepReset.classList.remove('hidden');
+      } else {
+        emailMsg.classList.add('err');
+        emailMsg.textContent = data.msg || 'Email does not exist.';
+        stepReset.classList.add('hidden');
+      }
+    } catch (err) {
+      emailMsg.classList.add('err');
+      emailMsg.textContent = 'Something went wrong. Please try again.';
+    }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    resetMsg.className = 'msg';
+    resetMsg.textContent = '';
+
+    const email = fpEmail.value.trim();
+    const p1 = document.getElementById('newPass').value.trim();
+    const p2 = document.getElementById('confirmPass').value.trim();
+
+    if (!p1 || !p2) {
+      resetMsg.classList.add('err');
+      resetMsg.textContent = 'Please enter and confirm your new password.';
+      return;
+    }
+    if (p1 !== p2) {
+      resetMsg.classList.add('err');
+      resetMsg.textContent = 'Passwords do not match.';
+      return;
+    }
+    if (p1.length < 8) {
+      resetMsg.classList.add('err');
+      resetMsg.textContent = 'Password must be at least 8 characters.';
+      return;
+    }
+
+    try {
+      const res = await fetch('/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: p1 })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        resetMsg.classList.add('ok');
+        resetMsg.textContent = data.msg || 'Password updated. Redirecting to login...';
+        setTimeout(() => { window.location.href = '/'; }, 1200);
+      } else {
+        resetMsg.classList.add('err');
+        resetMsg.textContent = data.msg || 'Failed to update password.';
+      }
+    } catch (err) {
+      resetMsg.classList.add('err');
+      resetMsg.textContent = 'Something went wrong. Please try again.';
+    }
+  });
+</script>
+</body>
+</html>

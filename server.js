@@ -134,6 +134,8 @@ app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage')));
 
 app.get('/', (req,res)=>res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup.html', (req,res)=>res.sendFile(path.join(__dirname, 'signup.html'))); 
+app.get('/forgot.html', (req, res) => res.sendFile(path.join(__dirname, 'forgot.html')));
+
 
 
 // ✅ MongoDB connection
@@ -222,9 +224,13 @@ app.post('/auth/signup', async (req, res) => {
   try {
     const { fullname, barangay, batchYear, email, password } = req.body;
 
+    email = String(email || "").trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    if (!emailOk) return res.status(400).json({ msg: "Please enter a valid email address" });
+
     // check existing
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ msg: "Email already exists" });
+    const existingUser = await User.findOne({ email }); // email already normalized
+    if (existingUser) return res.status(400).json({ msg: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -300,6 +306,48 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+// 🔎 Step 1: check if email exists
+app.post('/auth/forgot-check', async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ msg: 'Email is required' });
+
+    const found = await User.exists({ email });
+    if (!found) return res.status(404).json({ msg: 'Email does not exist' });
+
+    return res.json({ msg: 'Email found' });
+  } catch (err) {
+    console.error('POST /auth/forgot-check error:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// 🔐 Step 2: set new password (DEMO ONLY: no email token)
+app.post('/auth/reset-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email || !password) return res.status(400).json({ msg: 'Email and password are required' });
+    if (String(password).length < 8) return res.status(400).json({ msg: 'Password must be at least 8 characters' });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ msg: 'Email does not exist' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    user.password = hashed;
+    await user.save();
+
+    // Optional: clear any login cookies if they exist
+    res.clearCookie('scholarToken', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+    res.clearCookie('adminToken', {   httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+
+    return res.json({ msg: 'Password updated. You can now sign in.' });
+  } catch (err) {
+    console.error('POST /auth/reset-password error:', err);
+    return res.status(500).json({ msg: 'Server error' });
+  }
+});
+
 
 // 🔑 Logout (safe for both roles)
 app.post("/auth/logout", (req, res) => {
