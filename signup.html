@@ -313,6 +313,12 @@
       return;
     }
 
+    if (!fullname || !barangay || !batchYear || !email || !password) {
+      alert("Please complete all fields");
+      return;
+    }
+
+
     const res = await fetch("/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

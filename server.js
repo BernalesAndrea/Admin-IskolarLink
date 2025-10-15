@@ -25,6 +25,7 @@ const SubmittedTask = require("./models/SubmittedTask");
 const allowancesRoutes = require("./routes/allowances");
 const bookRoutes = require("./routes/book");
 const tuitionTrackerRoutes = require("./routes/tuitionTracker");
+const authRoutes = require("./routes/auth");
 
 const TOKEN_TTL = `${process.env.TOKEN_TTL_HOURS || 1}h`;
 
@@ -118,6 +119,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/tuition", authMiddleware, tuitionTrackerRoutes);
 app.use("/api/allowances", authMiddleware, allowancesRoutes);
 app.use("/api/book", authMiddleware, bookRoutes);
+app.use("/auth", authRoutes);
 
 
 
@@ -217,154 +219,6 @@ async function putToGridFS({ buffer, filename, bucketName, contentType, metadata
     uploadStream.end(buffer);
   });
 }
-
-
-/* ============= AUTH ROUTES ============= */
-app.post('/auth/signup', async (req, res) => {
-  try {
-    const { fullname, barangay, batchYear, email, password } = req.body;
-
-    email = String(email || "").trim().toLowerCase();
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
-    if (!emailOk) return res.status(400).json({ msg: "Please enter a valid email address" });
-
-    // check existing
-    const existingUser = await User.findOne({ email }); // email already normalized
-    if (existingUser) return res.status(400).json({ msg: "Email already registered" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({
-      fullname,
-      barangay,
-      batchYear,
-      // course,
-      // schoolName,
-      email,
-      password: hashedPassword,
-      role: "scholar",
-      verified: false // 🔑 unverified initially
-    });
-
-    await newUser.save();
-    res.json({ msg: "Registration successful! Await admin verification." });
-  } catch (err) {
-    res.status(500).json({ msg: "Error creating user", error: err.message });
-  }
-});
-
-
-// 🔑 Login
-app.post('/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
-
-    // 🔑 block unverified scholars
-    if (user.role === "scholar" && !user.verified) {
-      return res.status(403).json({ msg: "Your account is awaiting admin verification." });
-    }
-
-    // replace jwt.sign(... process.env.JWT_SECRET ...)
-    const token = signJwt({ id: user._id, role: user.role }, { expiresIn: TOKEN_TTL });
-
-
-    if (user.role === "scholar") {
-      res.cookie("scholarToken", token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 1000
-      });
-    }
-    if (user.role === "admin") {
-      res.cookie("adminToken", token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 1000
-      });
-    }
-
-    let redirectUrl = "/scholar";
-    if (user.role === "admin") redirectUrl = "/admin";
-
-    res.json({
-      msg: "Login successful",
-      redirect: redirectUrl,
-      userId: user._id.toString(),  // ✅ this is what frontend should store
-      role: user.role
-    });
-
-
-  } catch (err) {
-    res.status(500).json({ msg: "Server error" });
-  }
-});
-
-// 🔎 Step 1: check if email exists
-app.post('/auth/forgot-check', async (req, res) => {
-  try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
-    if (!email) return res.status(400).json({ msg: 'Email is required' });
-
-    const found = await User.exists({ email });
-    if (!found) return res.status(404).json({ msg: 'Email does not exist' });
-
-    return res.json({ msg: 'Email found' });
-  } catch (err) {
-    console.error('POST /auth/forgot-check error:', err);
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-// 🔐 Step 2: set new password (DEMO ONLY: no email token)
-app.post('/auth/reset-password', async (req, res) => {
-  try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
-    if (!email || !password) return res.status(400).json({ msg: 'Email and password are required' });
-    if (String(password).length < 8) return res.status(400).json({ msg: 'Password must be at least 8 characters' });
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ msg: 'Email does not exist' });
-
-    const hashed = await bcrypt.hash(password, 10);
-    user.password = hashed;
-    await user.save();
-
-    // Optional: clear any login cookies if they exist
-    res.clearCookie('scholarToken', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
-    res.clearCookie('adminToken', {   httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
-
-    return res.json({ msg: 'Password updated. You can now sign in.' });
-  } catch (err) {
-    console.error('POST /auth/reset-password error:', err);
-    return res.status(500).json({ msg: 'Server error' });
-  }
-});
-
-
-// 🔑 Logout (safe for both roles)
-app.post("/auth/logout", (req, res) => {
-  res.clearCookie("scholarToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax"
-  });
-
-  res.clearCookie("adminToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax"
-  });
-
-  res.json({ msg: "Logged out successfully", redirect: "/" });
-});
 
 
 // Verify scholar by ID + set scholar type
