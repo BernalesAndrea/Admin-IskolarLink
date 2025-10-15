@@ -5,14 +5,14 @@ const User = require("../models/User");
 const TuitionTracker = require("../models/TuitionTracker");
 
 // helper for remaining budget
-const computeRemaining = (budget = 0, paid = 0, reimb = 0) => budget - (paid + reimb);
+const computeRemaining = (budget = 0, paid = 0) => budget - paid;
+
 
 // ✨ helper: append a history record
 async function pushHistory(trackerDoc, action, amount) {
   const budget = trackerDoc.allottedBudget || 0;
   const paid   = trackerDoc.totalPaid || 0;
-  const reimb  = trackerDoc.totalReimbursed || 0;
-  const remaining = computeRemaining(budget, paid, reimb);
+  const remaining = computeRemaining(budget, paid);
 
   // push (don’t await save twice if caller will save anyway)
   await TuitionTracker.updateOne(
@@ -53,7 +53,6 @@ async function ensureTuitionDocsForVerified() {
       batchYear: u.batchYear || "",
       allottedBudget: 0,
       totalPaid: 0,
-      totalReimbursed: 0 
     }));
 
   if (toInsert.length) await TuitionTracker.insertMany(toInsert);
@@ -72,18 +71,16 @@ router.get("/", requireAdmin, async (req, res) => {
     const trackers = await TuitionTracker.find({
       scholar: { $in: scholars.map(s => s._id) }
     })
-      .select("scholar allottedBudget totalPaid totalReimbursed updatedAt") // 👈 include
+      .select("scholar allottedBudget totalPaid updatedAt") // 👈 include
       .lean();
 
     const map = new Map(trackers.map(t => [String(t.scholar), t]));
 
     const merged = scholars.map(s => {
-      const t = map.get(String(s._id)) || { allottedBudget: 0, totalPaid: 0, totalReimbursed: 0 };
+      const t = map.get(String(s._id)) || { allottedBudget: 0, totalPaid: 0,};
       const budget = t.allottedBudget || 0;
       const paid = t.totalPaid || 0;
-      const reimb = t.totalReimbursed || 0;
-      const effectivePaid = paid + reimb;
-      const remaining = computeRemaining(budget, paid, reimb);
+      const remaining = computeRemaining(budget, paid);
 
       return {
         _id: String(s._id),
@@ -91,7 +88,6 @@ router.get("/", requireAdmin, async (req, res) => {
         batchYear: s.batchYear || "",
         allottedBudget: budget,
         totalPaid: paid,
-        totalReimbursed: reimb,   // 👈 expose to FE
         remaining,
         updatedAt: t.updatedAt || null
       };
@@ -136,8 +132,7 @@ router.put("/:userId/budget", requireAdmin, async (req, res) => {
 
     const budget = updated.allottedBudget || 0;
     const paid = updated.totalPaid || 0;
-    const reimb = updated.totalReimbursed || 0;
-    const remaining = computeRemaining(budget, paid, reimb);
+    const remaining = computeRemaining(budget, paid);
 
     res.json({ msg: "Budget updated", tracker: { ...updated.toObject(), remaining } });
   } catch (err) {
@@ -169,7 +164,6 @@ router.put("/:userId/pay", requireAdmin, async (req, res) => {
           fullname: u.fullname,
           batchYear: u.batchYear || "",
           allottedBudget: 0,
-          totalReimbursed: 0
         },
         $inc: { totalPaid: inc }
       },
@@ -181,8 +175,7 @@ router.put("/:userId/pay", requireAdmin, async (req, res) => {
 
     const budget = updated.allottedBudget || 0;
     const paid = updated.totalPaid || 0;
-    const reimb = updated.totalReimbursed || 0;
-    const remaining = computeRemaining(budget, paid, reimb);
+    const remaining = computeRemaining(budget, paid);
 
     res.json({ msg: "Payment recorded", tracker: { ...updated.toObject(), remaining } });
   } catch (err) {
@@ -190,59 +183,6 @@ router.put("/:userId/pay", requireAdmin, async (req, res) => {
     res.status(500).json({ msg: "Failed to record payment", error: err.message });
   }
 });
-
-
-
-/** PUT /api/tuition/:userId/reimburse  -> increment totalReimbursed */
-router.put("/:userId/reimburse", requireAdmin, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const inc = Number(req.body.addAmount);
-    if (!Number.isFinite(inc) || inc <= 0) {
-      return res.status(400).json({ msg: "Invalid addAmount" });
-    }
-
-    const u = await User.findOne({ _id: userId, role: "scholar", verified: true })
-      .select("_id fullname batchYear");
-    if (!u) return res.status(404).json({ msg: "Scholar not found or not verified" });
-
-    const updated = await TuitionTracker.findOneAndUpdate(
-      { scholar: u._id },
-      {
-        $setOnInsert: {
-          scholar: u._id,
-          fullname: u.fullname,
-          batchYear: u.batchYear || "",
-          allottedBudget: 0,
-          totalPaid: 0
-        },
-        $inc: { totalReimbursed: inc }
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
-    // Clamp (safety)
-    if ((updated.totalReimbursed || 0) > (updated.totalPaid || 0)) {
-      updated.totalReimbursed = updated.totalPaid || 0;
-      await updated.save();
-    }
-
-    // ✨ log history
-    await pushHistory(updated, "Reimburse", inc);
-
-    const budget = updated.allottedBudget || 0;
-    const paid = updated.totalPaid || 0;
-    const reimb = updated.totalReimbursed || 0;
-    const remaining = computeRemaining(budget, paid, reimb);
-
-    res.json({ msg: "Reimbursement recorded", tracker: { ...updated.toObject(), remaining } });
-  } catch (err) {
-    console.error("PUT /api/tuition/:userId/reimburse error:", err);
-    res.status(500).json({ msg: "Failed to record reimbursement", error: err.message });
-  }
-});
-
-
 
 
 /** PUT /api/tuition/:userId/reset  -> zero out fields */
@@ -256,7 +196,7 @@ router.put("/:userId/reset", requireAdmin, async (req, res) => {
 
     const updated = await TuitionTracker.findOneAndUpdate(
       { scholar: u._id },
-      { $set: { allottedBudget: 0, totalPaid: 0, totalReimbursed: 0 } },
+      { $set: { allottedBudget: 0, totalPaid: 0,} },
       { upsert: true, new: true }
     );
 

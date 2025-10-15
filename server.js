@@ -964,10 +964,10 @@ app.delete("/api/documents/:id", authMiddleware, async (req, res) => {
       normalizedStatus
     });
 
-    if (normalizedStatus !== "pending") {
+    if (normalizedStatus !== "pending" && normalizedStatus !== "rejected") {
       return res
         .status(400)
-        .json({ msg: "Only pending documents can be deleted", statusSeen: statusStr });
+        .json({ msg: "Only Pending or Rejected documents can be deleted", statusSeen: statusStr });
     }
 
     // Delete GridFS file if present

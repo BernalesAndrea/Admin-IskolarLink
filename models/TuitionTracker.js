@@ -7,12 +7,11 @@ const TuitionTrackerSchema = new mongoose.Schema(
     batchYear:      { type: String },
     allottedBudget: { type: Number, default: 0, min: 0 },
     totalPaid:      { type: Number, default: 0, min: 0 },
-    totalReimbursed:{ type: Number, default: 0, min: 0 },
 
-    // ✨ NEW: simple embedded history log
+    // History: "Set Budget" | "Pay" | "Reset"
     history: [{
       date: { type: Date, default: Date.now, index: true },
-      action: { type: String, required: true },    // "Set Budget" | "Pay" | "Reimburse" | "Reset"
+      action: { type: String, required: true },
       amount: { type: Number, default: 0 },
       remaining: { type: Number, default: 0 }
     }]
@@ -22,9 +21,8 @@ const TuitionTrackerSchema = new mongoose.Schema(
 
 TuitionTrackerSchema.virtual("remaining").get(function () {
   const budget = this.allottedBudget || 0;
-  const paid = this.totalPaid || 0;
-  const reimb = this.totalReimbursed || 0;
-  return budget - (paid + reimb);
+  const paid   = this.totalPaid || 0;
+  return budget - paid;
 });
 
 module.exports = mongoose.model("TuitionTracker", TuitionTrackerSchema);

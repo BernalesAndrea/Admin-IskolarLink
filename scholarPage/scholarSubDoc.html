@@ -492,6 +492,11 @@
   </div>
 
   <script>
+
+    function fmtDT(v) {
+      const d = new Date(v);
+      return Number.isFinite(d.getTime()) ? d.toLocaleString() : "";
+    }
     // ---- Helpers: build GridFS URL and handle legacy filePath fallback
     function fileUrl(bucket, id, opts = { download: false }) {
       if (!bucket || !id) return null;
@@ -623,12 +628,15 @@
           const url = resolveDocUrl(doc);
           const fullName = (doc.scholar && doc.scholar.fullname) ? doc.scholar.fullname : (doc.fullname || "Unknown");
           const batch = (doc.scholar && doc.scholar.batchYear) ? doc.scholar.batchYear : (doc.batchYear || "N/A");
-          const date = doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleString() : "";
-          const status = (doc.status || "Pending");
+          const submittedAt = doc.createdAt || doc.uploadDate || doc.dateSubmitted;
+          const date = fmtDT(submittedAt);
+          const statusRaw = doc.status || "Pending";
+          const status = String(statusRaw).trim();
           const statusCls = status.toLowerCase();
 
-          // Only show delete button if status is Pending
-          const showDelete = status.toLowerCase() === "pending";
+          // Show delete when Pending OR Rejected
+          const showDelete = statusCls === "pending" || statusCls === "rejected";
+
 
           // show reason if rejected + reason exists
           const reasonText = getRejectReason(doc);
@@ -647,7 +655,7 @@
             </p>
             ${reasonMarkup}
             ${showDelete
-              ? `<button class="deleteBtn" data-docid="${doc._id}" title="Delete this file (Pending only)">
+              ? `<button class="deleteBtn" data-docid="${doc._id}" title="Delete this file (Pending/Rejected only)">
                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                      <polyline points="3 6 5 6 21 6"></polyline>
@@ -676,7 +684,7 @@
       const docId = btn.getAttribute("data-docid");
       if (!docId) return;
 
-      const ok = confirm("Delete this pending document? This cannot be undone.");
+      const ok = confirm("Delete this document? Only Pending or Rejected documents can be deleted. This cannot be undone.");
       if (!ok) return;
 
       try {
