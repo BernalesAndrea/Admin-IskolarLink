@@ -325,12 +325,14 @@
   </label>
 
   <!-- Iframe where admin pages will load -->
-  <iframe id="page-frame" src="/adminPage/home.html"></iframe>
+  <iframe id="page-frame" src="/adminPage/home.html?v=3"></iframe>
+
 
   <script>
     function loadIframe(page) {
-      document.getElementById("page-frame").src = page;
-    }
+    const url = page + (page.includes('?') ? '&' : '?') + 'v=' + Date.now();
+    document.getElementById("page-frame").src = url;
+  }
 
     async function loadProfile() {
       try {

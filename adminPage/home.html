@@ -523,62 +523,57 @@
   }
 
   function renderBarangayChart(barangayPairs) {
-    const ctx = document.getElementById("barangayChart");
-    const sub = document.getElementById("barangaySubtitle");
-    const fallback = document.getElementById("barangayFallback");
-    const fallbackBody = document.getElementById("barangayFallbackBody");
+  const ctx = document.getElementById("barangayChart");
+  const sub = document.getElementById("barangaySubtitle");
+  const fallback = document.getElementById("barangayFallback");
+  const fallbackBody = document.getElementById("barangayFallbackBody");
 
-    const total = barangayPairs.reduce((a, [,n]) => a + n, 0);
+  // barangayPairs is already sliced to Top 3
+  const labels = barangayPairs.map(([b]) => b);
+  const values = barangayPairs.map(([, n]) => n);
 
-    // Show top N + "Others" to keep it readable
-    const TOP_N = 8;
-    const top = barangayPairs.slice(0, TOP_N);
-    const restSum = barangayPairs.slice(TOP_N).reduce((a, [,n]) => a + n, 0);
-    const labels = top.map(([b]) => b).concat(restSum ? ["Others"] : []);
-    const values = top.map(([,n]) => n).concat(restSum ? [restSum] : []);
+  sub.textContent = labels.length
+    ? `Top ${labels.length} barangays`
+    : "";
 
-    sub.textContent = total ? `Top ${Math.min(TOP_N, barangayPairs.length)} of ${barangayPairs.length} barangays` : "";
-
-    // Fallback (no Chart.js)
-    if (!ctx || !window.Chart) {
-      fallback.style.display = "block";
-      fallbackBody.innerHTML = "";
-      const rows = top.concat(restSum ? [["Others", restSum]] : []);
-      rows.forEach(([b, n]) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td style="padding:6px;">${b}</td><td style="padding:6px; text-align:right;">${n}</td>`;
-        fallbackBody.appendChild(tr);
-      });
-      return;
-    } else {
-      fallback.style.display = "none";
-    }
-
-    if (barangayChart) barangayChart.destroy();
-    barangayChart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Scholars",
-          data: values,
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { ticks: { color: "#333" } },
-          y: { beginAtZero: true, ticks: { precision:0 } }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: {
-            label: (c) => ` ${c.raw} scholar${c.raw===1?"":"s"}`
-          }}
-        }
-      }
+  // Fallback table if Chart.js missing
+  if (!ctx || !window.Chart) {
+    fallback.style.display = "block";
+    fallbackBody.innerHTML = "";
+    barangayPairs.forEach(([b, n]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td style="padding:6px;">${b}</td><td style="padding:6px; text-align:right;">${n}</td>`;
+      fallbackBody.appendChild(tr);
     });
+    return;
+  } else {
+    fallback.style.display = "none";
   }
+
+  if (barangayChart) barangayChart.destroy();
+  barangayChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Scholars",
+        data: values
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { ticks: { color: "#333" } },
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => ` ${c.raw} scholar${c.raw === 1 ? "" : "s"}` } }
+      }
+    }
+  });
+}
+
 
   async function loadScholarStats() {
     try {
@@ -589,7 +584,7 @@
       const safe = Array.isArray(scholars) ? scholars : [];
 
       const typeCounts = groupByType(safe);
-      const barangayPairs = groupByBarangay(safe);
+      const barangayPairs = groupByBarangay(safe).slice(0, 5);
 
       setQuickStats(typeCounts);
       renderTypeChart(typeCounts);
