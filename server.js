@@ -651,19 +651,14 @@ app.delete("/api/grades/:id", authMiddleware, async (req, res) => {
 });
 
 
-
-
-
-
-
-// ✅ Admin fetch all submitted grades
 // Admin: all submitted grades
 app.get("/api/admin/grades", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
   try {
     const grades = await Grade.find()
       .populate("scholar", "fullname batchYear email")
-      .sort({ schoolYear: -1, semester: -1, academicTerm: 1, createdAt: -1 }); // added academicTerm
+      // ✅ newest submissions at the very top, always
+      .sort({ createdAt: -1, dateSubmitted: -1, _id: -1 });
     res.json(grades);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching grades", error: err.message });

@@ -26,4 +26,6 @@ const gradeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+gradeSchema.index({ createdAt: -1, dateSubmitted: -1 });
+
 module.exports = mongoose.model("Grade", gradeSchema);

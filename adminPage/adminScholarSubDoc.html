@@ -621,58 +621,72 @@ toShow.forEach(doc => {
 
 
     /* ---------- Fetch & render: grades ---------- */
-    /* ---------- Fetch & render: grades ---------- */
-    async function fetchGrades() {
-      try {
-        const res = await fetch("/api/admin/grades", { credentials: "include" });
-        if (!res.ok) throw new Error("Failed to fetch grades");
-        const grades = await res.json();
-        cache.grades = Array.isArray(grades) ? grades : [];
-const tbody = document.getElementById("grades-table-body");
-tbody.innerHTML = "";
+     async function fetchGrades() {
+    try {
+      const res = await fetch("/api/admin/grades", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch grades");
+      const grades = await res.json();
+      cache.grades = Array.isArray(grades) ? grades : [];
 
-// 🔽 Hide accepted grades in the verification list
-// Hide accepted & rejected grades in the verification list
-const toShow = grades.filter(g => {
-  const s = String(g.status ?? "Pending").trim().toLowerCase();
-  return !["accepted", "rejected"].includes(s);
-});
+      const tbody = document.getElementById("grades-table-body");
+      tbody.innerHTML = "";
 
+      // hide accepted & rejected from verification list
+      const toShow = grades.filter(g => {
+        const s = String(g.status ?? "Pending").trim().toLowerCase();
+        return !["accepted", "rejected"].includes(s);
+      });
 
-toShow.forEach(grade => {
-  const attachmentUrl = resolveGradeAttachmentUrl(grade);
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
-    <td>${grade.scholar ? (grade.scholar.batchYear ?? "") : (grade.batchYear ?? "")}</td>
-    <td>${grade.schoolYear ?? ""}</td>
-    <td>${grade.semester ?? ""}</td>
-    <td>
-      ${attachmentUrl
-        ? `<button class="action-btn" style="background:#007bff;color:#fff;"
-            onclick="previewDoc('${attachmentUrl.replace(/'/g, "\\'")}')">
-            <i class="fa fa-eye"></i> Preview
-           </button>`
-        : 'No file'}
-    </td>
-    <td>
-      <div class="status-actions">
-        <span>${grade.status || 'Pending'}</span>
-        <button class="action-btn accept" onclick="updateGradeStatus('${grade._id}','accepted')">
-          <i class="fa-solid fa-check"></i>
-        </button>
-        <button class="action-btn reject" onclick="updateGradeStatus('${grade._id}','rejected')">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-    </td>`;
-  tbody.appendChild(row);
-});
-      } catch (err) {
-        console.error("Error fetching grades:", err);
-      }
+      // ✅ helper to safely get a timestamp
+      const safeTime = (g) => {
+        const d = g.createdAt || g.dateSubmitted;
+        const t = d ? Date.parse(d) : NaN;
+        if (!Number.isNaN(t)) return t;
+        // fallback: derive time from ObjectId if it's a 24-hex string
+        const id = (g._id || "") + "";
+        if (id.length === 24) {
+          const seconds = parseInt(id.slice(0, 8), 16);
+          if (Number.isFinite(seconds)) return seconds * 1000;
+        }
+        return 0;
+      };
+
+      // ✅ newest first
+      toShow.sort((a, b) => safeTime(b) - safeTime(a));
+
+      toShow.forEach(grade => {
+        const attachmentUrl = resolveGradeAttachmentUrl(grade);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
+          <td>${grade.scholar ? (grade.scholar.batchYear ?? "") : (grade.batchYear ?? "")}</td>
+          <td>${grade.schoolYear ?? ""}</td>
+          <td>${grade.semester ?? ""}</td>
+          <td>
+            ${attachmentUrl
+              ? `<button class="action-btn" style="background:#007bff;color:#fff;"
+                  onclick="previewDoc('${attachmentUrl.replace(/'/g, "\\'")}')">
+                  <i class="fa fa-eye"></i> Preview
+                 </button>`
+              : 'No file'}
+          </td>
+          <td>
+            <div class="status-actions">
+              <span>${grade.status || 'Pending'}</span>
+              <button class="action-btn accept" onclick="updateGradeStatus('${grade._id}','accepted')">
+                <i class="fa-solid fa-check"></i>
+              </button>
+              <button class="action-btn reject" onclick="updateGradeStatus('${grade._id}','rejected')">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </td>`;
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      console.error("Error fetching grades:", err);
     }
-
+  }
 
     /* ---------- Fetch & render: scholar folders ---------- */
     async function fetchScholarFolders() {
