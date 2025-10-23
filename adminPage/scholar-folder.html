@@ -135,9 +135,15 @@
     }
 
     /* keep your inner styles */
-    h1, h2 { color: var(--maroon); }
+    h1,
+    h2 {
+      color: var(--maroon);
+    }
 
-    .meta { margin-bottom: 12px; color: #333 }
+    .meta {
+      margin-bottom: 12px;
+      color: #333
+    }
 
     .tabs {
       display: flex;
@@ -159,7 +165,11 @@
       color: #fff
     }
 
-    ul.docs { list-style: none; padding: 0; margin: 0; }
+    ul.docs {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
     ul.docs li {
       padding: 8px 0;
@@ -169,9 +179,15 @@
       align-items: center;
     }
 
-    a.preview { text-decoration: none; color: #007bff }
+    a.preview {
+      text-decoration: none;
+      color: #007bff
+    }
 
-    .small { font-size: 13px; color: #666 }
+    .small {
+      font-size: 13px;
+      color: #666
+    }
 
     .btn {
       padding: 8px 10px;
@@ -264,9 +280,9 @@
 
       <div class="tabs" id="folderTabs">
         <div class="tab active" data-target="all">All</div>
+        <div class="tab" data-target="coe">Certificate of Enrollment/Registration</div>
         <div class="tab" data-target="scanned-grades">Scanned Grades</div>
-        <div class="tab" data-target="soa">Statement of Account</div>
-        <div class="tab" data-target="coe">Certificate of Enrollment</div>
+        <div class="tab" data-target="soa">Statement of Accounts</div>
         <div class="tab" data-target="others">Others</div>
       </div>
 
@@ -315,6 +331,26 @@
   </div>
 
   <script>
+
+    // Keep All first and Others last; sort the middle ones by label
+    (function alphabetizeTabs() {
+      const container = document.getElementById('folderTabs');
+      const tabs = Array.from(container.querySelectorAll('.tab'));
+
+      const first = tabs.find(t => t.dataset.target === 'all');
+      const last = tabs.find(t => t.dataset.target === 'others');
+      const middle = tabs.filter(t => t !== first && t !== last);
+
+      middle.sort((a, b) =>
+        a.textContent.trim().localeCompare(b.textContent.trim(), undefined, { sensitivity: 'base' })
+      );
+
+      container.innerHTML = '';
+      if (first) container.appendChild(first);
+      middle.forEach(t => container.appendChild(t));
+      if (last) container.appendChild(last);
+    })();
+
     (async function () {
       /* -------------------- helpers -------------------- */
       function qs(name) { return new URLSearchParams(window.location.search).get(name); }
@@ -324,11 +360,19 @@
       }
       function groupByType(doc) {
         const t = (doc.docType || "").toLowerCase().replace(/\s+/g, ' ').trim();
+
+        // grades
         if (t.includes('grade')) return 'scanned-grades';
-        if (t === 'soa' || t.includes('statement of account')) return 'soa';
+
+        // statement of account(s) or SOA
+        if (t === 'soa' || /statement of account(s)?/.test(t)) return 'soa';
+
+        // certificate of enrollment/registration | COE
         if (/(certificate.*(enrollment|registration)|\bcoe\b)/.test(t)) return 'coe';
+
         return 'others';
       }
+
       function fileUrl(bucket, id) { return (bucket && id) ? `/files/${bucket}/${id}` : null; }
       function resolveDocUrl(d) { return d.fileUrl || fileUrl(d.bucket, d.fileId) || d.filePath || null; }
       function resolveGradeAttachmentUrl(g) { return fileUrl(g.attachmentBucket, g.attachmentId) || g.attachment || null; }
@@ -431,6 +475,41 @@
           </div>
         `;
         listEl.appendChild(li);
+      } function addDocToList(listEl, doc) {
+        const li = document.createElement('li');
+
+        const isGrade = !!doc._isGrade; // <— flag we’ll set for accepted grades
+        const fileLabel = isGrade
+          ? 'Scanned Grades'
+          : (doc.docType || (doc.url ? decodeURIComponent(doc.url.split('/').pop()) : 'File'));
+
+        const dateStr = (doc.dateSubmitted || doc.createdAt)
+          ? new Date(doc.dateSubmitted || doc.createdAt).toLocaleDateString()
+          : '';
+
+        const href = doc.url || '';
+
+        // Build the metadata line (Semester + optional SY/Term)
+        const metaPieces = [];
+        if (isGrade) {
+          if (doc.semester) metaPieces.push(doc.semester);
+          if (doc.schoolYear) metaPieces.push(doc.schoolYear);
+          if (doc.academicTerm) metaPieces.push(doc.academicTerm); // e.g., Final Grades
+        }
+        const metaLine = metaPieces.length ? `<div class="small">${metaPieces.join(' • ')}</div>` : '';
+
+        li.innerHTML = `
+    <div>
+      <strong>${fileLabel}</strong>
+      ${metaLine}
+      <div class="small">${dateStr}</div>
+    </div>
+    <div>
+      ${href ? `<a href="#" class="preview" data-file="${href}"><i class="fa fa-eye"></i> Preview</a>` : ''}
+      ${href ? `&nbsp;<a href="${href}" target="_blank" class="small">Open</a>` : ''}
+    </div>
+  `;
+        listEl.appendChild(li);
       }
 
       const scholar = await fetchScholarInfo();
@@ -448,10 +527,17 @@
           docs.push({
             docType: 'Scanned Grades',
             url: g._url,
-            dateSubmitted: g.dateSubmitted || g.createdAt
+            dateSubmitted: g.dateSubmitted || g.createdAt,
+            // NEW: carry semester/SY/term so the UI can show them
+            _isGrade: true,
+            semester: g.semester ?? '',
+            schoolYear: g.schoolYear ?? '',
+            academicTerm: g.academicTerm ?? ''  // e.g., Preliminary/Mid-Semester/Final Grades
           });
         }
       });
+
+
 
       docs.forEach(doc => {
         const entry = { ...doc, url: doc.url || resolveDocUrl(doc) };
