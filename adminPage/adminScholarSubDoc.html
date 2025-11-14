@@ -43,85 +43,114 @@
       padding: 20px
     }
 
-    /* ===== HEADER ===== */
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: var(--maroon);
-      border-bottom: 2px solid var(--maroon-dark)
-    }
+        /* ===== HEADER ===== */
+.site-header {
+  background: var(--maroon);
+  border-bottom: 2px solid var(--maroon-dark);
+}
 
-    .header-wrap {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: center;
-      align-items: center
-    }
+.header-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    .header-center {
-      display: flex;
-      align-items: center;
-      gap: 18px
-    }
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: nowrap;          /* prevent wrapping so both logos stay visible */
+}
 
-    .header-logo {
-      height: 64px;
-      width: auto;
-      filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .1))
-    }
+.header-logo{
+  display: inline-block;         /* ensure width/height apply */
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;      /* fit the whole PNG */
+  flex: 0 0 auto;
+}
 
-    .brand-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      color: #fff;
-      user-select: none
-    }
+/* point to the files */
+.logo-city { background-image: url('/assets/citylogo.png'); }
+.logo-isko { background-image: url('/assets/iskologo.png'); }
 
-    .brand-block>a {
-      color: #fff;
-      font-weight: 800;
-      font-size: 24px;
-      letter-spacing: .5px;
-      transition: color .25s ease
-    }
 
-    .brand-block>a:hover {
-      color: var(--gold)
-    }
+.header-logo:focus-visible { box-shadow: 0 0 0 3px rgba(212,160,23,.55); }
 
-    .brand-sub {
-      margin-top: 4px;
-      font-size: 14px;
-      font-weight: 600
-    }
+/* Brand text is plain text (not links) */
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #fff;
+  min-width: 0;                /* allow text to shrink before logos */
+}
+.brand-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 24px;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-    .brand-sub a {
-      color: #fff;
-      transition: color .25s ease
-    }
+/* Keep your original responsive sizes */
+@media (max-width: 640px) {
+  .header-logo {
+    width: 48px;
+    height: 48px;
+    background-size: contain; /* scaled sprite for mobile */
+  }
+  .brand-title { font-size: 20px; }
+  .brand-sub { font-size: 12px; }
+}
 
-    .brand-sub a:hover {
-      color: var(--gold)
-    }
+/* === inline contact beside ISKO logo === */
+.header-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(255,255,255,.35);
+  flex: 0 0 auto;
+}
 
-    @media (max-width:640px) {
-      .header-logo {
-        height: 48px
-      }
+.header-contact-inline {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #fff;
+  flex: 0 0 auto;     /* don't steal space from logos */
+  white-space: nowrap;
+}
 
-      .brand-block>a {
-        font-size: 20px
-      }
+.contact-item { display: flex; align-items: center; gap: 8px; }
+.contact-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.contact-value a { color: #fff; font-weight: 700; text-decoration: none; }
+.contact-value a:hover, .contact-value a:focus { text-decoration: underline; }
 
-      .brand-sub {
-        font-size: 12px
-      }
-    }
+/* keep both logos visible on small screens */
+@media (max-width: 740px) {
+  .contact-label { display: none; }
+  .contact-value a { font-weight: 600; font-size: 12px; }
+}
+@media (max-width: 520px) {
+  .header-contact-inline { display: none; }  /* hide if super narrow */
+}
 
     /* ===== MAIN CARD ===== */
     .container {
@@ -390,6 +419,14 @@
       max-height: 48px;
       width: auto
     }
+
+    @media (max-width: 640px) {
+      .header-logo {
+        width: 48px;
+        height: 48px;
+        background-size: contain;
+      }
+    }
   </style>
 </head>
 
@@ -399,20 +436,37 @@
   <header class="site-header">
     <div class="header-wrap">
       <div class="header-center">
-        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
+        <!-- Left LOGO is the link (City site) -->
+        <a class="header-logo logo-city" href="https://koronadal.gov.ph" target="_blank"
+          aria-label="City of Koronadal"></a>
+
+        <!-- Center text is plain text only -->
         <div class="brand-block">
-          <a href="https://koronadal.gov.ph" target="_blank" rel="noopener">CITY OF KORONADAL</a>
-          <div class="brand-sub">
-            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" rel="noopener">
-              Iskolar ng Koronadal - Kabugwason Paglaum Program
-            </a>
+          <div class="brand-title">CITY OF KORONADAL</div>
+          <div class="brand-sub">Iskolar ng Koronadal - Kabugwason Paglaum Program</div>
+        </div>
+
+        <!-- Right LOGO is the link (ISKO-KPP Facebook) -->
+        <a class="header-logo logo-isko" href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank"
+          aria-label="Iskolar ng Koronadal - Kabugwason Paglaum Program (Facebook)"></a>
+
+        <!-- inline contact info (now on the same row) -->
+        <div class="header-divider" aria-hidden="true"></div>
+        <div class="header-contact-inline" role="group" aria-label="Contact Information">
+          <div class="contact-item">
+            <div class="contact-label">Call Us</div>
+            <div class="contact-value"><a href="tel:+63832286095">(083) 228 - 6095</a></div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-label">Email Us</div>
+            <div class="contact-value"><a href="mailto:info.koronadalcity@gmail.com">info.koronadalcity@gmail.com</a>
+            </div>
           </div>
         </div>
-        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+
       </div>
     </div>
   </header>
-
   <!-- MAIN -->
   <main>
     <div class="container">
@@ -579,29 +633,29 @@
         if (!res.ok) throw new Error("Failed to fetch documents");
         const docs = await res.json();
         cache.docs = Array.isArray(docs) ? docs : [];
-const tbody = document.getElementById("docs-table-body");
-tbody.innerHTML = "";
+        const tbody = document.getElementById("docs-table-body");
+        tbody.innerHTML = "";
 
-// 🔽 Hide accepted docs in the verification list
-const toShow = docs.filter(d => {
-  const s = String(d.status ?? "Pending").trim().toLowerCase();
-  return !["accepted", "rejected"].includes(s);
-});
+        // 🔽 Hide accepted docs in the verification list
+        const toShow = docs.filter(d => {
+          const s = String(d.status ?? "Pending").trim().toLowerCase();
+          return !["accepted", "rejected"].includes(s);
+        });
 
-toShow.forEach(doc => {
-  const submittedDate = doc.createdAt
-    ? new Date(doc.createdAt).toLocaleDateString()
-    : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : "");
+        toShow.forEach(doc => {
+          const submittedDate = doc.createdAt
+            ? new Date(doc.createdAt).toLocaleDateString()
+            : (doc.dateSubmitted ? new Date(doc.dateSubmitted).toLocaleDateString() : "");
 
-  const url = doc.fileUrl || resolveDocUrl(doc);
+          const url = doc.fileUrl || resolveDocUrl(doc);
 
-  // 🔁 normalize for display
-  const dtype = (String(doc.docType || '').trim().toLowerCase() === 'soa')
-    ? 'Statement of Account'
-    : (doc.docType || '');
+          // 🔁 normalize for display
+          const dtype = (String(doc.docType || '').trim().toLowerCase() === 'soa')
+            ? 'Statement of Account'
+            : (doc.docType || '');
 
-  const row = document.createElement("tr");
-  row.innerHTML = `
+          const row = document.createElement("tr");
+          row.innerHTML = `
     <td>${doc.scholar ? doc.scholar.fullname : (doc.fullname || '')}</td>
     <td>${dtype}</td>
     <td>${submittedDate}</td>
@@ -613,51 +667,51 @@ toShow.forEach(doc => {
         <button class="action-btn reject" onclick="updateStatus('${doc._id}','rejected')"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </td>`;
-  tbody.appendChild(row);
-});
+          tbody.appendChild(row);
+        });
 
       } catch (err) { console.error("Error fetching documents:", err); }
     }
 
 
     /* ---------- Fetch & render: grades ---------- */
-     async function fetchGrades() {
-    try {
-      const res = await fetch("/api/admin/grades", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch grades");
-      const grades = await res.json();
-      cache.grades = Array.isArray(grades) ? grades : [];
+    async function fetchGrades() {
+      try {
+        const res = await fetch("/api/admin/grades", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch grades");
+        const grades = await res.json();
+        cache.grades = Array.isArray(grades) ? grades : [];
 
-      const tbody = document.getElementById("grades-table-body");
-      tbody.innerHTML = "";
+        const tbody = document.getElementById("grades-table-body");
+        tbody.innerHTML = "";
 
-      // hide accepted & rejected from verification list
-      const toShow = grades.filter(g => {
-        const s = String(g.status ?? "Pending").trim().toLowerCase();
-        return !["accepted", "rejected"].includes(s);
-      });
+        // hide accepted & rejected from verification list
+        const toShow = grades.filter(g => {
+          const s = String(g.status ?? "Pending").trim().toLowerCase();
+          return !["accepted", "rejected"].includes(s);
+        });
 
-      // ✅ helper to safely get a timestamp
-      const safeTime = (g) => {
-        const d = g.createdAt || g.dateSubmitted;
-        const t = d ? Date.parse(d) : NaN;
-        if (!Number.isNaN(t)) return t;
-        // fallback: derive time from ObjectId if it's a 24-hex string
-        const id = (g._id || "") + "";
-        if (id.length === 24) {
-          const seconds = parseInt(id.slice(0, 8), 16);
-          if (Number.isFinite(seconds)) return seconds * 1000;
-        }
-        return 0;
-      };
+        // ✅ helper to safely get a timestamp
+        const safeTime = (g) => {
+          const d = g.createdAt || g.dateSubmitted;
+          const t = d ? Date.parse(d) : NaN;
+          if (!Number.isNaN(t)) return t;
+          // fallback: derive time from ObjectId if it's a 24-hex string
+          const id = (g._id || "") + "";
+          if (id.length === 24) {
+            const seconds = parseInt(id.slice(0, 8), 16);
+            if (Number.isFinite(seconds)) return seconds * 1000;
+          }
+          return 0;
+        };
 
-      // ✅ newest first
-      toShow.sort((a, b) => safeTime(b) - safeTime(a));
+        // ✅ newest first
+        toShow.sort((a, b) => safeTime(b) - safeTime(a));
 
-      toShow.forEach(grade => {
-        const attachmentUrl = resolveGradeAttachmentUrl(grade);
-        const row = document.createElement("tr");
-        row.innerHTML = `
+        toShow.forEach(grade => {
+          const attachmentUrl = resolveGradeAttachmentUrl(grade);
+          const row = document.createElement("tr");
+          row.innerHTML = `
           <td>${grade.scholar ? grade.scholar.fullname : grade.fullname}</td>
           <td>${grade.scholar ? (grade.scholar.batchYear ?? "") : (grade.batchYear ?? "")}</td>
           <td>${grade.schoolYear ?? ""}</td>
@@ -681,59 +735,59 @@ toShow.forEach(doc => {
               </button>
             </div>
           </td>`;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error("Error fetching grades:", err);
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+      }
     }
-  }
 
     /* ---------- Fetch & render: scholar folders ---------- */
     async function fetchScholarFolders() {
-  try {
-    const res = await fetch("/api/verified-scholars", { credentials: "include" });
-    if (!res.ok) throw new Error("Failed to fetch scholars");
-    const scholars = await res.json();
+      try {
+        const res = await fetch("/api/verified-scholars", { credentials: "include" });
+        if (!res.ok) throw new Error("Failed to fetch scholars");
+        const scholars = await res.json();
 
-    // Build a map: scholarId -> latest millis of any doc/grade
-    const latestByScholar = Object.create(null);
-    const bump = (sid, dt) => {
-      if (!sid || !dt) return;
-      const t = new Date(dt).getTime();
-      if (!Number.isFinite(t)) return;
-      if (!latestByScholar[sid] || t > latestByScholar[sid]) latestByScholar[sid] = t;
-    };
+        // Build a map: scholarId -> latest millis of any doc/grade
+        const latestByScholar = Object.create(null);
+        const bump = (sid, dt) => {
+          if (!sid || !dt) return;
+          const t = new Date(dt).getTime();
+          if (!Number.isFinite(t)) return;
+          if (!latestByScholar[sid] || t > latestByScholar[sid]) latestByScholar[sid] = t;
+        };
 
-    // From documents
-    (cache.docs || []).forEach(d => {
-      const sid = d.scholar?._id || d.scholar; // populated or raw id
-      bump(String(sid || ""), d.createdAt || d.uploadDate || d.date || d._id); // prefer createdAt
-    });
+        // From documents
+        (cache.docs || []).forEach(d => {
+          const sid = d.scholar?._id || d.scholar; // populated or raw id
+          bump(String(sid || ""), d.createdAt || d.uploadDate || d.date || d._id); // prefer createdAt
+        });
 
-    // From grades
-    (cache.grades || []).forEach(g => {
-      const sid = g.scholar?._id || g.scholar;
-      bump(String(sid || ""), g.dateSubmitted || g.createdAt);
-    });
+        // From grades
+        (cache.grades || []).forEach(g => {
+          const sid = g.scholar?._id || g.scholar;
+          bump(String(sid || ""), g.dateSubmitted || g.createdAt);
+        });
 
-    const tbody = document.getElementById("folders-tbody");
-    tbody.innerHTML = "";
-    scholars.forEach(s => {
-      const sid = String(s._id);
-      const ts = latestByScholar[sid];
-      const lastUpdated = ts ? new Date(ts).toLocaleString() : "No uploads yet";
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+        const tbody = document.getElementById("folders-tbody");
+        tbody.innerHTML = "";
+        scholars.forEach(s => {
+          const sid = String(s._id);
+          const ts = latestByScholar[sid];
+          const lastUpdated = ts ? new Date(ts).toLocaleString() : "No uploads yet";
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
         <td>${s.fullname}</td>
         <td><a href="scholar-folder.html?scholarId=${s._id}" class="view-folder">View Folder</a></td>
         <td>${lastUpdated}</td>
       `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("Error fetching scholar folders:", err);
-  }
-}
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Error fetching scholar folders:", err);
+      }
+    }
 
 
     /* ---------- Status updates ---------- */

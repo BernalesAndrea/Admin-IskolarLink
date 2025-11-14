@@ -24,34 +24,114 @@
       color:#333;
     }
 
-    /* ===== HEADER ===== */
-    .site-header{
-      background:var(--maroon);
-      border-bottom:2px solid var(--maroon-dark);
-    }
-    .header-wrap{
-      max-width:1200px; margin:0 auto; padding:10px 16px;
-      display:flex; justify-content:center; align-items:center;
-    }
-    .header-center{ display:flex; align-items:center; gap:18px; }
-    .header-logo{ height:64px; width:auto; }
-    .brand-block{
-      display:flex; flex-direction:column; align-items:center;
-      line-height:1.15; text-align:center; color:#fff;
-    }
-    .brand-block > a{
-      color:#fff; text-decoration:none; font-weight:800; font-size:24px;
-      transition:color .25s ease;
-    }
-    .brand-block > a:hover{color:var(--gold);}
-    .brand-sub{margin-top:4px; font-size:14px; font-weight:600;}
-    .brand-sub a{color:#fff; text-decoration:none; transition:color .25s ease;}
-    .brand-sub a:hover{color:var(--gold);}
-    @media(max-width:640px){
-      .header-logo{height:48px;}
-      .brand-block > a{font-size:20px;}
-      .brand-sub{font-size:12px;}
-    }
+        /* ===== HEADER ===== */
+.site-header {
+  background: var(--maroon);
+  border-bottom: 2px solid var(--maroon-dark);
+}
+
+.header-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: nowrap;          /* prevent wrapping so both logos stay visible */
+}
+
+.header-logo{
+  display: inline-block;         /* ensure width/height apply */
+  width: 64px;
+  height: 64px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;      /* fit the whole PNG */
+  flex: 0 0 auto;
+}
+
+/* point to the files */
+.logo-city { background-image: url('/assets/citylogo.png'); }
+.logo-isko { background-image: url('/assets/iskologo.png'); }
+
+
+.header-logo:focus-visible { box-shadow: 0 0 0 3px rgba(212,160,23,.55); }
+
+/* Brand text is plain text (not links) */
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: #fff;
+  min-width: 0;                /* allow text to shrink before logos */
+}
+.brand-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 24px;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brand-sub {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Keep your original responsive sizes */
+@media (max-width: 640px) {
+  .header-logo {
+    width: 48px;
+    height: 48px;
+    background-size: contain; /* scaled sprite for mobile */
+  }
+  .brand-title { font-size: 20px; }
+  .brand-sub { font-size: 12px; }
+}
+
+/* === inline contact beside ISKO logo === */
+.header-divider {
+  width: 1px;
+  height: 48px;
+  background: rgba(255,255,255,.35);
+  flex: 0 0 auto;
+}
+
+.header-contact-inline {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: #fff;
+  flex: 0 0 auto;     /* don't steal space from logos */
+  white-space: nowrap;
+}
+
+.contact-item { display: flex; align-items: center; gap: 8px; }
+.contact-label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+.contact-value a { color: #fff; font-weight: 700; text-decoration: none; }
+.contact-value a:hover, .contact-value a:focus { text-decoration: underline; }
+
+/* keep both logos visible on small screens */
+@media (max-width: 740px) {
+  .contact-label { display: none; }
+  .contact-value a { font-weight: 600; font-size: 12px; }
+}
+@media (max-width: 520px) {
+  .header-contact-inline { display: none; }  /* hide if super narrow */
+}
 
     /* ===== MAIN ===== */
     main{
@@ -108,23 +188,44 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="header-wrap">
-      <div class="header-center">
-        <img class="header-logo" src="/assets/citylogo.png" alt="City of Koronadal Logo">
-        <div class="brand-block">
-          <a href="https://koronadal.gov.ph" target="_blank">CITY OF KORONADAL</a>
-          <div class="brand-sub">
-            <a href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank">
-              Iskolar ng Koronadal - Kabugwason Paglaum Program
-            </a>
-          </div>
-        </div>
-        <img class="header-logo" src="/assets/iskologo.png" alt="Isko-KPP Logo">
+    <!-- HEADER -->
+ <header class="site-header">
+  <div class="header-wrap">
+    <div class="header-center">
+      <!-- Left LOGO is the link (City site) -->
+      <a class="header-logo logo-city"
+         href="https://koronadal.gov.ph"
+         target="_blank"
+         aria-label="City of Koronadal"></a>
+
+      <!-- Center text is plain text only -->
+      <div class="brand-block">
+        <div class="brand-title">CITY OF KORONADAL</div>
+        <div class="brand-sub">Iskolar ng Koronadal - Kabugwason Paglaum Program</div>
       </div>
+
+      <!-- Right LOGO is the link (ISKO-KPP Facebook) -->
+      <a class="header-logo logo-isko"
+         href="https://www.facebook.com/profile.php?id=100093335296692"
+         target="_blank"
+         aria-label="Iskolar ng Koronadal - Kabugwason Paglaum Program (Facebook)"></a>
+
+<!-- inline contact info (now on the same row) -->
+<div class="header-divider" aria-hidden="true"></div>
+<div class="header-contact-inline" role="group" aria-label="Contact Information">
+  <div class="contact-item">
+    <div class="contact-label">Call Us</div>
+    <div class="contact-value"><a href="tel:+63832286095">(083) 228 - 6095</a></div>
+  </div>
+  <div class="contact-item">
+    <div class="contact-label">Email Us</div>
+    <div class="contact-value"><a href="mailto:info.koronadalcity@gmail.com">info.koronadalcity@gmail.com</a></div>
+  </div>
+</div>
+
     </div>
-  </header>
+  </div>
+</header>
 
   <!-- MAIN -->
   <main>
