@@ -123,19 +123,28 @@ app.use("/auth", authRoutes);
 
 
 
-// ✅ Force root ("/") to always load login.html
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
-});
-
 // ✅ Serve static files (CSS, JS, images, etc.)
-// ✅ Keep only public folders
 app.use('/assets',      express.static(path.join(__dirname, 'assets')));
 app.use('/adminPage',   express.static(path.join(__dirname, 'adminPage')));
 app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage')));
 
-app.get('/', (req,res)=>res.sendFile(path.join(__dirname, 'login.html')));
-app.get('/signup.html', (req,res)=>res.sendFile(path.join(__dirname, 'signup.html'))); 
+// ✅ Serve the 'public' folder at /public so fetch('/public/visitorHome.html') works
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Serve a dedicated login page so /login.html works (file should exist at project_root/login.html or adjust path)
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+// Optional: also allow direct root access to files in public (so /visitorHome.html works)
+// app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route - serve splash/index (single definitive handler, not duplicated)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Other top-level static HTML routes
+app.get('/signup.html', (req, res) => res.sendFile(path.join(__dirname, 'signup.html')));
 app.get('/forgot.html', (req, res) => res.sendFile(path.join(__dirname, 'forgot.html')));
 
 

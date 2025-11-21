@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>IskolarLink — Scholarship Board</title>
+
+  <link rel="stylesheet" href="/assets/css/style.css">
+
+  <style>
+    :root{
+      --gold:#D4A017;
+      --maroon:#800000;
+      --maroon-dark:#5a0000;
+      --maxw:1200px;
+      --muted:#666;
+      --card: rgba(255,255,255,0.98);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      background-image:url('/assets/iskolarbg.png');
+      background-size:cover;
+      background-position:center;
+      font-family:"Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+      color:#222;
+    }
+
+    /* header (copied from visitorHome) */
+    .site-header{ background:var(--maroon); border-bottom:2px solid var(--maroon-dark); }
+    .header-wrap{ max-width:var(--maxw); margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:12px; }
+    .header-logo{ width:56px; height:56px; background-repeat:no-repeat; background-size:contain; display:block; }
+    .logo-city{ background-image:url('/assets/citylogo.png'); }
+    .logo-isko{ background-image:url('/assets/iskologo.png'); }
+    .brand-block{ color:#fff; display:flex; flex-direction:column; }
+    .brand-title{ font-weight:800; font-size:18px; }
+    .brand-sub{ font-size:12px; opacity:0.95; }
+
+    .header-right{ margin-left:auto; display:flex; gap:12px; align-items:center; }
+    .header-contact{ color:#fff; font-weight:600; text-decoration:none; font-size:13px; opacity:0.95; }
+    .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,0.18); color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
+    .btn-solid{ background:var(--gold); color:#000; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:800; }
+
+    /* ensure main stretches so footer sits at bottom */
+    main.page-wrap{ max-width:var(--maxw); margin:26px auto; padding:18px; width:calc(100% - 36px); flex:1; }
+
+    .card{ background:var(--card); padding:16px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.08); border:1px solid rgba(0,0,0,0.04); }
+    h1{ margin-top:0; color:var(--maroon); }
+
+    /* board image */
+    .board-cover{
+      width:100%;
+      height:260px;
+      border-radius:12px;
+      object-fit:cover;
+      box-shadow:0 4px 14px rgba(0,0,0,0.15);
+      margin-bottom:18px;
+    }
+
+    /* board members */
+    .board-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:18px;
+      margin-top:18px;
+    }
+    .member-card{
+      background:#fff;
+      border-radius:12px;
+      padding:14px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,0.05);
+    }
+    .member-photo{
+      width:100%;
+      height:180px;
+      object-fit:cover;
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+    .member-name{
+      font-weight:800;
+      font-size:1.1rem;
+      color:var(--maroon);
+    }
+    .member-role{
+      color:#555;
+      font-size:0.9rem;
+      margin-top:4px;
+    }
+
+    /* ========= FOOTER (GLOBAL FOOTER) ========= */
+    .site-footer{
+      background:#fff;
+      border-top:1px solid #000;
+      outline:1px solid #000;
+      outline-offset:-1px;
+      /* ensure footer hugs bottom when page short */
+      margin-top: auto;
+    }
+    .footer-wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:14px 16px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+    .footer-wrap img{
+      max-height:48px;
+      width:auto;
+      display:block;
+    }
+
+    /* slide nav (copied 1:1 from visitorHome) */
+    .nav-root { position:relative; }
+    .nav-root input[type="checkbox"]{ display:none; }
+    .toggle{
+      position:absolute;
+      height:40px; width:40px;
+      top:12px; left:12px;
+      z-index:2000;
+      cursor:pointer;
+      border-radius:6px;
+      background-color:rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .toggle svg{ pointer-events:none; }
+
+    .slide{
+      height:100%;
+      width:260px;
+      position:fixed;
+      background:#fff;
+      transition:0.28s ease;
+      transform:translateX(-280px);
+      z-index:1500;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 8px 24px rgba(0,0,0,0.15);
+    }
+    input[type="checkbox"]:checked ~ .slide{ transform:translateX(0); }
+
+    .slide .image{ text-align:center; padding:18px 0 8px; }
+    .slide .image img{ max-width:120px; display:block; margin:0 auto; }
+
+    .slide ul{ list-style:none; padding:6px 8px; margin:0; overflow:auto; flex:1; }
+    .slide ul li{ margin:6px 0; }
+    .slide ul li a{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:8px;
+      color:#222; text-decoration:none; font-weight:600;
+    }
+    .slide ul li a:hover{ background:var(--maroon); color:#fff; }
+
+    .profile-box{
+      padding:12px; border-top:1px solid #eee;
+      display:flex; align-items:center; gap:10px;
+    }
+    .profile-box img{ width:48px; height:48px; border-radius:50%; object-fit:cover; }
+
+    .overlay{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35);
+      z-index:1400; opacity:0; pointer-events:none;
+    }
+    input[type="checkbox"]:checked~.overlay{
+      display:block; opacity:1; pointer-events:auto;
+    }
+
+    @media(max-width:920px){
+      .slide{ width:100%; transform:translateX(-100%); }
+      input[type="checkbox"]:checked~.slide{ transform:translateX(0); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Slide Menu (same as visitorHome) -->
+  <div class="nav-root">
+    <input id="navToggle" type="checkbox">
+    <label for="navToggle" class="toggle" aria-label="Open menu" title="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6">
+        <path d="M3 7h18M3 12h18M3 17h18"/>
+      </svg>
+    </label>
+
+    <nav class="slide" aria-hidden="true" aria-label="Site navigation">
+      <div class="image">
+        <img src="/assets/iskolarlink.png" alt="IskolarLink">
+      </div>
+
+      <ul>
+        <!-- Non-SPA links: point to separate pages -->
+        <li><a href="/public/visitorHome.html">Home</a></li>
+        <li><a href="/public/visitorAbout.html">About Us</a></li>
+        <li><a href="/public/visitorBoard.html">Meet the Scholarship Board</a></li>
+        <li><a href="/public/visitorRequirements.html">Application Requirements</a></li>
+        <li><a href="/public/visitorAnnounce.html">Announcements</a></li>
+        <li><a href="/public/visitorEvents.html">Events</a></li>
+        <li><a href="/public/visitorContact.html">Contact Us</a></li>
+      </ul>
+    </nav>
+
+    <label for="navToggle" class="overlay" aria-hidden="true"></label>
+  </div>
+
+  <!-- HEADER -->
+  <header class="site-header" style="position:relative;z-index:1200" role="banner">
+    <div class="header-wrap">
+      <a class="header-logo logo-city" href="https://koronadal.gov.ph" target="_blank" aria-label="City of Koronadal"></a>
+      <div class="brand-block" aria-hidden="true">
+        <div class="brand-title">CITY OF KORONADAL</div>
+        <div class="brand-sub">Iskolar ng Koronadal - Kabugwason Paglaum Program</div>
+      </div>
+      <a class="header-logo logo-isko" href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" aria-label="Isko Facebook"></a>
+
+      <div class="header-right" role="navigation" aria-label="Header actions">
+        <a class="header-contact" href="tel:+63832286095">(083) 228 - 6095</a>
+        <a class="header-contact" href="mailto:info.koronadalcity@gmail.com">info.koronadalcity@gmail.com</a>
+        <a href="/login.html" class="btn-ghost">Login</a>
+        <a href="/signup.html" class="btn-solid">Sign up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="page-wrap" role="main">
+
+    <!-- BOARD COVER -->
+    <img src="/assets/board.jpg" class="board-cover" alt="Scholarship Board">
+
+    <section class="card">
+      <h1>Meet the Scholarship Board</h1>
+      <p>
+        The Scholarship Board oversees screening, evaluation, approval, and monitoring
+        of scholars under the <strong>Kabugwason Paglaum Program</strong>.
+        Their guidance ensures transparency, fairness, and continued support
+        for deserving students of Koronadal City.
+      </p>
+    </section>
+
+    <!-- Members -->
+    <div class="board-grid">
+      <div class="member-card">
+        <img src="/assets/default-avatar.png" class="member-photo" alt="Dr. Ana Cruz">
+        <div class="member-name">Dr. Ana Cruz</div>
+        <div class="member-role">Chairperson</div>
+      </div>
+
+      <div class="member-card">
+        <img src="/assets/default-avatar.png" class="member-photo" alt="Mr. Ramon Lim">
+        <div class="member-name">Mr. Ramon Lim</div>
+        <div class="member-role">Finance Committee</div>
+      </div>
+
+      <div class="member-card">
+        <img src="/assets/default-avatar.png" class="member-photo" alt="Ms. Liza Reyes">
+        <div class="member-name">Ms. Liza Reyes</div>
+        <div class="member-role">Student Affairs</div>
+      </div>
+
+      <div class="member-card">
+        <img src="/assets/default-avatar.png" class="member-photo" alt="Engr. Samuel Dizon">
+        <div class="member-name">Engr. Samuel Dizon</div>
+        <div class="member-role">Community Outreach</div>
+      </div>
+
+      <div class="member-card">
+        <img src="/assets/default-avatar.png" class="member-photo" alt="Atty. Carla Mendoza">
+        <div class="member-name">Atty. Carla Mendoza</div>
+        <div class="member-role">Legal Consultant</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- GLOBAL FOOTER -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-wrap">
+      <img src="/assets/footer.png" alt="Footer Graphic">
+    </div>
+  </footer>
+
+  <!-- modal same as visitorHome -->
+  <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center" aria-hidden="true">
+    <div style="background:#fff;padding:18px;border-radius:10px;max-width:520px;width:94%">
+      <div id="modalBody"></div>
+      <div style="text-align:right;margin-top:10px">
+        <button id="modalClose" style="padding:8px 10px;border:none;background:var(--maroon);color:#fff;border-radius:6px">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const modal=document.getElementById('modal');
+      const modalBody=document.getElementById('modalBody');
+      const modalClose=document.getElementById('modalClose');
+      if(modalClose) modalClose.addEventListener('click',()=>modal.style.display='none');
+      window.showModal=(html)=>{ modalBody.innerHTML=html; modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); };
+      window.addEventListener('click', e => { if (e.target === modal) { modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); } });
+    })();
+  </script>
+
+</body>
+</html>
