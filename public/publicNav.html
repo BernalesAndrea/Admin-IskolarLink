@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scholar Navigation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="/assets/js/notifications.js" defer></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background-color: white;
+      display: flex;
+    }
+
+    .slide {
+      height: 100%;
+      width: 250px;
+      position: fixed;
+      background-color: white;
+      transition: 0.5s ease;
+      transform: translateX(-250px);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .image {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .image img {
+      max-width: 100px;
+      width: 80%;
+      height: 50px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    ul {
+      flex: 1;
+    }
+
+    ul li {
+      list-style: none;
+    }
+
+    ul li a {
+      color: black;
+      font-weight: 500;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      text-transform: capitalize;
+      text-decoration: none;
+      transition: 0.2s ease-out;
+      gap: 10px;
+    }
+
+    ul li:hover>a {
+      color: white;
+      background-color: #800000;
+      border-radius: 20px;
+    }
+
+    ul li a i {
+      font-size: 18px;
+      min-width: 25px;
+      text-align: center;
+    }
+
+    /* --- Submenu styles --- */
+    .submenu {
+      display: none;
+      list-style: none;
+      padding-left: 20px;
+      background-color: #f9f9f9;
+    }
+
+    .has-submenu.open .submenu {
+      display: block;
+    }
+
+    .submenu li a {
+      padding: 8px 15px;
+      font-size: 14px;
+      color: #333;
+      background-color: #f9f9f9;
+      display: block;
+      transition: 0.2s;
+    }
+
+    .submenu li a:hover {
+      background-color: #800000;
+      color: white;
+      border-radius: 20px;
+    }
+
+    input {
+      display: none;
+      visibility: hidden;
+    }
+
+    .toggle {
+      position: absolute;
+      height: 30px;
+      width: 30px;
+      top: 20px;
+      left: 15px;
+      z-index: 20;
+      cursor: pointer;
+      border-radius: 2px;
+      background-color: white;
+      box-shadow: 0 0 10px rgb(0, 0, 0, 0.3);
+    }
+
+    .toggle .common {
+      position: absolute;
+      height: 2px;
+      width: 20px;
+      background-color: #800000;
+      border-radius: 50px;
+      transition: 0.3s ease;
+    }
+
+    .toggle .top_line {
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .toggle .middle_line {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .toggle .bottom_line {
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    input:checked~.toggle .top_line {
+      left: 2px;
+      top: 14px;
+      width: 25px;
+      transform: rotate(45deg);
+    }
+
+    input:checked~.toggle .bottom_line {
+      left: 2px;
+      top: 14px;
+      width: 25px;
+      transform: rotate(-45deg);
+    }
+
+    input:checked~.toggle .middle_line {
+      opacity: 0;
+    }
+
+    input:checked~.slide {
+      transform: translateX(0);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .dropdown-icon {
+      margin-left: auto;
+      font-size: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    .has-submenu.open .dropdown-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Content area */
+    #page-frame {
+      width: 100%;
+      height: 100vh;
+      border: none;
+    }
+
+    /* Profile section like admin */
+    .profile-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .profile-section img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .profile-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .profile-info p {
+      margin: 0;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .profile-info span {
+      font-size: 14px;
+      color: gray;
+    }
+
+    .profile-section .logout-icon {
+      color: black;
+      text-decoration: none;
+      font-size: 18px;
+      transition: 0.2s ease-out;
+      padding: 8px;
+      border-radius: 50%;
+    }
+
+    .profile-section .logout-icon:hover {
+      background-color: #800000;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <label>
+    <input type="checkbox">
+    <div class="toggle">
+      <span class="top_line common"></span>
+      <span class="middle_line common"></span>
+      <span class="bottom_line common"></span>
+    </div>
+    <div class="slide">
+      <div class="image">
+        <img src="/assets/iskolarlink.png" alt="IskolarLink Logo">
+      </div>
+      <ul>
+        <li><a href="#" onclick="loadIframe('/public/visitorHome.html')"><i class="fas fa-home"></i>Home</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorAbout.html')"><i class="fas fa-circle-info"></i>About</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorAnnounce.html')"><i class="fas fa-bullhorn"></i>Announcements</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorBoard.html')"><i class="fas fa-calendar-days"></i>Boards</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorEvents.html')"><i class="fas fa-users"></i>Events</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorRequirements.html')"><i class="fas fa-file-circle-check"></i>Requirements</a></li>
+        <li><a href="#" onclick="loadIframe('/public/visitorContact.html')"><i class="fas fa-address-book"></i>Contact</a></li>
+      </ul>
+    </div>
+  </label>
+
+  <!-- Iframe where scholar pages will load -->
+  <iframe id="page-frame" src="/public/visitorHome.html"></iframe>
+
+  <script>
+    function fileUrl(bucket, id, { download = false } = {}) {
+    if (!bucket || !id) return null;
+    return download ? `/files/${bucket}/${id}/download` : `/files/${bucket}/${id}`;
+  }
+
+    function loadIframe(page) {
+      document.getElementById("page-frame").src = page;
+    }
+
+    async function loadProfile() {
+      try {
+        const res = await fetch("/api/users/me", { credentials: "include" }); // be explicit
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      const user = await res.json();  
+
+        document.getElementById("profile-name").innerText = user.fullname || "Scholar";
+        document.getElementById("profile-role").innerText = "Scholar";
+        let src =
+        user.profilePicUrl || // from API (recommended)
+        (user.profilePicBucket && user.profilePicId
+          ? fileUrl(user.profilePicBucket, user.profilePicId)
+          : null) ||
+        user.profilePic || // legacy string path
+        "/assets/default-avatar.png";
+
+      // cache-buster so a fresh upload shows immediately
+      document.getElementById("profile-pic").src = `${src}?v=${Date.now()}`;
+    } catch (err) {
+      console.error("Profile load error:", err);
+    }
+  }
+  loadProfile();
+    document.querySelectorAll(".has-submenu > a").forEach(menu => {
+      menu.addEventListener("click", function (e) {
+        e.preventDefault();
+        let parent = this.parentElement;
+
+        document.querySelectorAll(".has-submenu").forEach(item => {
+          if (item !== parent) {
+            item.classList.remove("open");
+          }
+        });
+
+        parent.classList.toggle("open");
+      });
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      fetch("/auth/logout", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.msg);
+          window.location.href = data.redirect;
+        })
+        .catch(err => console.error("Logout failed", err));
+    });
+  </script>
+</body>
+</html>
