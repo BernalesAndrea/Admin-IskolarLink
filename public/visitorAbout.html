@@ -29,7 +29,7 @@
       color:#222;
     }
 
-    /* header */
+    /* header (copied from visitorHome.html) */
     .site-header { background: var(--maroon); border-bottom:2px solid var(--maroon-dark); }
     .header-wrap{ max-width:var(--maxw); margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:12px; }
     .header-logo{ width:56px; height:56px; background-repeat:no-repeat; background-position:center; background-size:contain; display:block; }
@@ -44,19 +44,21 @@
     .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.18); color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
     .btn-solid { background:var(--gold); color:#000; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:800; border:1px solid rgba(0,0,0,0.08); }
 
+    /* ensure main stretches so footer pins to bottom */
     main.page-wrap{ max-width:var(--maxw); margin:26px auto; padding:18px; width:calc(100% - 36px); flex:1; }
 
     .card{ background:var(--card); padding:16px; border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border:1px solid rgba(0,0,0,0.04); }
     h1{ color:var(--maroon); margin-top:0; }
     .two-col{ display:grid; grid-template-columns:2fr 1fr; gap:18px; margin-top:6px; }
 
-    /* footer */
+    /* ========= FOOTER (GLOBAL FOOTER) ========= */
     .site-footer{
       background:#fff;
       border-top:1px solid #000;
       outline:1px solid #000;
       outline-offset:-1px;
-      margin-top:auto;
+      /* keep footer at bottom when content is short */
+      margin-top: auto;
     }
     .footer-wrap{
       max-width:1200px;
@@ -68,48 +70,124 @@
     }
     .footer-wrap img{ max-height:48px; width:auto; display:block; }
 
+    /* slide nav (copied from visitorHome.html) */
+    .nav-root { position:relative; }
+    .nav-root input[type="checkbox"] { display:none; visibility:hidden; }
+    .toggle {
+      position: absolute;
+      height: 40px;
+      width: 40px;
+      top: 12px;
+      left: 12px;
+      z-index: 2000;
+      cursor: pointer;
+      border-radius: 6px;
+      background-color: rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .toggle svg { pointer-events:none; }
+    .slide {
+      height: 100%;
+      width: 260px;
+      position: fixed;
+      background-color: #fff;
+      transition: 0.28s ease;
+      transform: translateX(-280px);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    input[type="checkbox"]:checked ~ .slide { transform: translateX(0); }
+    .slide .image { text-align:center; padding:18px 0 8px; }
+    .slide .image img { max-width:120px; height:auto; display:block; margin:0 auto; }
+    .slide ul { list-style:none; padding:6px 8px; margin:0; overflow:auto; flex:1; }
+    .slide ul li { margin:6px 0; }
+    .slide ul li a { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#222; text-decoration:none; font-weight:600; }
+    .slide ul li a:hover { background:var(--maroon); color:#fff; }
+    .profile-box { padding:12px; border-top:1px solid #eee; display:flex; align-items:center; gap:10px; }
+    .profile-box img { width:48px; height:48px; border-radius:50%; object-fit:cover; }
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1400; transition:opacity .28s ease; opacity:0; pointer-events:none; }
+    input[type="checkbox"]:checked ~ .overlay { display:block; opacity:1; pointer-events:auto; }
+
     @media (max-width:920px){
       .two-col{ grid-template-columns:1fr; }
+      .slide{ width:100%; transform:translateX(-100%); }
+      input[type="checkbox"]:checked ~ .slide { transform: translateX(0); }
     }
   </style>
 </head>
 <body>
+  <!-- checkbox root (exact same nav) -->
+  <div class="nav-root">
+    <input id="navToggle" type="checkbox" aria-hidden="true">
+    <!-- visible toggle button -->
+    <label for="navToggle" class="toggle" aria-label="Open menu" title="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+        <path d="M3 7h18M3 12h18M3 17h18"></path>
+      </svg>
+    </label>
 
-  <!-- HEADER -->
+    <!-- slide panel -->
+    <nav class="slide" aria-hidden="true" aria-label="Site navigation">
+      <div class="image">
+        <img src="/assets/iskolarlink.png" alt="IskolarLink">
+      </div>
+
+      <ul>
+        <!-- Non-SPA links: point to separate pages -->
+        <li><a href="/public/visitorHome.html">Home</a></li>
+        <li><a href="/public/visitorAbout.html">About Us</a></li>
+        <li><a href="/public/visitorBoard.html">Meet the Scholarship Board</a></li>
+        <li><a href="/public/visitorRequirements.html">Application Requirements</a></li>
+        <li><a href="/public/visitorAnnounce.html">Announcements</a></li>
+        <li><a href="/public/visitorEvents.html">Events</a></li>
+        <li><a href="/public/visitorContact.html">Contact Us</a></li>
+      </ul>
+    </nav>
+
+    <!-- overlay to close when clicking outside -->
+    <label for="navToggle" class="overlay" aria-hidden="true"></label>
+  </div>
+
+  <!-- HEADER (copied exactly from visitorHome.html) -->
   <header class="site-header" role="banner" style="position:relative; z-index:1200">
     <div class="header-wrap">
-      <a class="header-logo logo-city" href="https://koronadal.gov.ph" target="_blank"></a>
-      <div class="brand-block">
+      <!-- brand -->
+      <a class="header-logo logo-city" href="https://koronadal.gov.ph" target="_blank" aria-label="City of Koronadal"></a>
+      <div class="brand-block" aria-hidden="true">
         <div class="brand-title">CITY OF KORONADAL</div>
         <div class="brand-sub">Iskolar ng Koronadal - Kabugwason Paglaum Program</div>
       </div>
-      <a class="header-logo logo-isko" href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank"></a>
+      <a class="header-logo logo-isko" href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" aria-label="Isko Facebook"></a>
 
-      <div class="header-right">
+      <div class="header-right" role="navigation" aria-label="Header actions">
         <a class="header-contact" href="tel:+63832286095">(083) 228 - 6095</a>
         <a class="header-contact" href="mailto:info.koronadalcity@gmail.com">info.koronadalcity@gmail.com</a>
-        <a href="/login.html" class="btn-ghost">Login</a>
-        <a href="/signup.html" class="btn-solid">Sign up</a>
+        <a href="/login.html" class="btn-ghost" title="Login">Login</a>
+        <a href="/signup.html" class="btn-solid" title="Sign up">Sign up</a>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main class="page-wrap">
-    <section class="card">
-      <h1>About IskolarLink</h1>
-      <p><strong>IskolarLink</strong> is a scholarship management and communication system for the <strong>Iskolar ng Koronadal – Kabugwason Paglaum Program</strong>.</p>
+  <!-- MAIN (About content) -->
+  <main class="page-wrap" role="main">
+    <section class="card" aria-labelledby="aboutTitle">
+      <h1 id="aboutTitle">About IskolarLink</h1>
+
+      <p><strong>IskolarLink</strong> is a scholarship management and communication system for the <strong>Iskolar ng Koronadal – Kabugwason Paglaum Program</strong>. This public page provides information about the system, how to apply, and where to find announcements and events.</p>
 
       <h3 style="color:var(--maroon)">Core Features</h3>
       <ul>
         <li>Publish announcements & events</li>
-        <li>Provide application requirements</li>
+        <li>Provide application requirements and guidance</li>
         <li>Allow scholars to sign up and upload documents</li>
         <li>Notify scholars about tasks and deadlines</li>
       </ul>
 
       <h3 style="color:var(--maroon)">How to Apply</h3>
-      <p>Review the <a href="/public/visitorRequirements.html">Application Requirements</a>, then create an account using Sign up.</p>
+      <p>Review the <a href="/public/visitorRequirements.html">Application Requirements</a>, then create an account using the Sign up link. After your account is created, follow the scholar portal to submit documents.</p>
 
       <a href="/public/visitorHome.html" style="color:var(--maroon);font-weight:700;text-decoration:none;">← Back to Home</a>
     </section>
@@ -117,28 +195,44 @@
     <div class="two-col" style="margin-top:18px">
       <section class="card">
         <h3 style="color:var(--maroon); margin-top:0;">Additional Info</h3>
-        <p>If you need help with applications or the site, contact the admin.</p>
+        <p style="color:#333; line-height:1.5;">If you need help with applications or the site, contact the admin using the Contact link in the menu.</p>
       </section>
 
       <aside class="card">
         <h3 style="color:var(--maroon); margin-top:0;">Contact Us</h3>
-        <div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
           <div style="background:#fff;padding:10px;border-radius:8px;border:1px solid #eee;">
-            <strong>Public Admin</strong><br>
-            Phone: +63 912 345 6789<br>
-            Email: <a href="mailto:admin@iskolarlink.edu.ph">admin@iskolarlink.edu.ph</a>
+            <strong>Public Admin</strong><br/>Phone: +63 912 345 6789<br/>Email: <a href="mailto:admin@iskolarlink.edu.ph">admin@iskolarlink.edu.ph</a>
           </div>
         </div>
       </aside>
     </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
+  <!-- GLOBAL FOOTER -->
+  <footer class="site-footer" role="contentinfo">
     <div class="footer-wrap">
       <img src="/assets/footer.png" alt="Footer Graphic">
     </div>
   </footer>
 
+  <!-- modal helper (copied) -->
+  <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center" aria-hidden="true">
+    <div style="background:#fff;padding:18px;border-radius:10px;max-width:520px;width:94%">
+      <div id="modalBody"></div>
+      <div style="text-align:right;margin-top:10px"><button id="modalClose" style="padding:8px 10px;border:none;background:var(--maroon);color:#fff;border-radius:6px">Close</button></div>
+    </div>
+  </div>
+
+  <script>
+    // modal and safe helper (same as visitorHome)
+    (function(){
+      const modal = document.getElementById('modal');
+      const modalBody = document.getElementById('modalBody');
+      const modalClose = document.getElementById('modalClose');
+      if(modalClose) modalClose.addEventListener('click', ()=> modal.style.display='none');
+      window.showModal = (html)=>{ modalBody.innerHTML = html; modal.style.display = 'flex'; };
+    })();
+  </script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -9,7 +8,6 @@
   <link rel="stylesheet" href="/assets/css/style.css">
 
   <style>
-    /* (styles preserved exactly, but nav-related CSS no longer used) */
     :root{
       --gold:#D4A017;
       --maroon:#800000;
@@ -33,11 +31,25 @@
       color:#222;
     }
 
-    /* Removed NAV, but header layout is still referenced — safe to keep */
-    /* You may remove header styles if no longer needed */
+    /* header (from visitorHome.html) */
+    .site-header { background: var(--maroon); border-bottom:2px solid var(--maroon-dark); }
+    .header-wrap{ max-width:var(--maxw); margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:12px; }
+    .header-logo{ width:56px; height:56px; background-repeat:no-repeat; background-position:center; background-size:contain; display:block; }
+    .logo-city{ background-image:url('/assets/citylogo.png'); }
+    .logo-isko{ background-image:url('/assets/iskologo.png'); }
+    .brand-block{ color:#fff; display:flex; flex-direction:column; gap:2px; }
+    .brand-title{ font-weight:800; font-size:18px; letter-spacing:0.02em; }
+    .brand-sub{ font-size:12px; opacity:0.95; }
 
+    .header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    .header-contact { color:#fff; text-decoration:none; font-weight:600; font-size:13px; opacity:0.95; }
+    .btn-ghost { background:transparent; border:1px solid rgba(255,255,255,0.18); color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
+    .btn-solid { background:var(--gold); color:#000; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:800; border:1px solid rgba(0,0,0,0.08); }
+
+    /* main stretches so footer pins to bottom */
     main.page-wrap{ max-width:var(--maxw); margin:26px auto; padding:18px; width:calc(100% - 36px); flex:1; }
 
+    /* layout */
     .top-controls{ display:flex; gap:12px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
     .search-input{ flex:1; min-width:220px; padding:10px 12px; border-radius:8px; border:1px solid #ddd; background:var(--glass); }
     .select { padding:10px 12px; border-radius:8px; border:1px solid #ddd; background:var(--glass); }
@@ -72,8 +84,10 @@
 
     .card-actions{ display:flex; gap:8px; align-items:center; margin-top:8px; }
 
+    /* empty / loading states */
     .muted{ color:var(--muted); }
 
+    /* modal */
     .modal{
       display:none;
       position:fixed;
@@ -96,11 +110,13 @@
     }
     .modal-close{ float:right; background:none;border:none;font-size:20px;font-weight:800;color:#333; cursor:pointer; }
 
+    /* ========= FOOTER (GLOBAL FOOTER) ========= */
     .site-footer{
       background:#fff;
       border-top:1px solid #000;
       outline:1px solid #000;
       outline-offset:-1px;
+      /* ensure footer hugs bottom when page short */
       margin-top: auto;
     }
     .footer-wrap{
@@ -116,20 +132,113 @@
       width:auto;
       display:block;
     }
+
+    /* slide nav (copied from visitorHome.html) */
+    .nav-root { position:relative; }
+    .nav-root input[type="checkbox"] { display:none; visibility:hidden; }
+    .toggle {
+      position: absolute;
+      height: 40px;
+      width: 40px;
+      top: 12px;
+      left: 12px;
+      z-index: 2000;
+      cursor: pointer;
+      border-radius: 6px;
+      background-color: rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .slide {
+      height: 100%;
+      width: 260px;
+      position: fixed;
+      background-color: #fff;
+      transition: 0.28s ease;
+      transform: translateX(-280px);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    input[type="checkbox"]:checked ~ .slide { transform: translateX(0); }
+    .slide .image { text-align:center; padding:18px 0 8px; }
+    .slide .image img { max-width:120px; height:auto; display:block; margin:0 auto; }
+    .slide ul { list-style:none; padding:6px 8px; margin:0; overflow:auto; flex:1; }
+    .slide ul li { margin:6px 0; }
+    .slide ul li a { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#222; text-decoration:none; font-weight:600; }
+    .slide ul li a:hover { background:var(--maroon); color:#fff; }
+    .profile-box { padding:12px; border-top:1px solid #eee; display:flex; align-items:center; gap:10px; }
+    .profile-box img { width:48px; height:48px; border-radius:50%; object-fit:cover; }
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1400; transition:opacity .28s ease; opacity:0; pointer-events:none; }
+    input[type="checkbox"]:checked ~ .overlay { display:block; opacity:1; pointer-events:auto; }
+
+    @media (max-width:920px){
+      main.page-wrap{ padding:14px; }
+      .announcements-grid{ grid-template-columns:1fr; }
+      .toggle{ left:10px; top:10px; }
+      .slide{ width:100%; transform:translateX(-100%); }
+      input[type="checkbox"]:checked ~ .slide { transform: translateX(0); }
+    }
   </style>
 </head>
-
 <body>
-  <!-- ❌ NAV REMOVED (nav-root + slide nav + toggle) -->
-  <!-- ❌ HEADER REMOVED -->
+  <!-- checkbox nav root (same style as visitorHome) -->
+  <div class="nav-root">
+    <input id="navToggle" type="checkbox" aria-hidden="true">
+    <label for="navToggle" class="toggle" aria-label="Open menu" title="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+        <path d="M3 7h18M3 12h18M3 17h18"></path>
+      </svg>
+    </label>
 
+    <nav class="slide" aria-hidden="true" aria-label="Site navigation">
+      <div class="image">
+        <img src="/assets/iskolarlink.png" alt="IskolarLink">
+      </div>
+
+      <ul>
+        <!-- Non-SPA links: point to separate pages -->
+        <li><a href="/public/visitorHome.html">Home</a></li>
+        <li><a href="/public/visitorAbout.html">About Us</a></li>
+        <li><a href="/public/visitorBoard.html">Meet the Scholarship Board</a></li>
+        <li><a href="/public/visitorRequirements.html">Application Requirements</a></li>
+        <li><a href="/public/visitorAnnounce.html">Announcements</a></li>
+        <li><a href="/public/visitorEvents.html">Events</a></li>
+        <li><a href="/public/visitorContact.html">Contact Us</a></li>
+      </ul>
+    </nav>
+
+    <label for="navToggle" class="overlay" aria-hidden="true"></label>
+  </div>
+
+  <!-- HEADER (copied from visitorHome.html) -->
+  <header class="site-header" role="banner" style="position:relative; z-index:1200">
+    <div class="header-wrap">
+      <a class="header-logo logo-city" href="https://koronadal.gov.ph" target="_blank" aria-label="City of Koronadal"></a>
+      <div class="brand-block" aria-hidden="true">
+        <div class="brand-title">CITY OF KORONADAL</div>
+        <div class="brand-sub">Iskolar ng Koronadal - Kabugwason Paglaum Program</div>
+      </div>
+      <a class="header-logo logo-isko" href="https://www.facebook.com/profile.php?id=100093335296692" target="_blank" aria-label="Isko Facebook"></a>
+
+      <div class="header-right" role="navigation" aria-label="Header actions">
+        <a class="header-contact" href="tel:+63832286095">(083) 228 - 6095</a>
+        <a class="header-contact" href="mailto:info.koronadalcity@gmail.com">info.koronadalcity@gmail.com</a>
+        <a href="/login.html" class="btn-ghost" title="Login">Login</a>
+        <a href="/signup.html" class="btn-solid" title="Sign up">Sign up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
   <main class="page-wrap" role="main">
     <div class="container-card">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <h1 style="margin:0;color:var(--maroon)">Announcements</h1>
 
         <div class="top-controls" style="flex:1;max-width:760px;margin-left:12px">
-          <input id="q" class="search-input" type="search" placeholder="Search announcements..." aria-label="Search announcements">
+          <input id="q" class="search-input" type="search" placeholder="Search announcements (title, content)..." aria-label="Search announcements">
           <select id="categoryFilter" class="select" aria-label="Filter by category">
             <option value="">All categories</option>
           </select>
@@ -137,7 +246,7 @@
         </div>
       </div>
 
-      <p style="margin:10px 0 0;color:var(--muted)">This public page shows all announcements published by the scholarship program.</p>
+      <p style="margin:10px 0 0;color:var(--muted)">This public page shows all announcements published by the scholarship program. If an announcement is restricted to scholars, it will still appear here until you change visibility on the admin panel.</p>
 
       <div id="announcementsGrid" class="announcements-grid" aria-live="polite" style="margin-top:14px">
         <div class="muted">Loading announcements…</div>
@@ -149,13 +258,14 @@
     </div>
   </main>
 
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-wrap">
       <img src="/assets/footer.png" alt="Footer Graphic">
     </div>
   </footer>
 
-  <!-- Modal (unchanged) -->
+  <!-- Announcement modal (read full) -->
   <div id="annModal" class="modal" aria-hidden="true">
     <div class="modal-inner" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
@@ -165,8 +275,7 @@
     </div>
   </div>
 
-  <!-- JS (unchanged) -->
-    <script>
+  <script>
     // Utilities
     function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     function niceDate(d){ try{ return new Date(d).toLocaleString(undefined,{ weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' }); }catch(e){ return String(d); } }

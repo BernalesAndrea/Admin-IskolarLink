@@ -93,6 +93,34 @@
       display:block;
     }
 
+    /* slide nav (copied pattern) */
+    .nav-root { position:relative; }
+    .nav-root input[type="checkbox"] { display:none; visibility:hidden; }
+    .toggle {
+      position: absolute;
+      height: 40px;
+      width: 40px;
+      top: 12px;
+      left: 12px;
+      z-index: 2000;
+      cursor: pointer;
+      border-radius: 6px;
+      background-color: rgba(255,255,255,0.05);
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .slide {
+      height: 100%;
+      width: 260px;
+      position: fixed;
+      background-color: #fff;
+      transition: 0.28s ease;
+      transform: translateX(-280px);
+      z-index: 1500;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
     input[type="checkbox"]:checked ~ .slide { transform: translateX(0); }
     .slide .image { text-align:center; padding:18px 0 8px; }
     .slide .image img { max-width:120px; height:auto; display:block; margin:0 auto; }
@@ -115,6 +143,34 @@
   </style>
 </head>
 <body>
+  <!-- nav-root checkbox (consistent with other pages) -->
+  <div class="nav-root">
+    <input id="navToggle" type="checkbox" aria-hidden="true">
+    <label for="navToggle" class="toggle" aria-label="Open menu" title="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round">
+        <path d="M3 7h18M3 12h18M3 17h18"></path>
+      </svg>
+    </label>
+
+    <nav class="slide" aria-hidden="true" aria-label="Site navigation">
+      <div class="image">
+        <img src="/assets/iskolarlink.png" alt="IskolarLink">
+      </div>
+
+      <ul>
+        <!-- Non-SPA links: point to separate pages -->
+        <li><a href="/public/visitorHome.html">Home</a></li>
+        <li><a href="/public/visitorAbout.html">About Us</a></li>
+        <li><a href="/public/visitorBoard.html">Meet the Scholarship Board</a></li>
+        <li><a href="/public/visitorRequirements.html">Application Requirements</a></li>
+        <li><a href="/public/visitorAnnounce.html">Announcements</a></li>
+        <li><a href="/public/visitorEvents.html">Events</a></li>
+        <li><a href="/public/visitorContact.html">Contact Us</a></li>
+      </ul>
+    </nav>
+
+    <label for="navToggle" class="overlay" aria-hidden="true"></label>
+  </div>
 
   <!-- HEADER -->
   <header class="site-header" role="banner" style="position:relative; z-index:1200">

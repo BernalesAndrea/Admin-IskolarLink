@@ -318,8 +318,6 @@
   </div>
 
 <script>
-
-  
   // Load visitor page into content (robust DOMParser-based loader)
   (async function loadVisitor() {
     const contentEl = document.getElementById('content');
@@ -485,9 +483,6 @@
       try { splash.style.display='none'; }catch(e){}
       const content = document.getElementById('content');
       if(content) content.style.opacity='1';
-
-      // *** ADDED: redirect to publicNav after splash ***
-      window.location.href = "/public/publicNav.html";  // adjust path if needed
     }, 520);
   }
 
