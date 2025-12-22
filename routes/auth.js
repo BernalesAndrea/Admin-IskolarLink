@@ -148,7 +148,7 @@ router.post("/logout", (req, res) => {
   const base = { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" };
   res.clearCookie("scholarToken", base);
   res.clearCookie("adminToken", base);
-  return res.json({ msg: "Logged out successfully", redirect: "/" });
+  return res.json({ msg: "Logged out successfully", redirect: "/login.html" });
 });
 
 module.exports = router;
