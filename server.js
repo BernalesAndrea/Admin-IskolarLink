@@ -71,8 +71,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(express.static("publicPage"));
-
 /* ============= MIDDLEWARE ============= */
 function authMiddleware(req, res, next) {
 
@@ -125,19 +123,18 @@ app.use("/auth", authRoutes);
 
 
 
+// ✅ Force root ("/") to always load login.html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
 // ✅ Serve static files (CSS, JS, images, etc.)
 // ✅ Keep only public folders
 app.use('/assets',      express.static(path.join(__dirname, 'assets')));
 app.use('/adminPage',   express.static(path.join(__dirname, 'adminPage')));
 app.use('/scholarPage', express.static(path.join(__dirname, 'scholarPage')));
 
-app.get("/login.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "login.html"));
-});
-
-app.get("/signup.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "signup.html"));
-});
+app.get('/', (req,res)=>res.sendFile(path.join(__dirname, 'login.html')));
 app.get('/signup.html', (req,res)=>res.sendFile(path.join(__dirname, 'signup.html'))); 
 app.get('/forgot.html', (req, res) => res.sendFile(path.join(__dirname, 'forgot.html')));
 
@@ -1381,6 +1378,21 @@ app.get("/events/:eventId/attendance", async (req, res) => {
     res.status(500).json({ msg: "Error fetching attendance", error: err.message });
   }
 });
+
+
+
+// // --- API: Create Task
+// app.post('/api/tasks', authMiddleware, async (req, res) => {
+//   if (req.user.role !== "admin") return res.status(403).json({ msg: "Access denied" });
+//   const newTask = await Task.create(req.body);
+//   res.status(201).json({ message: 'Task saved', task: newTask });
+// });
+
+// // --- API: Get Tasks
+// app.get('/api/tasks', async (req, res) => {
+//   const tasks = await Task.find().sort({ startDate: 1 });
+//   res.json(tasks);
+// });
 
 // --- API: Create Announcement
 app.post("/announcements", async (req, res) => {
